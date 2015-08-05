@@ -4,19 +4,28 @@
 import numpy as np
 import random
 
+
+
 class BayesionRegression(object):
+    '''
+    Bayesian Regression with type maximum likelihood for determining point es
+    '''
     
     def __init__(self,X,Y,alpha_beta = None):
         self.X        =  X
         self.Y        =  Y
 
-        
-        
+
     def _weights_posterior_params(self,alpha,beta):
         '''
-        Calculates parameters of posterior distribution of weights. Since it is 
-        assumed prior is Gaussian with precision alpha then posterior of weights
-        is also Gaussian
+        Calculates parameters of posterior distribution of weights after data was 
+        observed.
+        
+        # Small Theory note:
+        ---------------------
+        Multiplying likelihood of data on prior of weights we obtain distribution 
+        proportional to posterior of weights. By completing square in exponent it 
+        is easy to prove that posterior distribution is Gaussian.
         
         Parameters:
         -----------
@@ -35,10 +44,16 @@ class BayesionRegression(object):
            Gaussian distribution
            
         '''
-        X_t       = self.X.T
-        precision = beta*np.dot(X_t,self.X)+alpha
-        mu        = beta*np.linalg.solve(precision,np.dot(X_t,self.Y))
-        return [mu,precision]
+        precision             = beta*np.dot(self.X.T,self.X)+alpha
+        
+        # use svd decomposition for fast solution
+        # posterior_mean = ridge_solution = V*(D/(D**2 + alpha/beta))*U.T*Y
+        self.u,self.d,self.v  = np.linalg.svd(X)
+        self.diag             = self.d/(self.d**2 + alpha/beta)
+        p1                    = np.dot(self.v,np.diag(self.diag))
+        p2                    = np.dot(u.T,self.Y)
+        w_mu                  = np.dot(p1,p2)
+        return [w_mu,precision]
         
         
     def _pred_dist_params(self,alpha,beta,x):
@@ -60,19 +75,14 @@ class BayesionRegression(object):
         Returns:
         ---------
         
-        :list of two numpy arrays
-            Parameters of univariate gaussian distribution [mean and variance]
+        :list of two numpy arrays (each has size 'unknown x 1')
+            Parameters of univariate gaussian distribution [mean and variance] 
         
         '''
         mu,precision =  self._coef_posterior(alpha,beta)
-        
-        # precision is Positiove Definite (due to + alpha*I term), so there
-        # is no numerical issue inverting precision matrix even in presence
-        # of multicollinearity in design matrix
-        S            =  np.linalg.inv(precision)
         mu_pred      =  np.dot(x,mu)
-        var          =  lambda v: np.dot(np.dot(S,v),v)
-        sigma_pred   =  1.0/beta + np.sum([var(u) for u in x])
+        S            =  np.dot(np.dot(self.v.T,np.diag(self.diag)),self.v) / beta
+        var          =  np.array([1.0/beta + np.dot(u,S.dot(u)) for u in x])
         return [mu_pred,sigma_pred]
         
         
@@ -88,9 +98,6 @@ class BayesionRegression(object):
         max_iter: int
             Maximum number of iteration for EM algorithm
             
-        
-        
-        
         '''
         
         # number of observations and number of paramters
