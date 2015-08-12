@@ -127,44 +127,14 @@ class BayesianRegression(object):
         S            =  np.dot( np.dot(self.v.T, np.diag(d) ) , self.v)
         var_pred     =  np.array([(1 + np.dot(u,S.dot(u)))/beta for u in x])
         return [mu_pred,var_pred]
+
         
-        
-    def _em_evidence_approx(self, max_iter = 20):
+    def _evidence_approx(self,max_iter = 100,method = "EM"):
         '''
-        Performs evidence approximation using EM algorithm to find parameters
-        alpha and beta in case they are not given. Maximizes type II maximum
-        likelihood
-        
-        Parameters:
-        -----------
-        
-        max_iter: int
-            Maximum number of iteration for EM algorithm
-            
-        '''
-        
-        # number of observations and number of paramters
-        n,m   = np.shape(self.X)
-        
-        # initial values of alpha and beta ( can be considered as initial E-step)
-        alpha, beta = np.random.random(2)
-        
-        for i in range(max_iter):
-            
-            # M-step, find mean vector and precision matrix for posterior 
-            # distribution of weights    
-            mu, L = self._weights_posterior_params(alpha,beta)
-             
-            # E-step, find paramters alpha and beta that determine posterior 
-            # distribution of weights (given mean vector and precision matrix)
-            pass
-            
-            
-    def _fixed_point_evidence_approx(self,max_iter):
-        '''
-        Performs evidence approximation using fixed point algorithm, finds precision 
-        parameters that maximize type II likelihood. Empirical evidence show that this 
-        method is faster than EM.
+        Performs evidence approximation , finds precision  parameters that maximize 
+        type II likelihood. There are two different fitting algorithms, namely EM
+        and fixed-point algorithm, empirical evidence shows that fixed-point algorithm
+        is faster than EM
         
         Parameters:
         -----------
@@ -172,7 +142,11 @@ class BayesianRegression(object):
         max_iter: int
               Maximum number of iterations
         
+        method: str
+              Can have only two values : "EM" or "fixed-point"
+        
         '''
+        
         # number of observations and number of paramters in model
         n,m         = np.shape(self.X)
         
@@ -183,44 +157,51 @@ class BayesianRegression(object):
         log_likes   = []
         
         for i in range(max_iter):
-            # find mean for posterior of w and gamma*
+            
+            # find mean for posterior of w ( for EM this is E-step)
             d       =  self.d**2
-            gamma   =  np.sum(beta*d/(beta*d + alpha))
             p1_mu   =  np.dot(self.v.T, np.diag(self.d/(d+alpha/beta)))
             p2_mu   =  np.dot(self.u.T,Y)
             mu      =  np.dot(p1_mu,p2_mu)
             
-            
-            # use updated mu and gamma parameters to update alpha and beta
-            alpha      =  gamma/np.dot(mu,mu)
-            error      =  self.Y - np.dot(self.X,mu)
-            beta       =  (n - gamma)/np.dot(error,error)
-            
-            # calculate log likelihood p(t | alpha, beta) (constants are not included)
+            if method == "fixed-point":
+     
+                # update gamma
+                gamma   =  np.sum(beta*d/(beta*d + alpha))
+               
+                # use updated mu and gamma parameters to update alpha and beta
+                alpha      =  gamma/np.dot(mu,mu)
+                error      =  self.Y - np.dot(self.X,mu)
+                beta       =  (n - gamma)/np.dot(error,error)
+               
+            elif method == "EM":
+                
+                # M-step, update parameters alpha and beta
+                alpha      = m / (np.dot(mu,mu) + np.sum(1/(beta*d+alpha)))
+                err        = Y - np.dot(self.X,mu)
+                beta       = n / ( np.dot(err,err) + np.sum(d/(beta*d + alpha)))
+                
+            # calculate log likelihood p(Y | X, alpha, beta) (constants are not included)
             normaliser =  m/2*np.log(alpha) + n/2*np.log(beta) - 1/2*np.sum(np.log(beta*d+alpha))
             log_like   =  normaliser - alpha/2*np.dot(mu,mu) - beta/2*np.dot(error,error)            
             log_likes.append(log_like)
-            # if change in log-likelihood is small terminate iterations
-            if i >=1:
-                delta_log_like = log_likes[-1] - log_likes[-2]
-                if delta_log_like < self.thresh:
-                    break
-                
-
-        print log_likes
-        self.alpha = alpha
-        self.beta  = beta
             
+            # if change in log-likelihood is smaller than threshold stop iterations
+            if i >=1:
+                if log_likes[-1] - log_likes[-2] < self.thresh:
+                    break
+        
+        # write alpha* and beta* to instance variables
+        self.alpha = alpha
+        self.beta  = beta 
+                
             
     def fit(self, evidence_approx_method="fixed_point",iterations = 100):
         '''
         Fits Bayesian linear regression
         '''
         # use type II maximum likelihood to find hyperparameters alpha and beta
-        if evidence_approx_method == "fixed_point":
-            self._fixed_point_evidence_approx(max_iter = iterations)
-        elif evidence_approx_method == "EM":
-            self._em_evidence_approx(max_iter = iterations)
+        self._fixed_point_evidence_approx(max_iter = iterations, method = evidence_approx_method)
 
         # find parameters of posterior distribution
         self.w_mu, self.w_beta = self._weights_posterior_params(self.alpha,self.beta)
