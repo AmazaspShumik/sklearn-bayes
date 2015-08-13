@@ -18,8 +18,12 @@ classdef BayesianRegression
         
         % method for evidence approximation
         evid_approx_method
+        
         % maximum number of iterations
         max_iter
+        
+        % vector of log - likelihoods ( with exclusion of constants)
+        log
         
     end
     
@@ -61,25 +65,48 @@ classdef BayesianRegression
             % initialise alpha and beta
             alpha = rand(); beta = rand();
             
+            % save squared diagonal ( no need to calculate this at each
+            % iteration)
+            dsq   = diag(obj.D).^2
+            
             % Iterations of maximising algorithm
             for i = 1:obj.max_iter
                 
-                % find mean of posterior distribution
-                S     = diag(diag(obj.D)/(diag(obj.D).^2 + alpha/beta));
+                % find mean of posterior distribution (correposnds to
+                % E-step in EM method for evidence approximation)                
+                S     = diag(diag(obj.D)/(dsq + alpha/beta));
                 mu    = obj.V' * S * obj.U' * obj.Y;
+                
                 % residuals
-                error = obj.Y - obj.X*mu
+                error  = obj.Y - obj.X*mu;
+                sqdErr = error'*error 
                 
                 if strcmp(obj.evid_approx_method,'fixed-point')
                     
                     % update gamma
+                    gamma  = sum( beta*dsq/( beta * dsq + alpha) );
+                    
+                    % update alpha & beta
+                    alpha  = gamma/(mu'*mu);
+                    beta   = (N - gamma)/ sqdErr;
                     
                 elseif strcomp(obj.evid_approx_method,'EM')
                     
+                    % M-step, updates alpha and beta
+                    alpha  = obj.m / ( mu'*mu + sum(1/(beta*dsq + alpha)));
+                    beta   = obj.n / ( sqdErr + sum(dsq/(beta*dsq + alpha)));
                         
                 end
                 
-                
+                % calculates log-likelihood (excluding constants that do
+                % not affect change in log-likelihood)
+                norm      = obj.m/2*log(alpha) + obj.n/2*log(beta) - 1/2*sum(log(beta*dsq+alpha));
+                loglike   = norm - alpha/2*(mu'*mu) - beta/2*sqdErr;
+                log_likes = [log_likes,loglike];
+                if i >= 2
+                    if log
+                        
+                return [alpha,beta]
             end
             
             
