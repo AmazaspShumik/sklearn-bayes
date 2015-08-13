@@ -27,8 +27,10 @@ class BayesianRegression(object):
     def __init__(self,X,Y, thresh = 1e-5):
         
         # center input data for simplicity of further computations
-        self.X,self.mu_X       =  self._center(X)
-        self.Y,self.mu_Y       =  self._center(Y)
+        self.mu_X              =  np.mean(X,axis = 0)
+        self.X                 =  X - np.outer(self.mu_X, np.ones(X.shape[0])).T
+        self.mu_Y              =  np.mean(Y)
+        self.Y                 =  Y - np.mean(Y)
         self.thresh            =  thresh
         
         # to speed all further computations save svd decomposition and reuse it later
@@ -41,19 +43,6 @@ class BayesianRegression(object):
         # mean and precision of posterior distribution of weights
         self.w_mu              = 0
         self.w_beta            = 0
-        
-    @staticmethod
-    def _center(x):
-        '''
-        Centers data by removing mean, this simplifies further computation
-        '''
-        if len(x.shape) > 1:
-            mu     = np.mean(x, axis = 0)
-            return [x - mu,mu]
-        else:
-            mu     = np.mean(x)
-            return [x - np.mean(x),mu]
-
 
 
     def _weights_posterior_params(self,alpha,beta):
@@ -155,35 +144,42 @@ class BayesianRegression(object):
         
         # store log likelihood at each iteration
         log_likes   = []
+        dsq         =  self.d**2
+
         
         for i in range(max_iter):
             
             # find mean for posterior of w ( for EM this is E-step)
-            d       =  self.d**2
-            p1_mu   =  np.dot(self.v.T, np.diag(self.d/(d+alpha/beta)))
+            p1_mu   =  np.dot(self.v.T, np.diag(self.d/(dsq+alpha/beta)))
             p2_mu   =  np.dot(self.u.T,Y)
             mu      =  np.dot(p1_mu,p2_mu)
+            
+            # precompute errors, since both methods use it in estimation
+            error   = self.Y - np.dot(self.X,mu)
+            sqdErr  = np.dot(error,error)
             
             if method == "fixed-point":
      
                 # update gamma
-                gamma   =  np.sum(beta*d/(beta*d + alpha))
+                gamma      =  np.sum(beta*dsq/(beta*dsq + alpha))
                
                 # use updated mu and gamma parameters to update alpha and beta
                 alpha      =  gamma/np.dot(mu,mu)
-                error      =  self.Y - np.dot(self.X,mu)
-                beta       =  (n - gamma)/np.dot(error,error)
+                beta       =  (n - gamma)/sqdErr
                
             elif method == "EM":
                 
                 # M-step, update parameters alpha and beta
-                alpha      = m / (np.dot(mu,mu) + np.sum(1/(beta*d+alpha)))
-                err        = Y - np.dot(self.X,mu)
-                beta       = n / ( np.dot(err,err) + np.sum(d/(beta*d + alpha)))
+                alpha      = m / (np.dot(mu,mu) + np.sum(1/(beta*dsq+alpha)))
+                beta       = n / ( sqdErr + np.sum(dsq/(beta*dsq + alpha)))
+            
+            else:
+                raise ValueError("Only 'EM' and 'fixed-point' algorithms are implemented ")
+            
                 
             # calculate log likelihood p(Y | X, alpha, beta) (constants are not included)
-            normaliser =  m/2*np.log(alpha) + n/2*np.log(beta) - 1/2*np.sum(np.log(beta*d+alpha))
-            log_like   =  normaliser - alpha/2*np.dot(mu,mu) - beta/2*np.dot(error,error)            
+            normaliser =  m/2*np.log(alpha) + n/2*np.log(beta) - 1/2*np.sum(np.log(beta*dsq+alpha))
+            log_like   =  normaliser - alpha/2*np.dot(mu,mu) - beta/2*sqdErr           
             log_likes.append(log_like)
             
             # if change in log-likelihood is smaller than threshold stop iterations
@@ -191,33 +187,62 @@ class BayesianRegression(object):
                 if log_likes[-1] - log_likes[-2] < self.thresh:
                     break
         
-        # write alpha* and beta* to instance variables
+        # write optimal alpha and beta to instance variables
         self.alpha = alpha
         self.beta  = beta 
                 
             
-    def fit(self, evidence_approx_method="fixed_point",iterations = 100):
+    def fit(self, evidence_approx_method="fixed-point",max_iter = 100):
         '''
         Fits Bayesian linear regression
+        
+        Parameters:
+        -----------
+        
+        max_iter: int
+            Number of maximum iterations
+            
+        evidence_approx_method: str
+            Method for approximating evidence
+        
         '''
         # use type II maximum likelihood to find hyperparameters alpha and beta
-        self._fixed_point_evidence_approx(max_iter = iterations, method = evidence_approx_method)
+        self._evidence_approx(max_iter = max_iter, method = evidence_approx_method)
 
         # find parameters of posterior distribution
         self.w_mu, self.w_beta = self._weights_posterior_params(self.alpha,self.beta)
         
+        print self.w_mu
+        print self.w_beta
+        
             
-    def predict(self,X, Y = None):
+    def predict(self,X ,Y = None):
+        '''
+        Calculates parameters of predictive distibution. If Y is None, then 
+        returns mean of predictive distribution, if Y is vector then returns 
+        probability of observing vector Y.
+        
+        Parameters:
+        -----------
+        
+        X: numpy array of size 'unknown x m'
+           Explanatory variables (that needs to be predicted)
+           
+        Y: either None or numpy array of size 'unknown x 1'
+           Dependent variable 
+           
+        Returns:
+        --------
+         
+        : numpy array of size 'unknown x 1'
+        If Y is None , then returns mean of predictive distribution, if Y is vector
+        of floats, then returns probability of observing Y under assumption of 
+        predictive distribution
+        '''
         # find parameters of predictive distribution
         mu,var = self._pred_dist_params(self.alpha,self.beta,X,self.w_mu,self.w_beta)
         return mu,var
-    
-    def predict_mean(self,X):
-        '''
-        Returns mean of predictive distribution
-        
-        Para
-        '''
+
         
     
 if __name__=="__main__":
