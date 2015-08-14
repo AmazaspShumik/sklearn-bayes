@@ -5,7 +5,7 @@ import numpy as np
 
 class BayesianRegression(object):
     '''
-    Bayesian Regression with type maximum likelihood for determining point estimates
+    Bayesian Regression with type II maximum likelihood for determining point estimates
     for precision variables alpha and beta, where alpha is precision of prior of weights
     and beta is precision of likelihood
     
@@ -48,8 +48,8 @@ class BayesianRegression(object):
 
     def _weights_posterior_params(self,alpha,beta):
         '''
-        Calculates parameters of posterior distribution of weights after data was 
-        observed. Uses svd for fast calculaltions.
+        Calculates parameters of posterior distribution of weights.
+        Uses economy svd for fast calculaltions.
         
         # Small Theory note:
         ---------------------
