@@ -59,10 +59,10 @@ classdef BayesianRegression
             % Fits Bayesian Linear Regression with evidence approximation
             
             % find point estimates for alpha and beta using evidence approximation
-            [alpha,beta]        = obj.evidenceApproximation()
+            [alpha,beta]        = obj.evidenceApproximation();
             
             % Finds parameters of posterior distribution of weights
-            [w_mu, w_precision] = obj.posteriorDistParams()
+            [w_mu, w_precision] = obj.posteriorDistParams(alpha,beta)
         end
         
         function [prediction] = predict()
@@ -149,12 +149,10 @@ classdef BayesianRegression
         %             S:  matrix of size [obj.m x obj.m], posterior
         %                 precision
         %   
-             mu = (obj.V'*
-             S  = beta*obj.X'*obj.X + alpha
-            
+             dsq = diag(obj.D).^2;
+             mu  = diag(obj.D)/(dsq + alpha/beta);
+             S   = beta*obj.X'*obj.X + alpha;
         end
-        
-        
     end
     
 end
