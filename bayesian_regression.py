@@ -24,7 +24,7 @@ class BayesianRegression(object):
        
     '''
     
-    def __init__(self,X,Y, thresh = 1e-5):
+    def __init__(self,X,Y, bias_term = False, thresh = 1e-5):
         
         # center input data for simplicity of further computations
         self.mu_X              =  np.mean(X,axis = 0)
@@ -32,6 +32,8 @@ class BayesianRegression(object):
         self.mu_Y              =  np.mean(Y)
         self.Y                 =  Y - np.mean(Y)
         self.thresh            =  thresh
+        if bias_term is True:
+            self.bias_term     =  self.mu_Y
         
         # to speed all further computations save svd decomposition and reuse it later
         self.u,self.d,self.v   =  np.linalg.svd(self.X, full_matrices = False)
@@ -111,7 +113,8 @@ class BayesianRegression(object):
             Parameters of univariate gaussian distribution [mean and variance] 
         
         '''
-        mu_pred      =  np.dot(x,w_mu)
+        x            =  x - self.mu_X
+        mu_pred      =  np.dot(x,w_mu) + self.mu_Y
         d            =  1/(self.d**2 + alpha/beta)
         S            =  np.dot( np.dot(self.v.T, np.diag(d) ) , self.v)
         var_pred     =  np.array([(1 + np.dot(u,S.dot(u)))/beta for u in x])
@@ -239,7 +242,8 @@ class BayesianRegression(object):
         of floats, then returns probability of observing Y under assumption of 
         predictive distribution
         '''
-        # find parameters of predictive distribution
+        
+        # find parameters of predictive distribution for each point in test set
         mu,var = self._pred_dist_params(self.alpha,self.beta,X,self.w_mu,self.w_beta)
         return mu,var
 
