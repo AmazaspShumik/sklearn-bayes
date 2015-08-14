@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy.stats import multivariate_normal as mvn
 
 
 class BayesianRegression(object):
@@ -214,11 +213,8 @@ class BayesianRegression(object):
 
         # find parameters of posterior distribution
         self.w_mu, self.w_beta = self._weights_posterior_params(self.alpha,self.beta)
-        
-        print self.w_mu
-        print self.w_beta
-        
-            
+
+
     def predict(self,X ,Y = None):
         '''
         Calculates parameters of predictive distibution. If Y is None, then 
@@ -242,7 +238,6 @@ class BayesianRegression(object):
         of floats, then returns probability of observing Y under assumption of 
         predictive distribution
         '''
-        
         # find parameters of predictive distribution for each point in test set
         mu,var = self._pred_dist_params(self.alpha,self.beta,X,self.w_mu,self.w_beta)
         return mu,var
