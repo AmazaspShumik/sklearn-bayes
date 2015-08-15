@@ -23,7 +23,7 @@ class BayesianRegression(object):
        
     '''
     
-    def __init__(self,X,Y, bias_term = None, thresh = 1e-5):
+    def __init__(self,X,Y, bias_term = False, thresh = 1e-5):
         
         # center input data for simplicity of further computations
         self.mu_X              =  np.mean(X,axis = 0)
@@ -173,8 +173,11 @@ class BayesianRegression(object):
         Returns:
         --------
         
-        
-        
+        parameters: dictionary 
+                    - parameters['bias_term']  - coefficient for vector of constants
+                    - parameters['weights']    - mean of posterior of weights
+                    - parameters['precision']  - inverse of covariance for posterior 
+                                                 of weights
         '''
         parameters = {}
         
