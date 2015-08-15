@@ -140,7 +140,11 @@ class BayesianRegression(object):
             else:
                 raise ValueError("Only 'EM' and 'fixed-point' algorithms are implemented ")
             
-                
+            # after alpha & beta are updated last time we should also update mu
+            p1_mu   =  np.dot(self.v.T, np.diag(self.d/(dsq+alpha/beta)))
+            p2_mu   =  np.dot(self.u.T,Y)
+            mu      =  np.dot(p1_mu,p2_mu)
+            
             # calculate log likelihood p(Y | X, alpha, beta) (constants are not included)
             normaliser =  m/2*np.log(alpha) + n/2*np.log(beta) - 1/2*np.sum(np.log(beta*dsq+alpha))
             log_like   =  normaliser - alpha/2*np.dot(mu,mu) - beta/2*sqdErr           
