@@ -23,7 +23,7 @@ class BayesianRegression(object):
        
     '''
     
-    def __init__(self,X,Y, bias_term = False, thresh = 1e-5):
+    def __init__(self,X,Y, bias_term = None, thresh = 1e-5):
         
         # center input data for simplicity of further computations
         self.mu_X              =  np.mean(X,axis = 0)
@@ -43,7 +43,7 @@ class BayesianRegression(object):
         
         # mean and precision of posterior distribution of weights
         self.w_mu              = 0
-        self.w_beta            = 0
+        self.w_precison        = 0   # when value is assigned it is m x m matrix
 
 
     def _weights_posterior_params(self,alpha,beta):
@@ -80,44 +80,6 @@ class BayesianRegression(object):
         p2                    = np.dot(self.u.T,self.Y)
         w_mu                  = np.dot(p1,p2)
         return [w_mu,precision]
-        
-        
-    def _pred_dist_params(self,alpha,beta,x,w_mu,w_precision):
-        '''
-        Calculates parameters of predictive distribution
-        
-        Parameters:
-        -----------
-        
-        alpha: float
-            Precision parameter for prior distribution of weights
-            
-        beta: float
-            Precision parameter for noise distribution
-            
-        x: numpy array of size 'unknown x m'
-            Set of features for which corresponding responses should be predicted
-            
-        w_mu: numpy array of size 'm x 1'
-            mean of posterior distribution of weights
-            
-        w_precision: numpy array of size 'm x 1'
-            precision of posterior distribution of weights
-        
-        
-        Returns:
-        ---------
-        
-        :list of two numpy arrays (each has size 'unknown x 1')
-            Parameters of univariate gaussian distribution [mean and variance] 
-        
-        '''
-        x            =  x - self.mu_X
-        mu_pred      =  np.dot(x,w_mu) + self.mu_Y
-        d            =  1/(self.d**2 + alpha/beta)
-        S            =  np.dot( np.dot(self.v.T, np.diag(d) ) , self.v)
-        var_pred     =  np.array([(1 + np.dot(u,S.dot(u)))/beta for u in x])
-        return [mu_pred,var_pred]
 
         
     def _evidence_approx(self,max_iter = 100,method = "EM"):
@@ -196,7 +158,8 @@ class BayesianRegression(object):
             
     def fit(self, evidence_approx_method="fixed-point",max_iter = 100):
         '''
-        Fits Bayesian linear regression
+        Fits Bayesian linear regression, returns posterior mean and preision 
+        of parameters
         
         Parameters:
         -----------
@@ -207,40 +170,52 @@ class BayesianRegression(object):
         evidence_approx_method: str
             Method for approximating evidence
         
+        Returns:
+        --------
+        
+        
+        
         '''
+        parameters = {}
+        
         # use type II maximum likelihood to find hyperparameters alpha and beta
         self._evidence_approx(max_iter = max_iter, method = evidence_approx_method)
 
         # find parameters of posterior distribution
-        self.w_mu, self.w_beta = self._weights_posterior_params(self.alpha,self.beta)
+        self.w_mu, self.w_precision = self._weights_posterior_params(self.alpha,self.beta)
+        
+        if self.bias_term is not False:
+            parameters["bias_term"] = self.mu_Y
+        parameters["weights"]       = self.w_mu
+        parameters["precision"]     = self.w_precision
+        return parameters
+            
 
-
-    def predict(self,X ,Y = None):
+    def predict(self,x):
         '''
-        Calculates parameters of predictive distibution. If Y is None, then 
-        returns mean of predictive distribution, if Y is vector then returns 
-        probability of observing vector Y.
+        Calculates parameters of predictive distibution. Returns mean and variance
+        of predictive distribution at each data point of test set.
         
         Parameters:
         -----------
         
-        X: numpy array of size 'unknown x m'
-           Explanatory variables (that needs to be predicted)
-           
-        Y: either None or numpy array of size 'unknown x 1'
-           Dependent variable 
-           
+        x: numpy array of size 'unknown x m'
+            Set of features for which corresponding responses should be predicted
+
+        
         Returns:
-        --------
-         
-        : numpy array of size 'unknown x 1'
-        If Y is None , then returns mean of predictive distribution, if Y is vector
-        of floats, then returns probability of observing Y under assumption of 
-        predictive distribution
+        ---------
+        
+        :list of two numpy arrays (each has size 'unknown x 1')
+            Parameters of univariate gaussian distribution [mean and variance] 
+        
         '''
-        # find parameters of predictive distribution for each point in test set
-        mu,var = self._pred_dist_params(self.alpha,self.beta,X,self.w_mu,self.w_beta)
-        return mu,var
+        x            =  x - self.mu_X
+        mu_pred      =  np.dot(x,self.w_mu) + self.mu_Y
+        d            =  1/(self.beta*self.d**2 + self.alpha)
+        D            =  np.dot( np.dot( self.v.T , np.diag(d) ) , self.v)
+        var_pred     =  1/self.beta + np.dot( np.dot( x, D ), x.T )
+        return [mu_pred,var_pred]
 
         
     
@@ -248,9 +223,9 @@ if __name__=="__main__":
     X      = np.ones([100,1])
     Y      = np.ones([100,1])
     X[:,0] = np.linspace(1,10,100)
-    Y      = 4*X[:,0]+5*np.random.random(100)
-    br     = BayesianRegression(X,Y)
-    br.fit()
+    Y      = 4*X[:,0]+5*np.random.random(100) + 10*np.ones(100)
+    br     = BayesianRegression(X,Y, bias_term = True)
+    prs    = br.fit()
     my,var = br.predict(X)
     
     
