@@ -29,23 +29,85 @@ class SparseBayesianLearner(object):
     def __init__(self, X, Y, bias_term = False, alpha_max = 1e+9, thresh      = 1e-5,  
                                                                   kernel      = None,
                                                                   kernel_type = None,
-                                                                  scaler      = None ):
+                                                                  scaler      = None,
+                                                                  method      = "EM",
+                                                                  max_iter    = 100):
         # kernelise data if used for RVM        
         if kernel is not None:
-            X       = SparseBayesianLearner.kernel_estimation(X,X,kernel_type, scaler)
+            X                = SparseBayesianLearner.kernel_estimation(X,X,kernel_type, scaler)
         
         # dimensionality of data
-        self.n, self.m  =  X.shape
+        self.n, self.m       =  X.shape
         
         # center data
-        self.muX        =  np.reshape( np.mean(X, axis = 0), (self.m,1))
-        self.muY        =  np.mean(Y)
-        self.Y          =  Y - self.muY
-        self.X          =  X - self.muX
+        self.muX             =  np.reshape( np.mean(X, axis = 0), (self.m,1))
+        self.muY             =  np.mean(Y)
+        self.Y               =  Y - self.muY
+        self.X               =  X - self.muX
         
-        # convergence parameters
-        self.thresh     = thresh
-        self.alpha_max  = alpha_max
+        # convergence parameters & maximum allowed number of iterations
+        self.thresh          = thresh
+        self.alpha_max       = alpha_max
+        self.max_iter        = max_iter
+        
+        # method for evidence approximation , either "EM" or "fixed-point"
+        self.method          = method
+        
+        
+    def fit(self):
+        '''
+        Fits Sparse Bayesian Learning Algorithm 
+        '''
+        
+        # initialise precision parameters for prior & likelihood
+        diagA    = np.random.random(self.m)
+        beta     = np.random.random()
+        # array for easy broadcasting ( using diagonal matrix is very expensive)
+        d        = np.zeros([self.m,1])
+        
+        for i in range(self.max_iter):
+            
+            # set of features that will be used in computation
+            active = diagA < alpha_max
+            X      = self.X[:,active]
+            self.m = np.sum(active)
+            
+            # svd decomposition
+            u,lambdas,v  = np.linalg.svd(X, full_matrices = False)
+            
+            # egenvalues & eigenvectors for matrix containing not pruned features
+            d            = lambdas / (beta * lambdas**2 + diagA[active])
+             
+            # calculate posterior mean of weights ( with EM method , this corresponds
+            # to E-step)
+            S            = np.dot(v.T*np.reshape(d,(m,1)), u.T)
+            mu           = np.dot(S , self.Y)
+            
+            err          = self.Y - np.dot(X,mu)
+            err_sq       = np.dot(err,err)
+            
+            if self.method == "fixed-point":
+                
+                # update precision parameters of likelihood & prior
+                gamma   = 1 - diagA / (beta*lambda_sq + diagA)
+                diagA   = gamma/mu**2
+                beta    = (self.n - np.sum(gamma))/err_sq
+               
+            elif self.method == "EM":
+                
+                # M-step , finds new A and beta which maximize log likelihood
+                beta = self.n / (err_sq + )
+                
+                
+            
+                
+            
+                
+                
+            
+            
+        
+        
         
         
     @staticmethod
@@ -78,7 +140,7 @@ class SparseBayesianLearner(object):
         
         kernel: numpy array of size 'n x n' - kernel
         '''
-        
+        # inner function for distance calculation
         def dist(K):
             ''' Calculates distance between observations of matrix K'''
             n,m   = np.shape(K)
@@ -94,7 +156,7 @@ class SparseBayesianLearner(object):
             kernel = np.exp(-distSq/scaler)
             
         elif kernel_type == "poly":
-            kernel = (np.dot(X,X.T)/scaler + c)**p_order
+            kernel = (np.dot(K,K.T)/scaler + c)**p_order
             
         return kernel
             
