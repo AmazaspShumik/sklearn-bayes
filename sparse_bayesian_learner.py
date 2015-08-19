@@ -71,20 +71,25 @@ class SparseBayesianLearner(object):
             active = diagA < alpha_max
             X      = self.X[:,active]
             self.m = np.sum(active)
+            alpha  = diagA[active]
             
-            # svd decomposition
-            u,lambdas,v  = np.linalg.svd(X, full_matrices = False)
+            # calculate posterior mean & precision of weights ( with EM method 
+            # for evidence approximation this corresponds to E-step )
             
-            # egenvalues & eigenvectors for matrix containing not pruned features
-            d            = lambdas / (beta * lambdas**2 + diagA[active])
-             
-            # calculate posterior mean of weights ( with EM method , this corresponds
-            # to E-step)
-            S            = np.dot(v.T*np.reshape(d,(m,1)), u.T)
-            mu           = np.dot(S , self.Y)
+            # precision parameter
+            S            = beta*np.dot(X.T,X)
+            np.fill_diagonal(S, alpha)
             
-            err          = self.Y - np.dot(X,mu)
-            err_sq       = np.dot(err,err)
+            # instead of inversion of precision matrix we use Cholesky decomposition
+            # to find mu
+            m              = np.dot(X.T,self.Y)*beta
+            L              = np.linalg.cholesky(S)
+            Z              = np.linalg.solve(L,m)
+            Mu             = np.linalg.solve(L.T,Z)
+            
+            # error term
+            err            = self.Y - np.dot(X,mu)
+            err_sq         = np.dot(err,err)
             
             if self.method == "fixed-point":
                 
