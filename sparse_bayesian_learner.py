@@ -50,7 +50,7 @@ class SparseBayesianLearner(object):
 
     '''
     
-    def __init__(self, X, Y, alpha_max = 1e+3, thresh      = 1e-20, kernel      = None,
+    def __init__(self, X, Y, alpha_max = 1e+9, thresh      = 1e-20, kernel      = None,
                                                                     scaler      = None,
                                                                     method      = "fixed-point",
                                                                     max_iter    = 1000,
@@ -106,6 +106,8 @@ class SparseBayesianLearner(object):
             active            = diagA < self.alpha_max
             X                 = self.X[:,active]
             self.m            = np.sum(active)
+            if self.m == 0:
+                print "Warning!!! All features were pruned. Check value for parameter alpha_max "
                         
             # calculate posterior mean & covariance of weights ( with EM method 
             # for evidence approximation this corresponds to E-step )
@@ -259,12 +261,12 @@ class SparseBayesianLearner(object):
             kernel = np.exp(-distSq/scaler)
             
         elif kernel_type == "poly":
-            print np.dot(K,K.T)/scaler
             kernel = (np.dot(K,K.T)/scaler + 1)**p_order
             
         return kernel
                    
-            
+
+          
             
             
             
