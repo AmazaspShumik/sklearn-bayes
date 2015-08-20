@@ -23,18 +23,39 @@ class SparseBayesianLearner(object):
     alpha_max: float
        If alpha corresponding to basis vector will be above alpha_max, then basis
        vector is pruned (i.e. not used in further computations)
+       
+    thresh: float
+       Convergence parameter
+       
+    kernel: str or None
+       Type of kernel to use [currently possible: None, 'gaussian', 'poly']
+       
+    scaler: float (used for kernels)
+       Scaling parameters for kernels
+       
+    method: str
+       Method to fit evidence approximation, currently available: "EM","fixed-point"
+       ( Note in 2009 Tipping proposed much faster algorithm for fitting RVM , it is 
+       not implemented in this version of code)
+       
+    max_iter: int
+       Maximum number of iterations
+       
+    verbose: str
+       If True prints messages about progress in computation
 
     '''
     
     def __init__(self, X, Y, bias_term = False, alpha_max = 1e+9, thresh      = 1e-5,  
                                                                   kernel      = None,
-                                                                  kernel_type = None,
                                                                   scaler      = None,
                                                                   method      = "EM",
-                                                                  max_iter    = 100):
+                                                                  max_iter    = 100,
+                                                                  verbose     = True):
+        self.verbose         = verbose
         # kernelise data if used for RVM        
         if kernel is not None:
-            X                = SparseBayesianLearner.kernel_estimation(X,X,kernel_type, scaler)
+            X                = SparseBayesianLearner.kernel_estimation(X,X,kernel, scaler)
         
         # dimensionality of data
         self.n, self.m       =  X.shape
@@ -53,67 +74,103 @@ class SparseBayesianLearner(object):
         # method for evidence approximation , either "EM" or "fixed-point"
         self.method          = method
         
+        # mean & covariance of posterior distribution of weights
+        self.Mu              = 0
+        self.Sigma           = 0
+        self.active          = 0
+        
         
     def fit(self):
         '''
-        Fits Sparse Bayesian Learning Algorithm 
+        Fits Sparse Bayesian Learning Algorithm, writes mean and covariance of
+        posterior distribution to instance variables.        
         '''
-        
         # initialise precision parameters for prior & likelihood
         diagA    = np.random.random(self.m)
         beta     = np.random.random()
-        # array for easy broadcasting ( using diagonal matrix is very expensive)
-        d        = np.zeros([self.m,1])
         
         for i in range(self.max_iter):
             
             # set of features that will be used in computation
-            active = diagA < alpha_max
-            X      = self.X[:,active]
-            self.m = np.sum(active)
-            alpha  = diagA[active]
+            active            = diagA < self.alpha_max
+            X                 = self.X[:,active]
+            self.m            = np.sum(active)
             
-            # calculate posterior mean & precision of weights ( with EM method 
+            # calculate posterior mean & covariance of weights ( with EM method 
             # for evidence approximation this corresponds to E-step )
-            
-            # precision parameter
-            S            = beta*np.dot(X.T,X)
-            np.fill_diagonal(S, alpha)
-            
-            # instead of inversion of precision matrix we use Cholesky decomposition
-            # to find mu
-            m              = np.dot(X.T,self.Y)*beta
-            L              = np.linalg.cholesky(S)
-            Z              = np.linalg.solve(L,m)
-            Mu             = np.linalg.solve(L.T,Z)
+            Mu,Sigma          =  self._posterio_params(X,diagA[active],beta)
             
             # error term
-            err            = self.Y - np.dot(X,mu)
-            err_sq         = np.dot(err,err)
+            err               = self.Y - np.dot(X,Mu)
+            err_sq            = np.dot(err,err)
+            gamma             = 1 - diagA[active]*np.diag(Sigma)
+            
+            # save previous values of alphas and beta
+            old_A             = diagA
+            old_beta          = beta
             
             if self.method == "fixed-point":
-                
                 # update precision parameters of likelihood & prior
-                gamma   = 1 - diagA / (beta*lambda_sq + diagA)
-                diagA   = gamma/mu**2
-                beta    = (self.n - np.sum(gamma))/err_sq
-               
+                diagA[active] = gamma/Mu**2
+                beta          = (self.n - np.sum(gamma))/err_sq
             elif self.method == "EM":
-                
                 # M-step , finds new A and beta which maximize log likelihood
-                beta = self.n / (err_sq + )
+                diagA[active] = 1.0 / (Mu**2 + np.diag(Sigma))
+                beta          = self.n /(err_sq + np.sum(gamma)/beta)
                 
+            # if change in alpha & beta is below threshold then terminate 
+            # iterations
+            delta_alpha = np.max(abs(old_A[active] - diagA[active]))
+            delta_beta  = abs(old_beta - beta)
+            if  delta_alpha < self.thresh and delta_beta < self.thresh:
+                if self.verbose:
+                   'evidence approximation algorithm terminated...'
+                self.active = diagA < self.alpha_max
+                break
                 
-            
-                
-            
-                
-                
-            
-            
+        # posterior mean and covariance after last update of alpha & beta
+        self.Mu,self.Sigma   = self._posterio_params(X,diagA[active],beta)
         
         
         
+                
+           
+    def _posterio_params(self,X,diagA,beta):
+        '''
+        Calculates mean and covariance of posterior distribution of weights.
+        
+        Parameters:
+        -----------
+        
+        X: numpy array of size 'n x m (active)'
+           Matrix of active explanatory features
+        
+        diagA: numpy array of size 'm x 1'
+           Vector of diagonal elements for precision of prior
+           
+        beta: float
+           Precision parameter of likelihood
+           
+        Returns:
+        --------
+        [Mu,Sigma] : 
+                   Mu: numpy array of size 'm x 1', mean of posterior
+                   Sigma: numpy array of size 'm x m', covariance matrix of posterior
+        
+        '''
+        # precision parameter of posterior
+        S                 = beta*np.dot(X.T,X)
+        np.fill_diagonal(S, diagA)
+        # calculate mean & covariance from precision using svd
+        u,d,v             = np.linalg.svd(S, full_matrices = False)
+        inv_eigvals       = 1.0 / d
+        Sigma             = np.dot(v.T,v*np.reshape(inv_eigvals,(self.m,1)))
+        Mu                = beta*np.dot(X.T,self.Y)
+        return [Mu,Sigma]
+        
+        
+    def predict
+    
         
     @staticmethod
     def kernel_estimation(K,kernel_type, scaler, p_order, c):
