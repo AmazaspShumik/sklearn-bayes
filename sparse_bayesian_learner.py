@@ -74,10 +74,13 @@ class SparseBayesianLearner(object):
         # method for evidence approximation , either "EM" or "fixed-point"
         self.method          = method
         
-        # mean & covariance of posterior distribution of weights
+        # parameters computed while fitting model
         self.Mu              = 0
         self.Sigma           = 0
         self.active          = 0
+        self.diagA           = 0
+        
+        
         
         
     def fit(self):
@@ -98,7 +101,7 @@ class SparseBayesianLearner(object):
             
             # calculate posterior mean & covariance of weights ( with EM method 
             # for evidence approximation this corresponds to E-step )
-            Mu,Sigma          =  self._posterio_params(X,diagA[active],beta)
+            Mu,Sigma          =  self._posterior_params(X,diagA[active],beta)
             
             # error term
             err               = self.Y - np.dot(X,Mu)
@@ -125,17 +128,48 @@ class SparseBayesianLearner(object):
             if  delta_alpha < self.thresh and delta_beta < self.thresh:
                 if self.verbose:
                    'evidence approximation algorithm terminated...'
-                self.active = diagA < self.alpha_max
                 break
-                
+            
+        self.active          = diagA < self.alpha_max
+        self.diagA           = diagA
+        self.beta            = beta
         # posterior mean and covariance after last update of alpha & beta
-        self.Mu,self.Sigma   = self._posterio_params(X,diagA[active],beta)
+        self.Mu,self.Sigma   = self._posterior_params(X,diagA[self.active],beta)
         
         
         
-                
+    def predict(self,x):
+        '''
+        Calculates parameters of predictive distribution, returns mean and standard 
+        deviation of prediction.
+        
+        Parameters:
+        -----------
+        
+        x: numpy array of size 'unknown x m'
+           Matrix of test explanatory variables.
            
-    def _posterio_params(self,X,diagA,beta):
+        Returns:
+        --------
+        
+        [mu,var]:
+                 mu: numpy array of size 'unknown x 1'
+                     vector of means for each data point
+                 std: numpy array of size 'unknown x 1'
+                     vector of variances for each data point
+        '''
+        
+        # center data to account for bias term
+        x    =  x[self.active,:] - self.muX[self.active,:]
+        
+        # mean of predictive distribution
+        mu   =  np.dot(x,self.Mu)
+        var  =  1.0 / self.beta + np.dot( np.dot( x , self.Sigma ), x.T )
+        return [mu,var]
+        
+        
+        
+    def _posterior_params(self,X,diagA,beta):
         '''
         Calculates mean and covariance of posterior distribution of weights.
         
@@ -168,10 +202,8 @@ class SparseBayesianLearner(object):
         Mu                = beta*np.dot(X.T,self.Y)
         return [Mu,Sigma]
         
-        
-    def predict
+
     
-        
     @staticmethod
     def kernel_estimation(K,kernel_type, scaler, p_order, c):
         '''
@@ -221,6 +253,13 @@ class SparseBayesianLearner(object):
             kernel = (np.dot(K,K.T)/scaler + c)**p_order
             
         return kernel
+        
+        
+if __name__=="__main__":
+    X      = np.random.random([100,20])
+    X[:,0] = np.linspace(start = 0,stop = 10, num = 100)
+    Y      = 4*X[:,0] + 2
+    rvm    = 
             
             
             
