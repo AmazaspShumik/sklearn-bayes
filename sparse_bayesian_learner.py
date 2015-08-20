@@ -266,20 +266,4 @@ class SparseBayesianLearner(object):
         return kernel
                    
 
-          
-            
-            
-            
-    
-            
-        
-        
-           
-            
-        
-        
-    
-    
-    
-    
     
