@@ -2,6 +2,7 @@
 
 import numpy as np
 
+
 class SparseBayesianLearner(object):
     '''
     Implements Sparse Bayesian Learner, in case no kernel is given this is equivalent
@@ -44,16 +45,15 @@ class SparseBayesianLearner(object):
        
     References:
     -----------
-    
-    Tipping 
-    Pattern Recognition and Machine Learning (Bishop), Chapters 3,6,7,9
+    Tipping 2001, Sparse Bayesian Learning and Relevance Vector Machine
+    Bishop 2006, Pattern Recognition and Machine Learning (Chapters 3,6,7,9)
 
     '''
     
-    def __init__(self, X, Y, alpha_max = 1e+5, thresh      = 1e-10, kernel      = None,
+    def __init__(self, X, Y, alpha_max = 1e+3, thresh      = 1e-20, kernel      = None,
                                                                     scaler      = None,
                                                                     method      = "fixed-point",
-                                                                    max_iter    = 100,
+                                                                    max_iter    = 1000,
                                                                     p_order     = 2,
                                                                     verbose     = True):
         self.verbose         = verbose
@@ -64,7 +64,7 @@ class SparseBayesianLearner(object):
         
         # kernelise data if used for RVM        
         if kernel is not None:
-            X                = SparseBayesianLearner.kernel_estimation(X,kernel, scaler)
+            X                = SparseBayesianLearner.kernel_estimation(X,kernel, scaler, p_order)
         
         # dimensionality of data
         self.n, self.m       =  X.shape
@@ -215,8 +215,9 @@ class SparseBayesianLearner(object):
         return [Mu,Sigma]
         
     
+    
     @staticmethod
-    def kernel_estimation(K,kernel_type, scaler, p_order = None):
+    def kernel_estimation(K,kernel_type, scaler, p_order):
         '''
         Calculates value of kernel for data given in matrix K.
         
@@ -258,47 +259,11 @@ class SparseBayesianLearner(object):
             kernel = np.exp(-distSq/scaler)
             
         elif kernel_type == "poly":
+            print np.dot(K,K.T)/scaler
             kernel = (np.dot(K,K.T)/scaler + 1)**p_order
             
-        elif kernel_type == "sigmoid":
-            pass
-            
         return kernel
-        
-        
-if __name__=="__main__":
-    
-    # simple example
-    X      = np.random.random([1000,20])
-    X[:,0] = np.linspace(start = 0,stop = 10, num = 1000)
-    Y      = 4*X[:,0]
-    rvm    = SparseBayesianLearner(X,Y, method = "EM")
-    rvm.fit()
-    mu,var = rvm.predict(X)
-    
-    print "Second regression"
-    
-    # sin(x)/x
-    x               = np.ones([1000,1])
-    x[:,0]               = np.linspace(start = -5, stop = 5, num = 1000)
-    y               = np.sinc(x[:,0])
-    y_eps           = y + np.random.normal(0,1,1000)
-    rvmKernelised   = SparseBayesianLearner(x,y,method = "EM", kernel = "gaussian",
-                                            scaler = 8)
-    rvmKernelised.fit()
-    muK, varK = rvmKernelised.predict(x)
-    plt.plot(x[:,0],y,'r+')
-    plt.plot(x[:,0],muK,'b-')
-    
-    # Shows problem in prediction of gaussian processes
-    x               = np.ones([1000,1])
-    x[:,0]          = np.linspace(start = -5, stop = 5, num = 1000)
-    y               = x[:,0]**2
-    y_eps           = y + np.random.normal(0,1,1000)
-    rvmPoly         = SparseBayesianLearner(x,y,method = "EM", kernel = "poly",
-                                            scaler = 2)
-    
-                                  
+                   
             
             
             
