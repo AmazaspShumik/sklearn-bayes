@@ -16,10 +16,7 @@ class SparseBayesianLearner(object):
        
     Y: numpy vector of size 'n x 1'
        Vector of dependent variables
-       
-    bias_term: bool
-       If True includes bias term in calculation
-       
+
     alpha_max: float
        If alpha corresponding to basis vector will be above alpha_max, then basis
        vector is pruned (i.e. not used in further computations)
@@ -43,19 +40,31 @@ class SparseBayesianLearner(object):
        
     verbose: str
        If True prints messages about progress in computation
+       
+       
+    References:
+    -----------
+    
+    Tipping 
+    Pattern Recognition and Machine Learning (Bishop), Chapters 3,6,7,9
 
     '''
     
-    def __init__(self, X, Y, bias_term = False, alpha_max = 1e+9, thresh      = 1e-5,  
-                                                                  kernel      = None,
-                                                                  scaler      = None,
-                                                                  method      = "EM",
-                                                                  max_iter    = 100,
-                                                                  verbose     = True):
+    def __init__(self, X, Y, alpha_max = 1e+5, thresh      = 1e-10, kernel      = None,
+                                                                    scaler      = None,
+                                                                    method      = "fixed-point",
+                                                                    max_iter    = 100,
+                                                                    p_order     = 2,
+                                                                    verbose     = True):
         self.verbose         = verbose
+        self.kernel          = kernel
+        self.scaler          = scaler 
+        # if polynomial kernel
+        self.p_order         = p_order
+        
         # kernelise data if used for RVM        
         if kernel is not None:
-            X                = SparseBayesianLearner.kernel_estimation(X,X,kernel, scaler)
+            X                = SparseBayesianLearner.kernel_estimation(X,kernel, scaler)
         
         # dimensionality of data
         self.n, self.m       =  X.shape
@@ -64,7 +73,7 @@ class SparseBayesianLearner(object):
         self.muX             =  np.reshape( np.mean(X, axis = 0), (self.m,1))
         self.muY             =  np.mean(Y)
         self.Y               =  Y - self.muY
-        self.X               =  X - self.muX
+        self.X               =  X - self.muX.T
         
         # convergence parameters & maximum allowed number of iterations
         self.thresh          = thresh
@@ -79,7 +88,6 @@ class SparseBayesianLearner(object):
         self.Sigma           = 0
         self.active          = 0
         self.diagA           = 0
-        
         
         
         
@@ -98,7 +106,7 @@ class SparseBayesianLearner(object):
             active            = diagA < self.alpha_max
             X                 = self.X[:,active]
             self.m            = np.sum(active)
-            
+                        
             # calculate posterior mean & covariance of weights ( with EM method 
             # for evidence approximation this corresponds to E-step )
             Mu,Sigma          =  self._posterior_params(X,diagA[active],beta)
@@ -116,6 +124,7 @@ class SparseBayesianLearner(object):
                 # update precision parameters of likelihood & prior
                 diagA[active] = gamma/Mu**2
                 beta          = (self.n - np.sum(gamma))/err_sq
+                
             elif self.method == "EM":
                 # M-step , finds new A and beta which maximize log likelihood
                 diagA[active] = 1.0 / (Mu**2 + np.diag(Sigma))
@@ -158,12 +167,15 @@ class SparseBayesianLearner(object):
                  std: numpy array of size 'unknown x 1'
                      vector of variances for each data point
         '''
-        
+        # kernelise data if required
+        if self.kernel is not None:
+            x = SparseBayesianLearner.kernel_estimation(x,self.kernel,self.scaler,
+                                                                      self.p_order)
         # center data to account for bias term
-        x    =  x[self.active,:] - self.muX[self.active,:]
+        x    =  x[:,self.active] - self.muX[self.active,:].T
         
         # mean of predictive distribution
-        mu   =  np.dot(x,self.Mu)
+        mu   =  np.dot(x,self.Mu) + self.muY
         var  =  1.0 / self.beta + np.dot( np.dot( x , self.Sigma ), x.T )
         return [mu,var]
         
@@ -194,18 +206,17 @@ class SparseBayesianLearner(object):
         '''
         # precision parameter of posterior
         S                 = beta*np.dot(X.T,X)
-        np.fill_diagonal(S, diagA)
+        np.fill_diagonal(S, np.diag(S) + diagA)
         # calculate mean & covariance from precision using svd
         u,d,v             = np.linalg.svd(S, full_matrices = False)
         inv_eigvals       = 1.0 / d
         Sigma             = np.dot(v.T,v*np.reshape(inv_eigvals,(self.m,1)))
-        Mu                = beta*np.dot(X.T,self.Y)
+        Mu                = beta*np.dot(Sigma, np.dot(X.T,self.Y))
         return [Mu,Sigma]
         
-
     
     @staticmethod
-    def kernel_estimation(K,kernel_type, scaler, p_order, c):
+    def kernel_estimation(K,kernel_type, scaler, p_order = None):
         '''
         Calculates value of kernel for data given in matrix K.
         
@@ -225,9 +236,6 @@ class SparseBayesianLearner(object):
            
         p_order: float
            Order of polynomial ( valid for polynomial kernel)
-           
-        c: float
-           Constant for polynomial kernel
            
         Returns:
         --------
@@ -250,16 +258,47 @@ class SparseBayesianLearner(object):
             kernel = np.exp(-distSq/scaler)
             
         elif kernel_type == "poly":
-            kernel = (np.dot(K,K.T)/scaler + c)**p_order
+            kernel = (np.dot(K,K.T)/scaler + 1)**p_order
+            
+        elif kernel_type == "sigmoid":
+            pass
             
         return kernel
         
         
 if __name__=="__main__":
-    X      = np.random.random([100,20])
-    X[:,0] = np.linspace(start = 0,stop = 10, num = 100)
-    Y      = 4*X[:,0] + 2
-    rvm    = 
+    
+    # simple example
+    X      = np.random.random([1000,20])
+    X[:,0] = np.linspace(start = 0,stop = 10, num = 1000)
+    Y      = 4*X[:,0]
+    rvm    = SparseBayesianLearner(X,Y, method = "EM")
+    rvm.fit()
+    mu,var = rvm.predict(X)
+    
+    print "Second regression"
+    
+    # sin(x)/x
+    x               = np.ones([1000,1])
+    x[:,0]               = np.linspace(start = -5, stop = 5, num = 1000)
+    y               = np.sinc(x[:,0])
+    y_eps           = y + np.random.normal(0,1,1000)
+    rvmKernelised   = SparseBayesianLearner(x,y,method = "EM", kernel = "gaussian",
+                                            scaler = 8)
+    rvmKernelised.fit()
+    muK, varK = rvmKernelised.predict(x)
+    plt.plot(x[:,0],y,'r+')
+    plt.plot(x[:,0],muK,'b-')
+    
+    # Shows problem in prediction of gaussian processes
+    x               = np.ones([1000,1])
+    x[:,0]          = np.linspace(start = -5, stop = 5, num = 1000)
+    y               = x[:,0]**2
+    y_eps           = y + np.random.normal(0,1,1000)
+    rvmPoly         = SparseBayesianLearner(x,y,method = "EM", kernel = "poly",
+                                            scaler = 2)
+    
+                                  
             
             
             
