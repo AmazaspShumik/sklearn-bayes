@@ -23,7 +23,7 @@ class BayesianRegression(object):
        
     '''
     
-    def __init__(self,X,Y, bias_term = False, thresh = 1e-5):
+    def __init__(self,X,Y, bias_term = True, thresh = 1e-5):
         
         # center input data for simplicity of further computations
         self.mu_X              =  np.mean(X,axis = 0)
@@ -115,7 +115,7 @@ class BayesianRegression(object):
             
             # find mean for posterior of w ( for EM this is E-step)
             p1_mu   =  np.dot(self.v.T, np.diag(self.d/(dsq+alpha/beta)))
-            p2_mu   =  np.dot(self.u.T,Y)
+            p2_mu   =  np.dot(self.u.T,self.Y)
             mu      =  np.dot(p1_mu,p2_mu)
             
             # precompute errors, since both methods use it in estimation
@@ -142,7 +142,7 @@ class BayesianRegression(object):
             
             # after alpha & beta are updated last time we should also update mu
             p1_mu   =  np.dot(self.v.T, np.diag(self.d/(dsq+alpha/beta)))
-            p2_mu   =  np.dot(self.u.T,Y)
+            p2_mu   =  np.dot(self.u.T,self.Y)
             mu      =  np.dot(p1_mu,p2_mu)
             
             # calculate log likelihood p(Y | X, alpha, beta) (constants are not included)
