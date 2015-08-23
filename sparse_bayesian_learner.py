@@ -72,7 +72,7 @@ class SparseBayesianLearner(object):
         self.active          = 0
         self.diagA           = 0
         self.gamma           = 0
-        self.support_vecs    = None    
+        self.support_vecs    = None
         
         
         
