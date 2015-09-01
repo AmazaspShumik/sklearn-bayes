@@ -11,9 +11,6 @@ class SparseBayesianLearner(object):
     
     Parameters:
     -----------
-    
-
-
     alpha_max: float
        If alpha corresponding to basis vector will be above alpha_max, then basis
        vector is pruned (i.e. not used in further computations)
@@ -162,12 +159,44 @@ class SparseBayesianLearner(object):
         self.Mu,self.Sigma   = self._posterior_params(Xc[:, self.active],Yc,diagA[self.active],beta)
         
         
-        
-        
     def predict(self,x):
         '''
-        Calculates parameters of predictive distribution, returns mean and standard 
-        deviation of prediction.
+        Returns mean of predictive distributtion
+        
+        Parameters:
+        -----------
+        
+        x: numpy array of size 'unknown x m'
+           Matrix of test explanatory variables.
+           
+        Returns:
+        --------
+        
+        mu: numpy array of size 'unknown x 1'
+           Vector of predicted values
+           
+        '''
+        # kernelise data if required and choose relevant features ( support vectors )
+        if self.kernel is not None:
+            x = SparseBayesianLearner.kernel_estimation(x,self.support_vecs,
+                                                          self.kernel,
+                                                          self.scaler,
+                                                          self.p_order)
+        else:
+            x = x[:,self.active]
+            
+        # center data to account for bias term
+        x    =  x - self.muX[self.active,:].T
+        
+        # mean of predictive distribution
+        mu   =  np.dot(x,self.Mu) + self.muY
+        return mu
+        
+        
+    def predict_mu_var(self,x):
+        '''
+        Calculates parameters of predictive distribution, returns mean and variance
+        of prediction.
         
         Parameters:
         -----------
@@ -181,7 +210,7 @@ class SparseBayesianLearner(object):
         [mu,var]:
                  mu: numpy array of size 'unknown x 1'
                      vector of means for each data point
-                 std: numpy array of size 'unknown x 1'
+                 var: numpy array of size 'unknown x 1'
                      vector of variances for each data point
         '''
         # kernelise data if required and choose relevant features ( support vectors )
@@ -285,9 +314,7 @@ class SparseBayesianLearner(object):
                 
         if kernel_type == "gaussian":
             distSq = dist(K1,K2)
-            kernel = np.exp(-distSq/scaler)
+            return np.exp(-distSq/scaler)
             
         elif kernel_type == "poly":
-            kernel = (np.dot(K1,K2.T)/scaler + 1)**p_order
-            
-        return kernel
+            return (np.dot(K1,K2.T)/scaler + 1)**p_order
