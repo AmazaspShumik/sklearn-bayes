@@ -88,7 +88,7 @@ classdef BayesianRegression < handle
             %            tVar: vector of size [unknown, 1], variance of
             %                  predictive distribution
             %
-            x    = X - obj.muX;
+            x    = bsxfun(@minus,X,obj.muX);
             t    = x*obj.mu + obj.muY;
             tVar = 1/obj.beta + x'*obj.S*x;
         end
@@ -107,7 +107,7 @@ classdef BayesianRegression < handle
             %            t: vector of size [unknown, 1], mean of predictive
             %               distribution
             %
-            x = X - obj.muX;
+            x = bsxfun(@minus,X,obj.muX);
             t = x*obj.mu + obj.muY;
         end
         
@@ -155,8 +155,8 @@ classdef BayesianRegression < handle
                 elseif strcmp(obj.evid_approx_method,'EM')
                     
                     % M-step, updates alpha and beta
-                    alpha  = obj.m / ( mu'*mu + sum(1/(beta*dsq + alpha)));
-                    beta   = obj.n / ( sqdErr + sum(dsq/(beta*dsq + alpha)));
+                    alpha  = obj.m / ( mu'*mu + sum(sum(1/(beta*dsq + alpha))));
+                    beta   = obj.n / ( sqdErr + sum(sum(dsq/(beta*dsq + alpha))));
                         
                 end
                 

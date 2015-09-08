@@ -115,7 +115,7 @@ class BayesianRegression(object):
             
             # find mean for posterior of w ( for EM this is E-step)
             p1_mu   =  np.dot(self.v.T, np.diag(self.d/(dsq+alpha/beta)))
-            p2_mu   =  np.dot(self.u.T,self.Y)
+            p2_mu   =  np.dot(self.u.T, self.Y)
             mu      =  np.dot(p1_mu,p2_mu)
             
             # precompute errors, since both methods use it in estimation
