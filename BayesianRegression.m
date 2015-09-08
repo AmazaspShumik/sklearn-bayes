@@ -40,6 +40,7 @@ classdef BayesianRegression < handle
             % Contructor
             % 
             % Parameters:
+            % ----------
             %            x: matrix of size [n, m], matrix of explanatory variables
             %            y: vector of size [n, 1], vector of dependent variables
             %            evid_approx_method: str, method for evidence approximation,
@@ -118,6 +119,7 @@ classdef BayesianRegression < handle
             % distribution) by maximising p(y|X,alpha,beta).
             %
             % Returns:
+            % --------
             %         alpha, beta, mu - precision parameters and posterior
             %                           mean
             %
