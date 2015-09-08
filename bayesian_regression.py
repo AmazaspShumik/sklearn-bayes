@@ -38,12 +38,13 @@ class BayesianRegression(object):
         self.u,self.d,self.v   =  np.linalg.svd(self.X, full_matrices = False)
         
         # precision parameters, they are calculated during evidence approximation
-        self.alpha             = 0 
-        self.beta              = 0
+        self.alpha             = None 
+        self.beta              = None
         
         # mean and precision of posterior distribution of weights
-        self.w_mu              = 0
-        self.w_precison        = 0   # when value is assigned it is m x m matrix
+        self.w_mu              = None
+        self.w_precison        = None   # when value is assigned it is m x m matrix
+        self.D                 = None   # covariance
 
 
     def _weights_posterior_params(self,alpha,beta):
@@ -190,6 +191,9 @@ class BayesianRegression(object):
 
         # find parameters of posterior distribution
         self.w_mu, self.w_precision = self._weights_posterior_params(self.alpha,self.beta)
+        d                           =  1/(self.beta*self.d**2 + self.alpha)
+        self.D                      =  np.dot( np.dot( self.v.T , np.diag(d) ) , self.v)
+        
         
         if self.bias_term is not False:
             parameters["bias_term"] = self.mu_Y
@@ -219,9 +223,7 @@ class BayesianRegression(object):
         '''
         x            =  x - self.mu_X
         mu_pred      =  np.dot(x,self.w_mu) + self.mu_Y
-        d            =  1/(self.beta*self.d**2 + self.alpha)
-        D            =  np.dot( np.dot( self.v.T , np.diag(d) ) , self.v)
-        var_pred     =  1/self.beta + np.dot( np.dot( x, D ), x.T )
+        var_pred     =  1/self.beta + np.dot( np.dot( x, self.D ), x.T )
         return [mu_pred,var_pred]
 
         
