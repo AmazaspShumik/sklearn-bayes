@@ -202,10 +202,10 @@ class BayesianRegression(object):
         return parameters
             
 
-    def predict(self,x):
+    def predict_dist(self,x):
         '''
-        Calculates parameters of predictive distibution. Returns mean and variance
-        of predictive distribution at each data point of test set.
+        Calculates  mean and variance of predictive distribution at each data 
+        point of test set.
         
         Parameters:
         -----------
@@ -225,18 +225,29 @@ class BayesianRegression(object):
         mu_pred      =  np.dot(x,self.w_mu) + self.mu_Y
         var_pred     =  1/self.beta + np.dot( np.dot( x, self.D ), x.T )
         return [mu_pred,var_pred]
-
         
     
-if __name__=="__main__":
-    X      = np.ones([100,1])
-    Y      = np.ones([100,1])
-    X[:,0] = np.linspace(1,10,100)
-    Y      = 4*X[:,0]+5*np.random.random(100) + 10*np.ones(100)
-    br     = BayesianRegression(X,Y, bias_term = True)
-    prs    = br.fit()
-    my,var = br.predict(X)
-    
+    def predict(self,x):
+        '''
+        Calculates mean of predictive distribution at each data point of test set
+        
+        Parameters:
+        ----------
+                
+        x: numpy array of size 'unknown x m'
+            Set of features for which corresponding responses should be predicted
+            
+        Returns:
+        --------
+        
+        mu_pred: numpy array of size 'unknown x 1'
+                  Mean of predictive distribution
+            
+        '''
+        x           = x - self.mu_X
+        mu_pred     = np.dot(x,self.w_mu) + self.mu_Y
+        return mu_pred          
+
     
     
     
