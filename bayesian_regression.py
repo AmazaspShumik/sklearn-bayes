@@ -23,7 +23,7 @@ class BayesianRegression(object):
        
     '''
     
-    def __init__(self,X,Y, bias_term = False, thresh = 1e-5):
+    def __init__(self,X,Y, bias_term = True, thresh = 1e-5):
         
         # center input data for simplicity of further computations
         self.mu_X              =  np.mean(X,axis = 0)
@@ -38,12 +38,13 @@ class BayesianRegression(object):
         self.u,self.d,self.v   =  np.linalg.svd(self.X, full_matrices = False)
         
         # precision parameters, they are calculated during evidence approximation
-        self.alpha             = 0 
-        self.beta              = 0
+        self.alpha             = None 
+        self.beta              = None
         
         # mean and precision of posterior distribution of weights
-        self.w_mu              = 0
-        self.w_precison        = 0   # when value is assigned it is m x m matrix
+        self.w_mu              = None
+        self.w_precison        = None   # when value is assigned it is m x m matrix
+        self.D                 = None   # covariance
 
 
     def _weights_posterior_params(self,alpha,beta):
@@ -115,7 +116,7 @@ class BayesianRegression(object):
             
             # find mean for posterior of w ( for EM this is E-step)
             p1_mu   =  np.dot(self.v.T, np.diag(self.d/(dsq+alpha/beta)))
-            p2_mu   =  np.dot(self.u.T,Y)
+            p2_mu   =  np.dot(self.u.T, self.Y)
             mu      =  np.dot(p1_mu,p2_mu)
             
             # precompute errors, since both methods use it in estimation
@@ -142,7 +143,7 @@ class BayesianRegression(object):
             
             # after alpha & beta are updated last time we should also update mu
             p1_mu   =  np.dot(self.v.T, np.diag(self.d/(dsq+alpha/beta)))
-            p2_mu   =  np.dot(self.u.T,Y)
+            p2_mu   =  np.dot(self.u.T,self.Y)
             mu      =  np.dot(p1_mu,p2_mu)
             
             # calculate log likelihood p(Y | X, alpha, beta) (constants are not included)
@@ -190,6 +191,9 @@ class BayesianRegression(object):
 
         # find parameters of posterior distribution
         self.w_mu, self.w_precision = self._weights_posterior_params(self.alpha,self.beta)
+        d                           =  1/(self.beta*self.d**2 + self.alpha)
+        self.D                      =  np.dot( np.dot( self.v.T , np.diag(d) ) , self.v)
+        
         
         if self.bias_term is not False:
             parameters["bias_term"] = self.mu_Y
@@ -198,10 +202,10 @@ class BayesianRegression(object):
         return parameters
             
 
-    def predict(self,x):
+    def predict_dist(self,x):
         '''
-        Calculates parameters of predictive distibution. Returns mean and variance
-        of predictive distribution at each data point of test set.
+        Calculates  mean and variance of predictive distribution at each data 
+        point of test set.
         
         Parameters:
         -----------
@@ -219,22 +223,31 @@ class BayesianRegression(object):
         '''
         x            =  x - self.mu_X
         mu_pred      =  np.dot(x,self.w_mu) + self.mu_Y
-        d            =  1/(self.beta*self.d**2 + self.alpha)
-        D            =  np.dot( np.dot( self.v.T , np.diag(d) ) , self.v)
-        var_pred     =  1/self.beta + np.dot( np.dot( x, D ), x.T )
+        var_pred     =  1/self.beta + np.dot( np.dot( x, self.D ), x.T )
         return [mu_pred,var_pred]
-
         
     
-if __name__=="__main__":
-    X      = np.ones([100,1])
-    Y      = np.ones([100,1])
-    X[:,0] = np.linspace(1,10,100)
-    Y      = 4*X[:,0]+5*np.random.random(100) + 10*np.ones(100)
-    br     = BayesianRegression(X,Y, bias_term = True)
-    prs    = br.fit()
-    my,var = br.predict(X)
-    
+    def predict(self,x):
+        '''
+        Calculates mean of predictive distribution at each data point of test set
+        
+        Parameters:
+        ----------
+                
+        x: numpy array of size 'unknown x m'
+            Set of features for which corresponding responses should be predicted
+            
+        Returns:
+        --------
+        
+        mu_pred: numpy array of size 'unknown x 1'
+                  Mean of predictive distribution
+            
+        '''
+        x           = x - self.mu_X
+        mu_pred     = np.dot(x,self.w_mu) + self.mu_Y
+        return mu_pred          
+
     
     
     
