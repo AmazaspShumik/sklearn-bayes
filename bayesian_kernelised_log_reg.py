@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
 
-#---------------------- Helper functions for logistic ------------------------#
+#------------------------- Helper functions for logistic --------------------------#
 
 
 def sigmoid(X):
@@ -25,9 +25,10 @@ def cost_grad(X,Y,w,alpha):
     cost  =  - np.log(s)*Y - np.log(1 - s)*(1 - Y) + alpha*np.dot(w,w) / 2
     grad  = np.dot(X.T, s - Y) + alpha*w
     return [cost,grad]
-
-
-
+    
+    
+#--------------------------- Bayesian Logistic Regression ------------------------#
+    
 
 class BayesianLogisticRegression(object):
     '''
@@ -64,8 +65,6 @@ class BayesianLogisticRegression(object):
     alpha_init: float (DEFAULT = None)
        Initial guess on precision parameter of prior, if not defined random guess
        
-       
-       
     '''
     
     
@@ -75,6 +74,7 @@ class BayesianLogisticRegression(object):
                                                                conv_thresh_evidence  = 1e-3,
                                                                conv_thresh_irls      = 1e-3,
                                                                alpha_init            = None):
+        self.X = X
         # all classes in Y
         classes = set(Y)
         # check that there are only two classes in vector Y
@@ -83,13 +83,16 @@ class BayesianLogisticRegression(object):
         
         assert evidence_max_method in ['fixed-point','EM'], 'Can be either "fixed-point" or "EM"'
         self.evidence_max_method    = evidence_max_method
-        self.max_iter_evidence_max  = max_iter_evidence_max
+        self.max_iter_evidence      = max_iter_evidence
         self.max_iter_irls          = max_iter_irls
         self.conv_thresh_evidence   = conv_thresh_evidence
         self.conv_thresh_irls       = conv_thresh_irls
         if w_init is None:
            self.w_init              = np.random.random()
            self.alpha_init          = np.random.random()
+           
+        # dimensionality of input 
+        self.m                      = self.X.shape[1]
         
         
     def fit(self):
@@ -144,7 +147,7 @@ class BayesianLogisticRegression(object):
         R          = s * (1 - s)
         negHessian = np.dot(X.T*R,X)
         negHessian.fill_diagonal(np.diag(negHessian + alpha))
-        u,d,vt     = np.linalg.svd()
+        u,d,vt     = np.linalg.svd(negHessian,full_matrices = False)
         return [Wmap, negHessian, u, d, vt]
         
         
@@ -153,22 +156,56 @@ class BayesianLogisticRegression(object):
         Maximize evidence (type II maximum likelihood) 
         '''
         # initial guess on paramters
-        alpha = self.alpha_init
-        w     = self.w_init
-        
+        alpha_old    = self.alpha_init
+        Wmap_old     = self.w_init
+        evid_old     = np.NINF
+                
         # evidence maximization
-        for i in range(self.max_iter_evidence_max):
-            Wmap, A = self._irls(self.X, self.Y, alpha, w)
+        for i in range(self.max_iter_evidence):
             
+            # find mean & covariance of Laplace approximation to posterior
+            Wmap, A, u, d, vt = self._irls(self.X, self.Y, alpha_old, Wmap_old)            
+            mu_sq             = np.dot(Wmap,Wmap) 
+            
+            # use EM or fixed-point procedures to update parameters            
             if self.evidence_max_method == "EM":
+                alpha = self.m / (mu_sq + np.sum(d)) 
+            else:
+                gamma = np.sum((d - alpha) / d)
+                alpha = gamma / mu_sq
                 
-                
+            # calculate value of type II maximum likelihood
+            evid = self._evidence_value(d,alpha,Wmap)
+            
+            # check termination conditions, if true write optimal values of 
+            # parameters to instance variables
+            if evid - evid_old < self.conv_thresh_evidence or i==self.max_iter_evidence - 1:
+                self.alpha = alpha
+                self.Wmap  = Wmap
+                self.A     = A
+                return 
+            
+            evid_old  = evid
+            Wmap_old  = Wmap
+
             
             
-            
-            
+    def _evidence_value(self,d,alpha,Wmap):
+        '''
+        Calculates value of evidence (type II likelihood)
         
+        Parameters:
+        -----------
         
+        d: numpy array of size m
+           
+        '''
+        Likelihood_Wmap = -1*cost_grad(self.X, self.Y, Wmap, alpha)
+        Prior_Wmap      = self.m/2 * np.log(alpha) - alpha / 2 * np.dot(Wmap,Wmap)
+        Z_normaliser    = 0.5*self.m*np.log(np.pi) - 0.5*np.log(np.sum(d))
+        ED              = Likelihood_Wmap + Prior_Wmap + Z_normaliser
+        return ED
+            
         
         
 if __name__ == "__main__":
