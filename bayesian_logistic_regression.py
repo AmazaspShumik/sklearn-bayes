@@ -78,9 +78,7 @@ class BayesianLogisticRegression(object):
                                                                conv_thresh_evidence  = 1e-3,
                                                                conv_thresh_irls      = 1e-3,
                                                                alpha_init            = None):
-
-        self.muX  = np.mean(X,0)
-        self.X    = X - self.muX
+        self.X    = np.concatenate((np.ones([X.shape[0],1]),X),1)
         # all classes in Y
         classes   = set(Y)
         # check that there are only two classes in vector Y
@@ -149,7 +147,7 @@ class BayesianLogisticRegression(object):
         P: numpy array of size 'unknown x 1'
            Vector of probabilities
         '''
-        x      = X - self.muX
+        x      = np.concatenate((np.ones([X.shape[0],1]),X),1)
         mu     = np.dot(x,self.Wmap)
         u,d,vt = self.svdA
         D      =  np.linalg.inv(self.A)
@@ -275,17 +273,17 @@ if __name__ == "__main__":
     x      = np.zeros([500,2])
     x[:,0] = np.random.normal(0,1,500)
     x[:,1] = np.random.normal(0,1,500)
-    x[0:250,0] = x[0:250,0] + 4
-    x[0:250,1] = x[0:250,1] + 10
+    x[0:50,0] = x[0:50,0] + 10
+    x[0:50,1] = x[0:50,1] + 10
     y          = np.ones(500)
-    y[0:250]   = 0
+    y[0:50]   = 0
     blr        = BayesianLogisticRegression(x,y, evidence_max_method ="EM")
     blr.fit()
     import matplotlib.pyplot as plt
-    x1 = np.linspace(-5,15,100)
-    x2 =  -1*x1*blr.Wmap[0]/blr.Wmap[1] # -1*blr.Wmap[0]/blr.Wmap[2]
+    x1 = np.linspace(-5,6,100)
+    x2 =  -1*x1*blr.Wmap[1]/blr.Wmap[2]  - blr.Wmap[0]/blr.Wmap[2]
     p  = blr.predict_prob(x)
-    x = x - np.mean(x,0)
+    #x = x - np.mean(x,0)
     plt.plot(x[y==1,0],x[y==1,1],'ro')
     plt.plot(x[y==0,0],x[y==0,1],'bo')
     plt.plot(x1,x2,'g-')
