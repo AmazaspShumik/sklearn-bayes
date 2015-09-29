@@ -277,7 +277,7 @@ if __name__ == "__main__":
     x[0:50,1] = x[0:50,1] + 10
     y          = np.ones(500)
     y[0:50]   = 0
-    blr        = BayesianLogisticRegression(x,y, evidence_max_method ="EM")
+    blr        = BayesianLogisticRegression(x,y, evidence_max_method ="fixed-point")
     blr.fit()
     import matplotlib.pyplot as plt
     x1 = np.linspace(-5,6,100)
