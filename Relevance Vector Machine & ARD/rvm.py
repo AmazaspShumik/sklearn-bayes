@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
-
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
 from scipy.linalg import solve_triangular
 
-    
-    
 #----------------------------------  RVM  -----------------------------------------#
-
 
 
 class SparseBayesianLearner(object):
@@ -93,8 +89,7 @@ class SparseBayesianLearner(object):
         self.active          = 0
         self.diagA           = 0
         self.gamma           = 0
-        
-        
+           
         
     def fit(self,X,Y):
         '''
@@ -276,8 +271,8 @@ class SparseBayesianLearner(object):
         # (part of variance for gaussian dist and Laplace approx to bernoulli)
         var   = np.sum( np.dot(x,self.Sigma) * x , axis = 1)
         if self.learn_type == "regression":
-            var  =  1.0 / self.beta + np.dot( np.dot( x , self.Sigma ), x.T )
-            return [predictive_mean,var]
+            predictive_var  =  1.0 / self.beta + var
+            return [predictive_mean,predictive_var]
         else:
             # use probit function for approximating convolution of sigmoid and
             # normal distributon (in case of classification problem)
@@ -432,9 +427,10 @@ class SparseBayesianLearner(object):
             
         elif kernel_type == "poly":
             return (np.dot(K1,K2.T)/scaler + 1)**p_order
-            
+                
             
 #------------------------ Helper functions for RVM classification -------------------------#
+
 
 def sigmoid(X):
     '''
@@ -478,80 +474,4 @@ def cost_grad(X,Y,w,diagA):
     grad  = np.dot(X.T, s - Y) + w*diagA
     return [cost/n,grad/n]
             
-            
-            
-if __name__ == "__main__":
-    
-    #x      = np.zeros([200,1])
-    #x[:,0] = np.linspace(-5,5,200)
-    #x[:,1] = np.linspace(5,10,200)
-    #y      = 100 + 10*x[:,0] + np.random.random(200)
-    #X = np.concatenate(( np.ones([x.shape[0],1]) , x),1)
-    #B = np.dot(np.linalg.inv(np.dot(X.T,X)), np.dot(X.T,y))
-    #print B
-    #sbl    = SparseBayesianLearner(method = "fixed-point", alpha_max = 10000000, learn_type = "regression")
-    #sbl.fit(x,y)
-    
-    
-    #x      = np.zeros([500,2])
-    #x[:,0] = np.random.normal(0,1,500)
-    #x[:,1] = np.random.normal(0,1,500)
-    #x[0:50,0] = x[0:50,0] + 10
-    #x[0:50,1] = x[0:50,1] + 10
-    #y          = np.ones(500)
-    #y[0:50]   = 0
-    #sbl_class        = SparseBayesianLearner(method = "EM", alpha_max = 10000000, learn_type = "classification")
-    #sbl_class.fit(x,y,)
-    import matplotlib.pyplot as plt
-    #x1 = np.linspace(-5,15,100)
-    #x2 =  -1*x1*sbl_class.Wmap[1]/sbl_class.Wmap[2]  - sbl_class.Wmap[0]/sbl_class.Wmap[2]
-    ##p  = sbl_class.predict_prob(x)
-    ##x = x - np.mean(x,0)
-    #plt.plot(x[y==1,0],x[y==1,1],'ro')
-    #plt.plot(x[y==0,0],x[y==0,1],'bo')
-    #plt.plot(x1,x2,'g-')
-    #plt.show()
-    
-        
-    import numpy as np
-    from sklearn.cross_validation import train_test_split
-    from sklearn.datasets import make_moons
-    import os
-
-    # number of samples
-    n = 1000
-
-    # create dataset
-    Xx,Yy = make_moons(n_samples = n, noise = 0.2)
-
-    # separate into train & test sets   
-    X,x,Y,y = train_test_split(Xx,Yy,test_size = 0.3)
-    X = X+100
-
-    # train RVM
-    rvm = SparseBayesianLearner(learn_type = "classification", 
-                                method     = "fixed-point",
-                                alpha_max  = 1,
-                                kernel     = "gaussian",
-                                scaler     = 1)
-    rvm.fit(X,Y)
-    y_hat = rvm.predict(X)
-    plt.plot(X[Y==1,0],X[Y==1,1],"ro")
-    plt.plot(X[Y==0,0],X[Y==0,1],"bo")
-    plt.show()
-    
-    
-    #x                               = np.ones([1000,1])
-    #x[:,0]                          = np.linspace(start = -5, stop = 5, num = 1000)
-    #y                               = 100*np.sinc(x[:,0]) + np.random.normal(0,6,1000)+ 100
-    #x_train,x_test, y_train, y_test = train_test_split(x,y, test_size = 0.5)
-    #
-    ## fit rvm regression model
-    #rvmKernelised   = SparseBayesianLearner(method = "EM", kernel = "gaussian", scaler = 1, learn_type = "regression")
-    #rvmKernelised.fit(x_train,y_train)
-    #y_hat_kernel = rvmKernelised.predict(x_train)
-    #plt.plot(x_train[:,0],y_train,'r+')
-    #plt.plot(x_train[:,0],y_hat_kernel,'bo')
-    #plt.show()
-    
-    
+ 
