@@ -90,7 +90,7 @@ classdef BayesianRegression < handle
             %
             x    = bsxfun(@minus,X,obj.muX);
             t    = x*obj.mu + obj.muY;
-            tVar = 1/obj.beta + x'*obj.S*x;
+            tVar = 1/obj.beta + sum(x*obj.S.*x,2);
         end
         
         
