@@ -46,43 +46,95 @@ class BayesianRegression(object):
         self.w_precison        = None   # when value is assigned it is m x m matrix
         self.D                 = None   # covariance
 
-
-    def _weights_posterior_params(self,alpha,beta):
+            
+    def fit(self, evidence_approx_method="fixed-point",max_iter = 100):
         '''
-        Calculates parameters of posterior distribution of weights.
-        Uses economy svd for fast calculaltions.
-        
-        # Small Theory note:
-        ---------------------
-        Multiplying likelihood of data on prior of weights we obtain distribution 
-        proportional to posterior of weights. By completing square in exponent it 
-        is easy to prove that posterior distribution is Gaussian.
+        Fits Bayesian linear regression, returns posterior mean and preision 
+        of parameters
         
         Parameters:
         -----------
         
-        alpha: float
-            Precision parameter for prior distribution of weights
+        max_iter: int
+            Number of maximum iterations
             
-        beta: float
-            Precision parameter for noise distribution
+        evidence_approx_method: str
+            Method for approximating evidence
+        
+        Returns:
+        --------
+        
+        parameters: dictionary 
+                    - parameters['bias_term']  - coefficient for vector of constants
+                    - parameters['weights']    - mean of posterior of weights
+                    - parameters['precision']  - inverse of covariance for posterior 
+                                                 of weights
+        '''
+        parameters = {}
+        
+        # use type II maximum likelihood to find hyperparameters alpha and beta
+        self._evidence_approx(max_iter = max_iter, method = evidence_approx_method)
+
+        # find parameters of posterior distribution
+        self.w_mu, self.w_precision = self._posterior_params(self.alpha,self.beta)
+        d                           =  1/(self.beta*self.d**2 + self.alpha)
+        self.D                      =  np.dot( np.dot( self.v.T , np.diag(d) ) , self.v)
+        
+        
+        if self.bias_term is not False:
+            parameters["bias_term"] = self.mu_Y
+        parameters["weights"]       = self.w_mu
+        parameters["precision"]     = self.w_precision
+        return parameters
+            
+
+    def predict_dist(self,x):
+        '''
+        Calculates  mean and variance of predictive distribution at each data 
+        point of test set.
+        
+        Parameters:
+        -----------
+        
+        x: numpy array of size 'unknown x m'
+            Set of features for which corresponding responses should be predicted
+
+        
+        Returns:
+        ---------
+        
+        :list of two numpy arrays (each has size 'unknown x 1')
+            Parameters of univariate gaussian distribution [mean and variance] 
+        
+        '''
+        x            =  x - self.mu_X
+        mu_pred      =  np.dot(x,self.w_mu) + self.mu_Y
+        var_pred     =  1/self.beta + np.sum( np.dot( x, self.D )* x, axis = 1 )
+        return [mu_pred,var_pred]
+        
+    
+    def predict(self,x):
+        '''
+        Calculates mean of predictive distribution at each data point of test set
+        
+        Parameters:
+        ----------
+                
+        x: numpy array of size 'unknown x m'
+            Set of features for which corresponding responses should be predicted
             
         Returns:
         --------
         
-        : list of two numpy arrays
-           First element of list is mean and second is precision of multivariate 
-           Gaussian distribution
-           
+        mu_pred: numpy array of size 'unknown x 1'
+                  Mean of predictive distribution
+            
         '''
-        precision             = beta*np.dot(self.X.T,self.X)+alpha
-        self.diag             = self.d/(self.d**2 + alpha/beta)
-        p1                    = np.dot(self.v.T,np.diag(self.diag))
-        p2                    = np.dot(self.u.T,self.Y)
-        w_mu                  = np.dot(p1,p2)
-        return [w_mu,precision]
-
+        x           = x - self.mu_X
+        mu_pred     = np.dot(x,self.w_mu) + self.mu_Y
+        return mu_pred  
         
+                
     def _evidence_approx(self,max_iter = 100,method = "EM"):
         '''
         Performs evidence approximation , finds precision  parameters that maximize 
@@ -158,95 +210,47 @@ class BayesianRegression(object):
         
         # write optimal alpha and beta to instance variables
         self.alpha = alpha
-        self.beta  = beta 
-                
-            
-    def fit(self, evidence_approx_method="fixed-point",max_iter = 100):
+        self.beta  = beta  
+        
+              
+    def _posterior_params(self,alpha,beta):
         '''
-        Fits Bayesian linear regression, returns posterior mean and preision 
-        of parameters
+        Calculates parameters of posterior distribution of weights.
+        Uses economy svd for fast calculaltions.
+        
+        # Small Theory note:
+        ---------------------
+        Multiplying likelihood of data on prior of weights we obtain distribution 
+        proportional to posterior of weights. By completing square in exponent it 
+        is easy to prove that posterior distribution is Gaussian.
         
         Parameters:
         -----------
         
-        max_iter: int
-            Number of maximum iterations
+        alpha: float
+            Precision parameter for prior distribution of weights
             
-        evidence_approx_method: str
-            Method for approximating evidence
-        
-        Returns:
-        --------
-        
-        parameters: dictionary 
-                    - parameters['bias_term']  - coefficient for vector of constants
-                    - parameters['weights']    - mean of posterior of weights
-                    - parameters['precision']  - inverse of covariance for posterior 
-                                                 of weights
-        '''
-        parameters = {}
-        
-        # use type II maximum likelihood to find hyperparameters alpha and beta
-        self._evidence_approx(max_iter = max_iter, method = evidence_approx_method)
-
-        # find parameters of posterior distribution
-        self.w_mu, self.w_precision = self._weights_posterior_params(self.alpha,self.beta)
-        d                           =  1/(self.beta*self.d**2 + self.alpha)
-        self.D                      =  np.dot( np.dot( self.v.T , np.diag(d) ) , self.v)
-        
-        
-        if self.bias_term is not False:
-            parameters["bias_term"] = self.mu_Y
-        parameters["weights"]       = self.w_mu
-        parameters["precision"]     = self.w_precision
-        return parameters
-            
-
-    def predict_dist(self,x):
-        '''
-        Calculates  mean and variance of predictive distribution at each data 
-        point of test set.
-        
-        Parameters:
-        -----------
-        
-        x: numpy array of size 'unknown x m'
-            Set of features for which corresponding responses should be predicted
-
-        
-        Returns:
-        ---------
-        
-        :list of two numpy arrays (each has size 'unknown x 1')
-            Parameters of univariate gaussian distribution [mean and variance] 
-        
-        '''
-        x            =  x - self.mu_X
-        mu_pred      =  np.dot(x,self.w_mu) + self.mu_Y
-        var_pred     =  1/self.beta + np.dot( np.dot( x, self.D ), x.T )
-        return [mu_pred,var_pred]
-        
-    
-    def predict(self,x):
-        '''
-        Calculates mean of predictive distribution at each data point of test set
-        
-        Parameters:
-        ----------
-                
-        x: numpy array of size 'unknown x m'
-            Set of features for which corresponding responses should be predicted
+        beta: float
+            Precision parameter for noise distribution
             
         Returns:
         --------
         
-        mu_pred: numpy array of size 'unknown x 1'
-                  Mean of predictive distribution
-            
+        : list of two numpy arrays
+           First element of list is mean and second is precision of multivariate 
+           Gaussian distribution
+           
         '''
-        x           = x - self.mu_X
-        mu_pred     = np.dot(x,self.w_mu) + self.mu_Y
-        return mu_pred          
+        precision             = beta*np.dot(self.X.T,self.X)+alpha
+        self.diag             = self.d/(self.d**2 + alpha/beta)
+        p1                    = np.dot(self.v.T,np.diag(self.diag))
+        p2                    = np.dot(self.u.T,self.Y)
+        w_mu                  = np.dot(p1,p2)
+        return [w_mu,precision]
+
+        
+
+                      
 
     
     
