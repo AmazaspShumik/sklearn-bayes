@@ -75,7 +75,7 @@ class BayesianRegression(object):
         # use type II maximum likelihood to find hyperparameters alpha and beta
         self._evidence_approx(max_iter = max_iter, method = evidence_approx_method)
 
-        # find parameters of posterior distribution
+        # find parameters of posterior distribution after last ipdate of alpha & beta
         self.w_mu, self.w_precision = self._posterior_params(self.alpha,self.beta)
         d                           =  1/(self.beta*self.d**2 + self.alpha)
         self.D                      =  np.dot( np.dot( self.v.T , np.diag(d) ) , self.v)
