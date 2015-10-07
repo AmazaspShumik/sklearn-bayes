@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
+from scipy.linalg import solve_triangular
 
 #------------------------- Helper functions for logistic --------------------------#
 
@@ -9,9 +10,16 @@ def sigmoid(X):
     Evaluates sigmoid function
     '''
     return 1. / ( 1 + np.exp(-X))
+    
+    
+def inv_sigmoid(X):
+    '''
+    Returns 1 - sigmoid
+    '''
+    return np.exp( -X) / (1 + np.exp(-X))
 
 
-def cost_grad(X,Y,w,alpha):
+def cost_grad(X,Y,w,alpha, bias_term = True):
     '''
     Calculates cost and gradient for logistic regression
     
@@ -23,11 +31,21 @@ def cost_grad(X,Y,w,alpha):
        
     w: numpy array of size 'm x 1'
     '''
-    n     = X.shape[0]
-    Xw    = np.dot(X,w)
-    s     = sigmoid(Xw)
-    cost  = np.sum( -1*np.log(s)*Y - np.log(1 - s)*(1 - Y)) + alpha*np.dot(w,w)/2 
-    grad  = np.dot(X.T, s - Y) + alpha*w
+    n                = X.shape[0]
+    m                = w.shape[0]
+    Xw               = np.dot(X,w)
+    s                = sigmoid(Xw)
+    si               = inv_sigmoid(Xw)
+    cost             = np.sum( -1*np.log(s)*Y - np.log(si)*(1 - Y))
+    grad             = np.dot(X.T, s - Y)
+    if bias_term is False:
+       cost += alpha * np.dot(w,w)
+       grad += alpha * w
+    else:
+       cost     += alpha * np.dot(w[1:],w[1:])
+       w_tr      = np.zeros(m)
+       w_tr[1:]  = w[1:]
+       grad     += alpha * w_tr
     return [cost/n,grad/n]
     
 
@@ -149,10 +167,7 @@ class BayesianLogisticRegression(object):
         '''
         x      = np.concatenate((np.ones([X.shape[0],1]),X),1)
         mu     = np.dot(x,self.Wmap)
-        u,d,vt = self.svdA
-        D      =  np.linalg.inv(self.A)
-        sigma = np.sum(np.dot(x,D)*x,axis = 1)
-    
+        sigma = np.sum(np.dot(x,self.Sigma)*x,axis = 1)
         ks = 1. / ( 1. + np.pi*sigma / 8)**0.5
         return sigmoid(mu*ks)
         
@@ -163,14 +178,13 @@ class BayesianLogisticRegression(object):
         '''
         # initial guess on paramters
         alpha_old    = self.alpha_init
-        Wmap_old     = self.w_init
-        evid_old     = np.NINF
+        Wmap         = self.w_init
                 
         # evidence maximization iterative procedure
         for i in range(self.max_iter_evidence):
-            
+                        
             # find mean & covariance of Laplace approximation to posterior
-            Wmap, A,d         = self._irls(self.X, self.Y, alpha_old, Wmap_old) 
+            Wmap, d           = self._irls(self.X, self.Y, alpha_old, Wmap) 
             mu_sq             = np.dot(Wmap,Wmap)
             
             # use EM or fixed-point procedures to update parameters            
@@ -180,23 +194,21 @@ class BayesianLogisticRegression(object):
                 gamma = np.sum((d - alpha_old) / d)
                 alpha = gamma / mu_sq
                 
-            # calculate value of type II maximum likelihood
-            evid = self._evidence_value(d,alpha,Wmap)
-            
             # check termination conditions, if true write optimal values of 
             # parameters to instance variables
-            if evid - evid_old < self.conv_thresh_evidence or i==self.max_iter_evidence - 1:
-                self.alpha = alpha
-                self.Wmap  = Wmap
-                self.A     = A
-                self.svdA  = np.linalg.svd(A, full_matrices = False)
-                return 
+            delta_alpha = abs(alpha - alpha_old)
+            if delta_alpha < self.conv_thresh_evidence or i==self.max_iter_evidence-1:
+                self.alpha  = alpha
+                break
+            alpha_old   = alpha
             
-            evid_old  = evid
-            Wmap_old  = Wmap
+        # after convergence we need to find updated MAP vector of parameters
+        # and covariance matrix of Laplace approximation
+        self.Wmap, self.Sigma = self._irls(self.X,self.Y, self.alpha, Wmap, True)
             
             
-    def _irls(self, X, Y, alpha, Theta):
+            
+    def _irls(self, X, Y, alpha, Theta, full_covar = False):
         '''
         Iteratively refitted least squares method using l_bfgs_b.
         Finds MAP estimates for weights and Hessian at convergence point
@@ -209,7 +221,10 @@ class BayesianLogisticRegression(object):
               Wmap: numpy array of size 'm x 1'
                     Mode of posterior distribution (mean for Gaussian approx.)
                     
-              negHessian: numpy array of size 'm x m'
+              inv_eigs: numpy array of size 'm x 1'
+                    Eigenvalues of covariance of Laplace approximation
+              
+              inv: numpy array of size 'm x m'
                     Covariance of Gaussian (Laplace) approximation
         '''
         # calculate solution using version of Newton-Raphson
@@ -222,26 +237,14 @@ class BayesianLogisticRegression(object):
         R          = s * (1 - s)
         negHessian = np.dot(X.T*R,X)
         np.fill_diagonal(negHessian,np.diag(negHessian + alpha))
-        d          = np.linalg.eig(negHessian)[0]
         
-        return [Wmap, negHessian, np.array(d)]
- 
-            
-    def _evidence_value(self,d,alpha,Wmap):
-        '''
-        Calculates value of evidence (type II likelihood)
-        
-        Parameters:
-        -----------
-        
-        d: numpy array of size m
-           
-        '''
-        Likelihood_Wmap = -1*cost_grad(self.X, self.Y, Wmap, alpha)
-        Prior_Wmap      = self.m/2 * np.log(alpha) - alpha / 2 * np.dot(Wmap,Wmap)
-        Z_normaliser    = 0.5*self.m*np.log(np.pi) - 0.5*np.log(np.sum(d))
-        ED              = Likelihood_Wmap + Prior_Wmap + Z_normaliser
-        return ED
+        if full_covar is False:
+            # sum of trace elements equal to sum of eigenvalues
+            eigs = np.linalg.eig(negHessian)[0]
+            return [Wmap,eigs]
+        else:
+            inv = np.linalg.inv(negHessian)
+            return [Wmap, inv]     
         
         
     def _binarise(self, Y, classes):
@@ -268,26 +271,4 @@ class BayesianLogisticRegression(object):
         Y[y==1] = self.inverse_encoding[1]
         return Y
 
-        
-if __name__ == "__main__":
-    x      = np.zeros([500,2])
-    x[:,0] = np.random.normal(0,1,500)
-    x[:,1] = np.random.normal(0,1,500)
-    x[0:50,0] = x[0:50,0] + 10
-    x[0:50,1] = x[0:50,1] + 10
-    y          = np.ones(500)
-    y[0:50]   = 0
-    blr        = BayesianLogisticRegression(x,y, evidence_max_method ="fixed-point")
-    blr.fit()
-    import matplotlib.pyplot as plt
-    x1 = np.linspace(-5,6,100)
-    x2 =  -1*x1*blr.Wmap[1]/blr.Wmap[2]  - blr.Wmap[0]/blr.Wmap[2]
-    p  = blr.predict_prob(x)
-    #x = x - np.mean(x,0)
-    plt.plot(x[y==1,0],x[y==1,1],'ro')
-    plt.plot(x[y==0,0],x[y==0,1],'bo')
-    plt.plot(x1,x2,'g-')
-    plt.show()
-    
-    #c,g = cost_grad(x,y,np.zeros(2),1)
     
