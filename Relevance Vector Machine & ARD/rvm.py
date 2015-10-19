@@ -48,9 +48,10 @@ class SparseBayesianLearner(object):
        
     References:
     -----------
-    Tipping 2001, Sparse Bayesian Learning and Relevance Vector Machine
-    Bishop 2006, Pattern Recognition and Machine Learning (Chapters 3,6,7,9)
-
+    1) Tipping 2001, Sparse Bayesian Learning and Relevance Vector Machine
+    2) Bishop 2006, Pattern Recognition and Machine Learning (Chapters 3,6,7,9)
+    3) Storcheus Dmitry, Mehryar Mohri, and Afshin Rostamizadeh. "Foundations of Coupled Nonlinear Dimensionality Reduction."
+       arXiv preprint arXiv:1509.08880 (2015).
     '''
     
     def __init__(self, alpha_max = 1e+3, thresh  = 1e-5, kernel        = None,
