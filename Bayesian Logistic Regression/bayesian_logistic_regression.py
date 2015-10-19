@@ -87,6 +87,11 @@ class BayesianLogisticRegression(object):
     alpha_init: float (DEFAULT = None)
        Initial guess on precision parameter of prior, if not defined random guess
     
+    References:
+    -----------
+    1) Pattern Recognition and Machine Learning, Bishop (2006) (pages 293 - 294)
+    2) Storcheus Dmitry, Mehryar Mohri, Afshin Rostamizadeh. "Foundations of Coupled Nonlinear Dimensionality Reduction."
+       arXiv preprint arXiv:1509.08880 (2015).
     '''
     
     
