@@ -34,15 +34,76 @@ class VariationalLinearRegression(object):
        
     '''
     
-    def __init__(self,X,Y,bias_term = True, max_iter = 10, conv_thresh = 1e-3):
-        self.muX   =  np.mean(X, axis = 0)
-        self.muY   =  np.mean(Y)
-        self.X     =  X - self.muX
-        self.Y     =  Y - self.muY
+    def __init__(self,X,Y, ab0 = None, cd0 = None, bias_term = True, max_iter = 10, 
+                                                                     conv_thresh = 1e-3):
+        self.muX          =  np.mean(X, axis = 0)
+        self.muY          =  np.mean(Y)
+        self.X            =  X - self.muX
+        self.Y            =  Y - self.muY
+        
+        # Number of samples & dimensioality of training set
+        self.n,self.m     =  self.X.shape
+        
+        # Gamma distribution params. for precision of weights (beta) & likelihood 
+        if ab0 is None:
+            self.a,self.b =  [1e-2, 1e-4]
+        else:
+            self.a,self.b =  ab0
+        if cd0 is None:
+            self.c,self.d =  [1e-2, 1e-4]
+        else:
+            self.c,self.d =  cd0
+        
+        # weights for features of linear regression
+        self.beta_        =  np.zeros(self.m)
+        
+        # lower bound (should be non-decreasing)
+        self.lbound       =  []
+        
+        # termination conditions for mean-field approximation
+        self.max_iter     =  max_iter
+        self.conv_thresh  =  conv_thresh
+        
+        # precision paramters of weight distribution & likelihood
+        self.lambda_      =  0.
+        self.alpha_       =  0.
+        
+        # covariance of posterior distribution
+        self.Sigma        =  np.zeros([self.m, self.m], dtype = np.float)
+        
+        # svd decomposition matrices
+        self.u            =  0
+        self.d            =  0
+        self.vt           =  0
         
         
     def fit(self):
-        pass
+        '''
+        Fits Variational Bayesian Linear Regression Model
+        '''
+        # SVD decomposition, done once , reused at each iteration
+        self.u,self.d, self.vt = np.linalg.svd(self.X, full_matrices = False)
+        
+        
+        for i in range(self.max_iter):
+            
+            #  ----------   UPDATE Q(beta_) --------------
+            
+            # calculate expected values of alpha and lambda
+            E_lambda     = self._gamma_mean(self.c,self.d)
+            E_alpha      = self._gamma_mean(self.a,self.b)
+            
+            # update parameters of Q(beta_)
+
+            
+            
+            # update q(alpha_)
+            
+            
+            # update q(lambda_)
+        
+        
+        
         
     def predict(self,X):
         '''
@@ -76,5 +137,33 @@ class VariationalLinearRegression(object):
         
     def predict_dist(self,X):
         pass
+        
+        
+    def _posterior_dist_beta(self):
+        '''
+        Calculates parameters of posterior distribution of weights
+        '''
+        pass
+        
+    
+    @staticmethod
+    def _gamma_mean(a,b):
+       '''
+       Calculates mean of gamma distribution
+    
+       Parameters:
+       -----------
+       a0: float
+           Shape parameter
+    
+       b0: float
+           Rate parameters
+        
+       Returns:
+       --------
+       : float
+           Mean of gamma distribution
+       '''
+       return a/b
         
         
