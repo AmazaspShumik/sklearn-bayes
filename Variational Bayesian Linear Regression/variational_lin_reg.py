@@ -79,48 +79,70 @@ class VariationalLinearRegression(object):
         # covariance of posterior distribution
         self.Sigma        =  np.zeros([self.m, self.m], dtype = np.float)
         
-        # svd decomposition matrices
-        self.u            =  0
-        self.d            =  0
-        self.vt           =  0
-        
+        # svd decomposition & precomputed values for speeding up iterations
+        self.u,self.D     =  0
+        self.vt, self.XY  =  0
+                
         
     def fit(self):
         '''
         Fits Variational Bayesian Linear Regression Model
         '''
         # SVD decomposition, done once , reused at each iteration
-        self.u,self.d, self.vt = np.linalg.svd(self.X, full_matrices = False)
+        self.u,self.D, self.vt = np.linalg.svd(self.X, full_matrices = False)
         
         # compute X'*Y  &  Y'*Y to reuse in each iteration
-        XY                     = np.dot(self.X,self.Y)
+        self.XY                = np.dot(self.X,self.Y)
         YY                     = np.dot(self.Y,self.Y)
         
         # some parameters of Gamma distribution have closed form solution
         self.a                 = self.a + float(self.m) / 2
         self.c                 = self.c + float(self.n) / 2
+        b,d                    = self.b,self.d
         
         for i in range(self.max_iter):
             
             #  ----------   UPDATE Q(beta_)   --------------
             
             # calculate expected values of alpha and lambda
-            E_lambda     = self._gamma_mean(self.c,self.d)
-            E_alpha      = self._gamma_mean(self.a,self.b)
+            E_lambda     = self._gamma_mean(self.c,d)
+            E_alpha      = self._gamma_mean(self.a,b)
             
             # update parameters of Q(beta_)
-            self.beta,D  = self._posterior_dist_beta(E_alpha, E_lambda)
+            self.beta,Sn  = self._posterior_dist_beta(E_lambda, E_alpha)
             
             #  ----------    UPDATE Q(alpha_)   ------------
             
             # update rate parameter for Gamma distributed precision of weights
-            b            = self.b + 0.5*np.dot(self.beta,self.beta) + 0.5*np.sum(D)
+            b            = self.b + 0.5*np.dot(self.beta,self.beta) + 0.5*np.trace(Sn)
             
             #  ----------    UPDATE Q(lambda_)   ------------
 
-            # update rate parameter for Gamma distributed precision of likelihood
-            d            = self.d + 0.5*(YY - 2*np.dot(self.beta,XY))
-        
+            # update rate parameter for Gamma distributed precision of likelihood            
+            Xbeta        = np.sum(np.dot(self.X,self.beta)**2)
+            XSX          = np.trace(np.dot(np.dot(self.X,Sn),self.X.T))
+            d            = self.d + 0.5*(YY - 2*np.dot(self.beta,self.XY) + XSX + Xbeta)
+            
+            # check convergence 
+            converged = False
+            
+            # save fitted parameters
+            if converged or i==(self.max_iter-1):
+                
+                # save parameters of Gamma distribution
+                self.b, self.d        = b, d
+                
+                # compute parameters of weight distributions corresponding
+                # to new alpha_ & lambda_
+                E_lambda              = self._gamma_mean(self.c,self.d)
+                E_alpha               = self._gamma_mean(self.a,self.b)
+                self.beta, self.Sigma = self._posterior_dist_beta(E_lambda,E_alpha)
+                
+                if converged is False:
+                    print("Warning!!! Algorithm did not converge")
+                    
+                return
+             
         
         
         
@@ -155,14 +177,48 @@ class VariationalLinearRegression(object):
         
         
     def predict_dist(self,X):
-        pass
+        '''
+        Predicts target value
+        '''
         
         
-    def _posterior_dist_beta(self):
+    def _posterior_dist_beta(self, E_lambda, E_alpha):
         '''
-        Calculates parameters of posterior distribution of weights
+        Calculates parameters of approximation of posterior distribution 
+        of weights
+        
+        Parameters:
+        -----------
+        
+        E_lambda: float
+           Expectation of likelihood precision parameter with respect to 
+           its factored distribution Q(lambda_)
+        
+        E_alpha: float
+           Expectation of precision parameter for weight distribution with
+           respect to its factored distribution Q(alpha_)
+        
+        Returns:
+        --------
+        : list of two numpy arrays [Mn,Sn]
+        
+        Mn: numpy array of size [n_features, 1]
+           Mean of posterior ditribution of weights
+            
+        Sn: numpy array of size [n_features, n_features]
+           Covariance of posterior distribution of weights 
+            
         '''
-        pass
+        # inverse eigenvalues of precision matrix
+        Dinv = 1. / (E_lambda*self.D**2 + E_alpha)
+        
+        # Covariance matrix ( use numpy broadcasting to speed up)
+        Sn   = np.dot(self.vt.T*(Dinv),self.vt)
+        
+        # mean of approximation for posterior distribution
+        Mn   = E_lambda * np.dot(Sn,self.XY)
+        return [Mn,Sn]
+        
         
     
     @staticmethod
@@ -184,5 +240,10 @@ class VariationalLinearRegression(object):
            Mean of gamma distribution
        '''
        return a/b
+       
+
+
+if __name__ == "__main__":
+    
         
         
