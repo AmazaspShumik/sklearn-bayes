@@ -4,9 +4,17 @@ import numpy as np
 
 class VariationalLinearRegression(object):
     '''
-    Implements fully Bayesian Linear Regression using 
-    mean-field approximation over latent variables.
-    Assumes gamma prior on precision 
+    Implements fully Bayesian Linear Regression using mean-field approximation 
+    over latent variables. Assumes gamma prior on precision of weight distribution
+    and likelihood.
+    
+    Theoretical Note:
+    -----------------
+    
+    P ( Y | X, beta_, lambda_) = N( Y | X*beta_, lambda_^(-1)*I)
+    P ( beta_ | alpha_ )       = N( 
+    P ( alpha_ | a, b)         = Ga( alpha_ | a, b)
+    P ( lambda_ | c, d)        = Ga( lambda_ | c, d)
     
     Parameters:
     -----------
@@ -84,23 +92,34 @@ class VariationalLinearRegression(object):
         # SVD decomposition, done once , reused at each iteration
         self.u,self.d, self.vt = np.linalg.svd(self.X, full_matrices = False)
         
+        # compute X'*Y  &  Y'*Y to reuse in each iteration
+        XY                     = np.dot(self.X,self.Y)
+        YY                     = np.dot(self.Y,self.Y)
+        
+        # some parameters of Gamma distribution have closed form solution
+        self.a                 = self.a + float(self.m) / 2
+        self.c                 = self.c + float(self.n) / 2
         
         for i in range(self.max_iter):
             
-            #  ----------   UPDATE Q(beta_) --------------
+            #  ----------   UPDATE Q(beta_)   --------------
             
             # calculate expected values of alpha and lambda
             E_lambda     = self._gamma_mean(self.c,self.d)
             E_alpha      = self._gamma_mean(self.a,self.b)
             
             # update parameters of Q(beta_)
+            self.beta,D  = self._posterior_dist_beta(E_alpha, E_lambda)
+            
+            #  ----------    UPDATE Q(alpha_)   ------------
+            
+            # update rate parameter for Gamma distributed precision of weights
+            b            = self.b + 0.5*np.dot(self.beta,self.beta) + 0.5*np.sum(D)
+            
+            #  ----------    UPDATE Q(lambda_)   ------------
 
-            
-            
-            # update q(alpha_)
-            
-            
-            # update q(lambda_)
+            # update rate parameter for Gamma distributed precision of likelihood
+            d            = self.d + 0.5*(YY - 2*np.dot(self.beta,XY))
         
         
         
