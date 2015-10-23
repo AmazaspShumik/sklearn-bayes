@@ -42,7 +42,7 @@ class VariationalLinearRegression(object):
        
     '''
     
-    def __init__(self,X,Y, ab0 = None, cd0 = None, bias_term = True, max_iter = 10, 
+    def __init__(self,X,Y, ab0 = None, cd0 = None, bias_term = True, max_iter = 20, 
                                                                      conv_thresh = 1e-3):
         self.muX          =  np.mean(X, axis = 0)
         self.muY          =  np.mean(Y)
@@ -80,8 +80,8 @@ class VariationalLinearRegression(object):
         self.Sigma        =  np.zeros([self.m, self.m], dtype = np.float)
         
         # svd decomposition & precomputed values for speeding up iterations
-        self.u,self.D     =  0
-        self.vt, self.XY  =  0
+        self.u,self.D     =  None,None
+        self.vt, self.XY  =  None,None
                 
         
     def fit(self):
@@ -92,7 +92,7 @@ class VariationalLinearRegression(object):
         self.u,self.D, self.vt = np.linalg.svd(self.X, full_matrices = False)
         
         # compute X'*Y  &  Y'*Y to reuse in each iteration
-        self.XY                = np.dot(self.X,self.Y)
+        self.XY                = np.dot(self.X.T,self.Y)
         YY                     = np.dot(self.Y,self.Y)
         
         # some parameters of Gamma distribution have closed form solution
@@ -165,21 +165,46 @@ class VariationalLinearRegression(object):
         '''
         # center data
         x         = X - self.muX
-        
-        # 
-        # predict
-        #
-        y_hat     = None
-        
+        # mean of predictive distribution
+        y_hat     = np.dot(x,self.beta)
         # take into account bias term
         y_hat     = y_hat + self.muY
+        
         return y_hat
         
         
     def predict_dist(self,X):
         '''
-        Predicts target value
+        Computes parameters of predictive distribution
+        
+        Parameters:
+        -----------
+        
+        X: numpy array of size [unknown, n_features]
+           Matrix of explanatory variables for test set
+           
+        Returns:
+        --------
+        [y_hat,var]: list of size two
+        
+        y_hat: numpy array of size [unknown, 1]
+           Mean of predictive distribution at each point
+           
+        var: numpy array of size [unknown, 1]
+           Variance of predictive distribution at each point
+           
         '''
+        # center data
+        x         = X - self.muX
+        # mean of predictive distribution
+        y_hat     = np.dot(x,self.beta)
+        # take into account bias term
+        y_hat     = y_hat + self.muY
+        
+        # asymptotic noise
+        noise     = 1./ self._gamma_mean(self.c,self.d)
+        var       = noise + np.sum(np.dot(x,self.Sigma)*x,axis = 1)
+        return [y_hat,var]
         
         
     def _posterior_dist_beta(self, E_lambda, E_alpha):
@@ -240,10 +265,3 @@ class VariationalLinearRegression(object):
            Mean of gamma distribution
        '''
        return a/b
-       
-
-
-if __name__ == "__main__":
-    
-        
-        
