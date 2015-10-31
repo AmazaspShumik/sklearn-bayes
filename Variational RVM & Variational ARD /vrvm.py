@@ -1,6 +1,5 @@
 import numpy as np
-import scipy as sp
-from sklearn.linear_model import LinearRegression
+from scipy.linalg import solve_triangular
 
 
 
@@ -9,7 +8,7 @@ class VRVM(object):
     Superclass for Variational Relevance Vector Regression and Variational
     Relevance Vector Classification
     '''
-    def __init__(self, X, Y, a = None, b = None, kernel = 'rbf', scaler = 1, order              = 2, 
+    def __init__(self, X, Y, a = None, b = None, c = None, d = None, kernel = 'rbf', scaler = 1, order              = 2, 
                                                                              max_iter           = 20,
                                                                              conv_thresh        = 1e-3,
                                                                              bias_term          = True, 
@@ -54,6 +53,7 @@ class VRVM(object):
             self.b = b
             
         # randomly initialise weights
+        self.w           = 
         
         # list of lower bounds (list is updated at each iteration of Mean Field Approximation)
         self.lower_bound = [np.NINF]
@@ -135,6 +135,9 @@ class VRVM(object):
             dsq  = distSq(X,Y,XY) / scaler
             return 1. / (1 + dsq)
             
+            
+#------------------- Variational Relevance Vector Regression ----------------------#          
+            
         
 class VRVR(VRVM):
     '''
@@ -166,7 +169,7 @@ class VRVR(VRVM):
         
     '''
     
-    def __init__(self,c = 1, d = 1,*args,**kwargs):
+    def __init__(self,*args,**kwargs):
         super(self,VRVR).__init__(*args,**kwargs) 
 
           
@@ -192,6 +195,7 @@ class VRVR(VRVM):
             
             # check convergence
             conv = self._check_convergence()
+            
             
         
     
@@ -272,19 +276,20 @@ class VRVR(VRVM):
         '''
         
         # compute precision parameter
-        S = 
+        S    = exp_tau*np.dot(X.T,X)
+        np.fill_diagonal(S, np.diag(S) + exp_A)
         
         # cholesky decomposition
-        R = np.linalg.cholesky(X)
+        R    = np.linalg.cholesky(X)
         
+        # find mean of posterior distribution
+        RtMw = solve_triangular(R, exp_tau*XY, lower = True)
+        Mw   = solve_traingular(R.T, RtMw, lower = False)
         
-        
-        
-        
-        
-        
-        
-        
+        if full_covar is True:
+            
+ 
+#-------------------- Variational Relevance Vector Classifier --------------------# 
         
         
 class VRVC(VRVM):
