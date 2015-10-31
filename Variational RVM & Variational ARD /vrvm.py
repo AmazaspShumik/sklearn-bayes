@@ -9,42 +9,76 @@ class VRVM(object):
     Superclass for Variational Relevance Vector Regression and Variational
     Relevance Vector Classification
     '''
-    def __init__(self, X, Y, kernel = 'rbf', scaler = 1, order = 2, max_iter_approx = 20,
-                                                                    conv_thresh_approx = 1e-3,
-                                                                    max_iter_fit    = 10,
-                                                                    conv_thresh_fit = 1e-3,
-                                                                    bias_term       = True, 
-                                                                    prune_thresh    = 1e-3):
-        self.max_iter_approx     = max_iter_approx
-        self.conv_thresh_approx  = conv_thresh_approx
-        self.max_iter_fit        = max_iter_fit
-        self.conv_thresh_fit     = conv_thresh_fit
+    def __init__(self, X, Y, a = None, b = None, kernel = 'rbf', scaler = 1, order              = 2, 
+                                                                             max_iter           = 20,
+                                                                             conv_thresh        = 1e-3,
+                                                                             bias_term          = True, 
+                                                                             prune_thresh       = 1e-3):
+        self.max_iter            = max_iter
+        self.conv_thresh         = conv_thresh
         self.bias_term           = bias_term
         self.prune_thresh        = prune_thresh
         
         # kernelise data if asked (if not kernelised, this is equivalent to
         # ARD regression / classification)
         if kernel is None:
-            self.X       = X
+            self.X               = X
         else:
             # check that kernels are supported 
             assert kernel in ['poly','hpoly','rbf','cauchy'],'kernel provided is not supported'
-            self.X       = self._kernelise(X,X,kernel,scaler,order)
+            self.X               = self._kernelise(X,X,kernel,scaler,order)
         
         # number of features & dimensionality
-        self.n, self.m   = X.shape
+        self.n, self.m           = X.shape
         
         # add bias term if required
         if self.bias_term is True:
-            bias         = np.ones([self.n,1])
-            self.X       = np.concatenate((bias,self.X), axis = 1)
-            self.m      += 1
-        self.Y           = Y
+            bias                 = np.ones([self.n,1])
+            self.X               = np.concatenate((bias,self.X), axis = 1)
+            self.m              += 1
+        self.Y                   = Y
         
         # number of features used 
-        self.active      = np.array([True for i in range self.m])
+        self.active              = np.array([True for i in xrange(self.m)])
         
+        # parameters of Gamma distribution for weights
+        if a is None:
+            self.a = 1e-6*np.ones(self.m) # constant in Bishop & Tipping (2000)
+        else:
+            assert a.shape[0] == self.m, 'incorrect number of weight parameters'
+            self.a = a 
+        if b is None:
+            self.b = 1e-6*np.ones(self.m) # constant in Bishop & Tipping (2000)
+        else:
+            assert b.shape[0] == self.m, 'incorrect number of weight parameters'
+            self.b = b
+            
+        # randomly initialise weights
         
+        # list of lower bounds (list is updated at each iteration of Mean Field Approximation)
+        self.lower_bound = [np.NINF]
+    
+    
+    def _check_convergence(self):
+        '''
+        Checks convergence of lower bound
+        
+        Returns:
+        --------
+        : bool
+          If True algorithm converged, if False did not.
+            
+        '''
+        lb = self._lower_bound()
+        self.lower_bound.append(lb)
+        if self.lower_bound[-1] - self.lower_bound[-2] < self.conv_thresh:
+            return True
+        return False
+        
+                        
+    def _lower_bound(self):
+        raise NotImplementedError()
+            
     
     @staticmethod
     def _kernelise(X,Y, kernel, scaler, p):
@@ -102,7 +136,6 @@ class VRVM(object):
             return 1. / (1 + dsq)
             
         
-        
 class VRVR(VRVM):
     '''
     Variational Relevance Vector Regressor
@@ -129,18 +162,37 @@ class VRVR(VRVM):
        Threshold for pruning out variable
        
     
+    
         
     '''
     
-    def __init__(self,*args,**kwargs):
-        super(self,VRVR).__init__(*args,**kwargs)
+    def __init__(self,c = 1, d = 1,*args,**kwargs):
+        super(self,VRVR).__init__(*args,**kwargs) 
 
           
     def fit(self):
         '''
         Fits variational relevance vector regression
         '''
-        pass
+        
+        # precompute some values for faster iterations 
+        XY = np.dot(self.X.T,self.Y)
+        Y2 = np.sum(self.Y**2)
+        
+        for i in range(self.max_iter):
+            
+            # update q(w)
+            
+            
+            
+            # update q(tau)
+            
+            
+            # update q(alpha_{j}) for j = 1:n_features
+            
+            # check convergence
+            conv = self._check_convergence()
+            
         
     
     def predict(self, X):
@@ -164,7 +216,73 @@ class VRVR(VRVM):
        
          
     def predict_dist(self, X):
-        pass
+        '''
+        Calculates mean and variance of predictive distribution
+        
+        Parameters:
+        -----------
+        X:     numpy array of size [unknown,n_features]
+               Matrix of explanatory variables 
+        
+        Returns:
+        --------
+        [y_hat, var_hat]: list of two numpy arrays
+        
+        y_hat: numpy array of size [unknown, n_features]
+               Mean of predictive distribution
+               
+        var_hat: numpy array of size [unknown, n_features]
+               Variance of predictive distribution for every observation
+        '''
+        # kernelise data
+        x = self._kernelise(X,self.support_vecs)
+        
+        
+    def _posterior_weights(self, X, XY, YY, exp_tau, exp_A, full_covar = False):
+        '''
+        Calculates parameters of posterior distribution of weights
+        
+        Parameters:
+        -----------
+        X:  numpy array of size n_features
+            Matrix of active features (changes at each iteration)
+        
+        XY: numpy array of size [n_features]
+            Dot product of X and Y (for faster computations)
+            
+        YY: float
+            Dot product of Y and Y (for faster computation)
+            
+        exp_tau: float
+            Mean of precision parameter of likelihood
+            
+        exp_A: numpy array of size n_features
+            Vector of 
+        
+        full_covar: bool
+           If True returns covariance matrix, if False returns only diagonal ele-
+           ments of covariance matrix. This allows faster computation.
+           
+        Returns:
+        --------
+        [y_hat, var_hat]: list of two numpy arrays
+        
+        y_hat: mean of posterior distribution
+        var_hat: diagonal of variance matrix or full variance matrix
+        '''
+        
+        # compute precision parameter
+        S = 
+        
+        # cholesky decomposition
+        R = np.linalg.cholesky(X)
+        
+        
+        
+        
+        
+        
+        
         
         
         
