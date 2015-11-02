@@ -8,11 +8,8 @@ class VRVM(object):
     Superclass for Variational Relevance Vector Regression and Variational
     Relevance Vector Classification
     '''
-    def __init__(self, X, Y, a = None, b = None, c = None, d = None, kernel = 'rbf', scaler = 1, order              = 2, 
-                                                                             max_iter           = 20,
-                                                                             conv_thresh        = 1e-3,
-                                                                             bias_term          = True, 
-                                                                             prune_thresh       = 1e-3):
+    def __init__(self,X,Y,a,b,kernel,scaler,order,max_iter,conv_thresh,bias_term,prune_thresh):
+        
         self.max_iter            = max_iter
         self.conv_thresh         = conv_thresh
         self.bias_term           = bias_term
@@ -51,10 +48,7 @@ class VRVM(object):
         else:
             assert b.shape[0] == self.m, 'incorrect number of weight parameters'
             self.b = b
-            
-        # randomly initialise weights
-        self.w           = 
-        
+
         # list of lower bounds (list is updated at each iteration of Mean Field Approximation)
         self.lower_bound = [np.NINF]
     
@@ -152,6 +146,14 @@ class VRVR(VRVM):
     Y: numpy array of size [n_samples,1]
        Vector of dependent variable
        
+    a: numpy array
+       
+    b: numpy array
+    
+    c: numpy array
+    
+    d: numpy array
+       
     max_iter_approx: int
        Maximum number of iterations for mean-field approximation
        
@@ -169,8 +171,27 @@ class VRVR(VRVM):
         
     '''
     
-    def __init__(self,*args,**kwargs):
-        super(self,VRVR).__init__(*args,**kwargs) 
+    def __init__(self, X, Y, a = None, b = None, c = None, d = None, kernel       = 'rbf', 
+                                                                     scaler       = 1, 
+                                                                     order        = 2, 
+                                                                     max_iter     = 20,
+                                                                     conv_thresh  = 1e-3,
+                                                                     bias_term    = True, 
+                                                                     prune_thresh = 1e-3):
+        # call to constructor of superclass
+        super(self,VRVR).__init__(X,Y,a,b,kernel,scaler,order,max_iter,conv_thresh,bias_term,
+                                                                                   prune_thresh)
+        
+        # parameters of Gamma distribution for precision of likelihood
+        if c is None:
+            self.c = 1e-6 # constant in Bishop & Tipping (2000)
+        else:
+            self.c = c
+        if d is None:
+            self.d = 1e-6 # constant in Bishop & Tipping (2000)
+        else:
+            self.d = d
+        
 
           
     def fit(self):
@@ -182,22 +203,42 @@ class VRVR(VRVM):
         XY = np.dot(self.X.T,self.Y)
         Y2 = np.sum(self.Y**2)
         
+        # final update for a and c
+        self.a  += 1
+        self.c  += float(self.n)/2
+        
+        d        = self.d
+        b        = self.b
+        
         for i in range(self.max_iter):
             
-            # update q(w)
+            # -------------  update q(w) ------------
             
+            # calculate expectations for precision of noise & precision of weights
+            e_tau   = self._gamma_mean(self.c,d)
+            e_A     = self._gamma_mean(self.a,b)    
+                 
+            # parameters of updated posterior distribution
+            Mw,Sigma  = self._posterior_weights(XY,e_tau,e_A)
             
+            # ------------ update q(tau) ------------
             
-            # update q(tau)
+            # update rate parameter for Gamma distributed precision of noise 
+            # (note shape parameter does not need to be updated at each iteration)
+            d         = self.D + 0.5*Y2 - np.dot(Mw,XY) # TODO + Tr(X[Mw + Sigma]X.T)
             
+            # ----- update q(alpha(j)) for each j ----
             
-            # update q(alpha_{j}) for j = 1:n_features
+            # update rate parameter for Gamma distributed precision of weights
+            # (note shape parameter b is updated before iterations started)
+            b         = self.b + Mw**2 + np.diag(Sigma)
             
+             
             # check convergence
             conv = self._check_convergence()
-            
-            
-        
+            if conv is True or i== self.max_iter - 1:
+                # save parameters of Gamma distribution
+                
     
     def predict(self, X):
         '''
@@ -242,7 +283,7 @@ class VRVR(VRVM):
         x = self._kernelise(X,self.support_vecs)
         
         
-    def _posterior_weights(self, X, XY, YY, exp_tau, exp_A, full_covar = False):
+    def _posterior_weights(self, XY, exp_tau, exp_A, full_covar = False):
         '''
         Calculates parameters of posterior distribution of weights
         
@@ -253,10 +294,7 @@ class VRVR(VRVM):
         
         XY: numpy array of size [n_features]
             Dot product of X and Y (for faster computations)
-            
-        YY: float
-            Dot product of Y and Y (for faster computation)
-            
+
         exp_tau: float
             Mean of precision parameter of likelihood
             
@@ -269,24 +307,48 @@ class VRVR(VRVM):
            
         Returns:
         --------
-        [y_hat, var_hat]: list of two numpy arrays
+        [Mw, Sigma]: list of two numpy arrays
         
-        y_hat: mean of posterior distribution
-        var_hat: diagonal of variance matrix or full variance matrix
+        Mw: mean of posterior distribution
+        Sigma: diagonal of variance matrix or full variance matrix
         '''
+        Mw,Sigma = 0,0
         
         # compute precision parameter
-        S    = exp_tau*np.dot(X.T,X)
+        S    = exp_tau*np.dot(self.X.T,self.X)
         np.fill_diagonal(S, np.diag(S) + exp_A)
         
         # cholesky decomposition
-        R    = np.linalg.cholesky(X)
+        R    = np.linalg.cholesky(S)
         
         # find mean of posterior distribution
-        RtMw = solve_triangular(R, exp_tau*XY, lower = True)
-        Mw   = solve_traingular(R.T, RtMw, lower = False)
+        RtMw = solve_triangular(R, exp_tau*XY, lower = True, check_finite = False)
+        Mw   = solve_triangular(R.T, RtMw, lower = False, check_finite = False)
         
+        # use cholesky decomposition of S to find inverse ( or diagonal of inverse)
+        Ri    = solve_triangular(R, np.eye(self.m), lower = True, check_finite = False)
         if full_covar is True:
+            Sigma = np.dot(Ri.T,Ri)
+        else:
+            Sigma = np.sum(Ri**2, axis = 0)
+        return [Mw,Sigma]
+        
+        
+    def _lower_bound(self):
+        '''
+        Calculates lower bound
+        '''
+        
+        
+    @staticmethod
+    def _gamma_mean(a,b):
+        '''
+        Calculates mean of gamma distribution
+        '''
+        return a / b
+        
+            
+            
             
  
 #-------------------- Variational Relevance Vector Classifier --------------------# 
