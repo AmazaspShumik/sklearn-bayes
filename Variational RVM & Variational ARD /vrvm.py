@@ -15,17 +15,25 @@ class VRVM(object):
         self.bias_term           = bias_term
         self.prune_thresh        = prune_thresh
         
+        # kernel parameters
+        self.kernel              = kernel
+        self.scaler              = scaler
+        self.order               = order
+
+        
         # kernelise data if asked (if not kernelised, this is equivalent to
         # ARD regression / classification)
-        if kernel is None:
+        self.Xraw                = X
+        if self.kernel is None:
             self.X               = X
         else:
             # check that kernels are supported 
             assert kernel in ['poly','hpoly','rbf','cauchy'],'kernel provided is not supported'
             self.X               = self._kernelise(X,X,kernel,scaler,order)
         
+        
         # number of features & dimensionality
-        self.n, self.m           = X.shape
+        self.n, self.m           = self.X.shape
         
         # add bias term if required
         if self.bias_term is True:
@@ -97,7 +105,7 @@ class VRVM(object):
         # squared distance
         def distSq(X,Y,XY):
             ''' Calculates squared distance'''
-            return (-2*XY + np.sum(Y*Y, axis=1)).T + np.sum(X*X, axis = 1)
+            return ((-2*XY + np.sum(Y*Y, axis=1)).T + np.sum(X*X, axis = 1)).T
         
         # construct different kernels
         if kernel == "poly":
@@ -134,13 +142,26 @@ class VRVR(VRVM):
        Vector of dependent variable
        
     a: numpy array
+       Shape parameters for Gamma distributed precision of weights
        
     b: numpy array
+       Rate parameter for Gamma distributed precision of weights
     
     c: numpy array
+       Shape parameter for Gamma distributed precision of likelihood
     
     d: numpy array
+       Rate parameter for Gamma distributed precision of likelihood
+    
+    kernel: str
+       Kernel type {'rbf','poly','hpoly','cauchy'}
        
+    scaler: float
+       Scaling constant (applied to all types of kernels)
+       
+    order: int
+       Order of polynomial (applies to kernels {'poly','hpoly'})
+    
     max_iter_approx: int
        Maximum number of iterations for mean-field approximation
        
@@ -152,9 +173,6 @@ class VRVR(VRVM):
        
     prune_thresh: float
        Threshold for pruning out variable
-       
-    
-    
         
     '''
     
@@ -164,7 +182,7 @@ class VRVR(VRVM):
                                                                      max_iter     = 20,
                                                                      conv_thresh  = 1e-3,
                                                                      bias_term    = True, 
-                                                                     prune_thresh = 1e-3):
+                                                                     prune_thresh = 1e-2):
         # call to constructor of superclass
         super(VRVR,self).__init__(X,Y,a,b,kernel,scaler,order,max_iter,conv_thresh,bias_term,
                                                                                    prune_thresh)
@@ -181,8 +199,8 @@ class VRVR(VRVM):
         '''
         
         # precompute some values for faster iterations 
-        XY = np.dot(self.X.T,self.Y)
-        Y2 = np.sum(self.Y**2)
+        XY       = np.dot(self.X.T,self.Y)
+        Y2       = np.sum(self.Y**2)
         
         # final update for a and c
         self.a  += 1
@@ -232,6 +250,13 @@ class VRVR(VRVM):
                 self.Mw, self.Sigma = Mw, Sigma
                 
                 # determine relevant vectors
+                self.active              = np.abs(self.Mw) > self.prune_thresh
+                # check that there are any relevant vectors at all
+                if np.sum(self.active) == 0:
+                    raise ValueError('No relevant vectors selected')
+                self.rel_vecs       = self.Xraw[self.active[1:],:]
+
+                
                 
     
     def predict(self, x):
@@ -251,18 +276,22 @@ class VRVR(VRVM):
         '''
         # kernelise data
         if self.kernel is not None:
-            x = self._kernelise(x,self.relevant_vecs)
-        
-        if self.bias_term is None:
-            return np.dot(x,self.Mw)
+            x = self._kernelise(x,self.rel_vecs,self.kernel,self.scaler,self.order)
+            
+        print "feature dim"
+        print x.shape
+    
+        if self.bias_term is False:
+            return np.dot(x,self.Mw[self.rel_vecs])
         else:
-            y_hat  = np.dot(x,self.Mw[1:])
+            y_hat  = np.dot(x,self.Mw[1:][self.active[1:]])
+
             #add bias term if required
             y_hat += self.Mw[0]
             return y_hat
             
             
-    def predict_dist(self, X):
+    def predict_dist(self, x):
         '''
         Calculates mean and variance of predictive distribution
         
@@ -283,7 +312,7 @@ class VRVR(VRVM):
         '''
         # kernelise data if required
         if self.kernel is not None:
-           x = self._kernelise(x,self.support_vecs)
+           x = self._kernelise(x,self.relevant_vecs)
            
         # add bias term if required
         if self.bias_term is not None:
@@ -325,11 +354,7 @@ class VRVR(VRVM):
         Mw,Sigma = 0,0
         
         # compute precision parameter
-        S    = exp_tau*np.dot(self.X.T,self.X)
-        
-        print S.shape
-        print exp_A.shape
-        
+        S    = exp_tau*np.dot(self.X.T,self.X)        
         np.fill_diagonal(S, np.diag(S) + exp_A)
         
         # cholesky decomposition
@@ -380,28 +405,40 @@ class VRVR(VRVM):
         '''
         return a / b
         
-            
-            
-            
+                     
  
 #-------------------- Variational Relevance Vector Classifier --------------------# 
         
-        
+              
 class VRVC(VRVM):
     '''
     Variational Relevance Vector Classifier
+    
+    Uses JJ local variational bound that approximates 
     '''
     pass
 
-        
-        
 
- 
-    
+
 if __name__=='__main__':
+       import matplotlib.pyplot as plt
+       # Linear Model
+       
+       #X = np.random.random([100,1])
+       #X[:,0] = np.linspace(-2,2,100)
+       #Y = 4*X[:,0]  + 50
+       #vrvr = VRVR(X,Y, kernel = None, max_iter = 50)
+       #vrvr.fit()
+       
+       
+       # SINC
        X = np.random.random([100,1])
        X[:,0] = np.linspace(-2,2,100)
-       Y = 4*X[:,0]  + 50
-       vrvr = VRVR(X,Y, kernel = None, max_iter = 50)
+       Y      = np.sinc(X[:,0]) + np.random.normal(0,0.5,100)
+       vrvr   = VRVR(X,Y, kernel = 'rbf', max_iter = 50)
        vrvr.fit()
-    
+       x_test = np.random.random([1000,1])
+       x_test[:,0] = np.linspace(-2,2,1000)
+       y_hat  = vrvr.predict(x_test)
+       plt.plot(x_test,y_hat,'bo')
+       plt.plot(X[:,0],Y,"r+")
