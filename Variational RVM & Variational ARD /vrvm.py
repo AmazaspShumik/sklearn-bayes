@@ -166,10 +166,10 @@ class VRVR(VRVM):
     order: int
        Order of polynomial (applies to kernels {'poly','hpoly'})
     
-    max_iter_approx: int
+    max_iter: int
        Maximum number of iterations for mean-field approximation
        
-    conv_thresh_approx: float
+    conv_thresh: float
        Convergence threshold for lower bound change
        
     bias_term: bool
@@ -421,9 +421,76 @@ class VRVC(VRVM):
     '''
     Variational Relevance Vector Classifier
     
-    Uses JJ local variational bound that approximates 
+    This implementation is equivalent to Variational Bayesian Logistic Regression
+    with Automatic Relevance Determination. With kernelised feature matrix this 
+    becomes Variational Bayesian Relevance Vector Classifier.
+    
+    Theoretical Note:
+    -----------------
+    When using hierarchical prior analytical derivation of Bayeisan Model becomes
+    impossible, so we use Jaakkola & Jordan local variational bound that 
+    approximates value of lower bound.
+
+    Parameters:
+    ----------
+    
+    X: numpy array of size [n_samples,n_features]
+       Matrix of explanatory variables
+       
+    Y: numpy array of size [n_samples,1]
+       Vector of dependent variable
+       
+    a: numpy array
+       Shape parameters for Gamma distributed precision of weights
+       
+    b: numpy array
+       Rate parameter for Gamma distributed precision of weights
+
+    kernel: str
+       Kernel type {'rbf','poly','hpoly','cauchy'}
+       
+    scaler: float
+       Scaling constant (applied to all types of kernels)
+       
+    order: int
+       Order of polynomial (applies to kernels {'poly','hpoly'})
+    
+    max_iter: int
+       Maximum number of iterations for mean-field approximation
+       
+    conv_thresh: float
+       Convergence threshold for lower bound change
+       
+    bias_term: bool
+       If True will use bias term
+       
+    prune_thresh: float
+       Threshold for pruning out variable
     '''
-    pass
+    
+    
+    def __init__(self,X, Y, a = 1e-6, b = 1e-6, kernel = 'rbf', scaler       = 1, 
+                                                                      order        = 2, 
+                                                                      max_iter     = 20,
+                                                                      conv_thresh  = 1e-3,
+                                                                      bias_term    = True, 
+                                                                      prune_thresh = 1e-2,
+                                                                      verbose      = False):
+        # call to constructor of superclass
+        super(VRVR,self).__init__(X,Y,a,b,kernel,scaler,order,max_iter,conv_thresh,bias_term,
+                                                                                   prune_thresh,
+                                                                                   verbose)
+       
+        
+        
+    def fit(self):
+        pass
+        
+    def _lower_bound(self):
+        pass
+        
+    def _posterior_weights(self):
+        pass
 
 
 
