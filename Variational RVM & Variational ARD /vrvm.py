@@ -8,7 +8,8 @@ class VRVM(object):
     Superclass for Variational Relevance Vector Regression and Variational
     Relevance Vector Classification
     '''
-    def __init__(self,X,Y,a,b,kernel,scaler,order,max_iter,conv_thresh,bias_term,prune_thresh):
+    def __init__(self,X,Y,a,b,kernel,scaler,order,max_iter,conv_thresh,bias_term,prune_thresh,
+                                                                                 verbose):
         
         self.max_iter            = max_iter
         self.conv_thresh         = conv_thresh
@@ -51,6 +52,9 @@ class VRVM(object):
 
         # list of lower bounds (list is updated at each iteration of Mean Field Approximation)
         self.lower_bound = [np.NINF]
+        
+        # print progress report
+        self.verbose     = verbose
     
     
     def _check_convergence(self):
@@ -182,10 +186,12 @@ class VRVR(VRVM):
                                                                      max_iter     = 20,
                                                                      conv_thresh  = 1e-3,
                                                                      bias_term    = True, 
-                                                                     prune_thresh = 1e-2):
+                                                                     prune_thresh = 1e-2,
+                                                                     verbose      = False):
         # call to constructor of superclass
         super(VRVR,self).__init__(X,Y,a,b,kernel,scaler,order,max_iter,conv_thresh,bias_term,
-                                                                                   prune_thresh)
+                                                                                   prune_thresh,
+                                                                                   verbose)
         
         # parameters of Gamma distribution for precision of likelihood
         self.c   = c
@@ -240,25 +246,30 @@ class VRVR(VRVM):
             #self._lower_bound(Y2,XMw,XSX) 
             
             # check convergence
-            #conv = self._check_convergence()
+            conv = True
+            if self.verbose is True:
+                print "Iteration {0} is completed".format(i)
+                
             if i== self.max_iter - 1:
                 
+                if self.verbose is True:
+                    if conv is True:
+                        print "Mean Field Approximation converged"
+                if conv is False:
+                    print 'Warning!!! Algorithm did not converge'
+                    
                 # save parameters of Gamma distribution
                 self.b, self.d      = b, d
-                
                 # save parametres of posterior distribution 
                 self.Mw, self.Sigma = Mw, Sigma
-                
                 # determine relevant vectors
-                self.active              = np.abs(self.Mw) > self.prune_thresh
+                self.active         = np.abs(self.Mw) > self.prune_thresh
                 # check that there are any relevant vectors at all
                 if np.sum(self.active) == 0:
                     raise ValueError('No relevant vectors selected')
                 self.rel_vecs       = self.Xraw[self.active[1:],:]
 
                 
-                
-    
     def predict(self, x):
         '''
         Calculates mean of predictive distribution
@@ -277,15 +288,11 @@ class VRVR(VRVM):
         # kernelise data
         if self.kernel is not None:
             x = self._kernelise(x,self.rel_vecs,self.kernel,self.scaler,self.order)
-            
-        print "feature dim"
-        print x.shape
-    
+        # bias term
         if self.bias_term is False:
-            return np.dot(x,self.Mw[self.rel_vecs])
+            return np.dot(x,self.Mw[self.active])
         else:
             y_hat  = np.dot(x,self.Mw[1:][self.active[1:]])
-
             #add bias term if required
             y_hat += self.Mw[0]
             return y_hat
@@ -312,7 +319,7 @@ class VRVR(VRVM):
         '''
         # kernelise data if required
         if self.kernel is not None:
-           x = self._kernelise(x,self.relevant_vecs)
+           x = self._kernelise(x,self.rel_vecs, self.kernel, self.scaler,self.order)
            
         # add bias term if required
         if self.bias_term is not None:
@@ -320,13 +327,13 @@ class VRVR(VRVM):
             bias = np.ones([n,1],dtype = np.float)
             x    = np.concatenate((bias,x), axis = 1)
             
-        y_hat    = np.dot(x,self.Mw)
+        y_hat    = np.dot(x,self.Mw[self.active])
         e_tau    = self._gamma_mean(self.c,self.d)
-        var_hat  = np.sum(np.dot(x,self.Sigma)*x, axis = 1) + 1./e_tau
+        var_hat  = np.sum(np.dot(x,self.Sigma[self.active,:][:,self.active])*x, axis = 1) + 1./e_tau
         return [y_hat, var_hat]
         
         
-    def _posterior_weights(self, XY, exp_tau, exp_A, full_covar = False):
+    def _posterior_weights(self, XY, exp_tau, exp_A):
         '''
         Calculates parameters of posterior distribution of weights
         
@@ -342,7 +349,7 @@ class VRVR(VRVM):
             Mean of precision parameter of likelihood
             
         exp_A: numpy array of size n_features
-            Vector of 
+            Vector of precisions for weights
            
         Returns:
         --------
@@ -422,23 +429,34 @@ class VRVC(VRVM):
 
 if __name__=='__main__':
        import matplotlib.pyplot as plt
+       from sklearn.cross_validation import train_test_split
+       
        # Linear Model
        
-       #X = np.random.random([100,1])
-       #X[:,0] = np.linspace(-2,2,100)
-       #Y = 4*X[:,0]  + 50
+       #X = np.random.random([1000,1])
+       #X[:,0] = np.linspace(-2,2,1000)
+       #Y = 4*X[:,0]  + 50 + np.random.normal(0,1,1000)
+       #X,x,Y,y = train_test_split(X,Y, test_size = 0.3)
        #vrvr = VRVR(X,Y, kernel = None, max_iter = 50)
        #vrvr.fit()
+       #y_hat = vrvr.predict(x)
+       #plt.plot(x,y,'ro')
+       #plt.plot(x,y_hat,'b+')
+       #plt.show()
+       
        
        
        # SINC
-       X = np.random.random([100,1])
-       X[:,0] = np.linspace(-2,2,100)
-       Y      = np.sinc(X[:,0]) + np.random.normal(0,0.5,100)
-       vrvr   = VRVR(X,Y, kernel = 'rbf', max_iter = 50)
+       X = np.random.random([2000,1])
+       X[:,0]  = np.linspace(-5,5,2000)
+       Y       = 10*np.sinc(X[:,0]) + np.random.normal(0,1,2000) + 10
+       #Y       = 4*X[:,0] + 3 + np.random.normal(0,1,2000)
+       X,x,Y,y = train_test_split(X,Y, test_size = 0.3)
+       vrvr   = VRVR(X,Y, kernel = 'rbf', max_iter = 30,order = 2, scaler = 0.5)
        vrvr.fit()
-       x_test = np.random.random([1000,1])
-       x_test[:,0] = np.linspace(-2,2,1000)
-       y_hat  = vrvr.predict(x_test)
-       plt.plot(x_test,y_hat,'bo')
-       plt.plot(X[:,0],Y,"r+")
+       y_hat,var_hat  = vrvr.predict_dist(x)
+       plt.plot(x[:,0],y_hat,'bo')
+       plt.plot(x[:,0],y,"r+")
+       plt.plot(x[:,0],y_hat + np.sqrt(var_hat),"go")
+       plt.plot(x[:,0],y_hat - np.sqrt(var_hat),"go")
+       
