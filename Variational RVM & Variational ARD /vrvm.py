@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.linalg import solve_triangular
 from scipy.special import psi
+from scipy.special import gamma
+from scipy.special import gammaln
 
 
 
@@ -248,7 +250,7 @@ class VRVR(VRVM):
             # ------ lower bound & convergence -------
             
             # calculate lower bound reusing previously calculated statistics
-            self._lower_bound(Y2,XMw,MwXY,XSX,E_w_sq,e_tau,e_A,b,d) 
+            self._lower_bound(Y2,XMw,MwXY,XSX,Sigma,E_w_sq,e_tau,e_A,b,d) 
             
             # check convergence
             conv = self._check_convergence()
@@ -380,7 +382,7 @@ class VRVR(VRVM):
         return [Mw,Sigma]
         
         
-    def _lower_bound(self,Y2,XMw,MwXY,XSX,E_w_sq,e_tau,e_A,b,d):
+    def _lower_bound(self,Y2,XMw,MwXY,XSX,Sigma,E_w_sq,e_tau,e_A,b,d):
         '''
         Calculates lower bound and writes it to instance variable self.lower_bound.
         Does not include constants that do not change from one iteration to another.
@@ -397,8 +399,10 @@ class VRVR(VRVM):
              Product of posterior mean of weights (Mw) and X.T*Y
              
         XSX: float
-             Trace of matrix X*Sigma*X.T, where Sigma - covariance of posterior
-             of weights
+             Trace of matrix X*Sigma*X.T, where Sigma - covariance of posterior of weights
+             
+        Sigma: numpy array of size [self.m,self.m]
+             Covariance matrix for Qw(w)
              
         E_w_sq: numpy array of size [self.m , 1]
              Vector of weight squares
@@ -428,13 +432,27 @@ class VRVR(VRVM):
         weights         = 0.5*(np.sum((e_log_alpha)) - np.dot(e_A,E_w_sq))
         
         # Integration of precision parameter for weigts Ew[Ealpha[Etau[ log P(alpha| a, b)]]]
-        alpha_prior     = np.sum(self.a*np.log(b))+np.dot((self.a-1),e_log_alpha)-np.dot(b,e_A)
+        alpha_prior     = np.dot((self.a-1),e_log_alpha)-np.dot(b,e_A)
         
         # Integration of precison parameter for likelihood
-        tau_prior       = self.c*np.log(d) + (self.c - 1)*e_log_tau - e_tau*d
+        tau_prior       = (self.c - 1)*e_log_tau - e_tau*d
+        
+        # E [ log( q_tau(tau) )]
+        q_tau_const     = self.c*np.log(d) - gammaln(self.c)
+        
+        print gammaln(self.c)
+        q_tau           = q_tau_const - d*e_tau + (self.c-1)*e_log_tau
+
+        
+        # E [ log( q_alpha(alpha)]
+        q_alpha_const   = np.dot(self.a,np.log(b)) - np.sum(gammaln(self.a))
+        q_alpha         = q_alpha_const - np.dot(b,e_A) + np.dot((self.a-1),e_log_alpha)
+        
+        # E [ log( q_w(w)) ]
+        q_w             = -0.5*self.n*np.linalg.det(Sigma)
         
         # lower bound
-        L = like + weights + alpha_prior + tau_prior
+        L = like + weights + alpha_prior + tau_prior - q_w - q_alpha - q_tau
         self.lower_bound.append(L)
         
 
@@ -546,12 +564,12 @@ if __name__=='__main__':
        
        
        # SINC
-       X = np.random.random([2000,1])
-       X[:,0]  = np.linspace(-5,5,2000)
-       Y       = 10*np.sinc(X[:,0]) + np.random.normal(0,1,2000) + 10
+       X = np.random.random([900,1])
+       X[:,0]  = np.linspace(-5,5,900)
+       Y       = 10*np.sinc(X[:,0]) + np.random.normal(0,1,900) + 10
        #Y       = 4*X[:,0] + 3 + np.random.normal(0,1,2000)
        X,x,Y,y = train_test_split(X,Y, test_size = 0.3)
-       vrvr   = VRVR(X,Y, kernel = 'rbf', max_iter = 100,order = 2, scaler = 0.5, verbose = True)
+       vrvr   = VRVR(X,Y, kernel = 'rbf', max_iter = 500,order = 2, scaler = 0.5, verbose = True)
        vrvr.fit()
        y_hat,var_hat  = vrvr.predict_dist(x)
        plt.plot(x[:,0],y_hat,'bo')
