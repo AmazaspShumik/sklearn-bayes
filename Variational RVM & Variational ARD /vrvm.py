@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.linalg import solve_triangular
+from scipy.special import psi
 
 
 
@@ -68,7 +69,7 @@ class VRVM(object):
             
         '''
         assert len(self.lower_bound) >=2, 'need to have at least 2 estimates of lower bound'
-        if self.lower_bound[-1] - self.lower_bound[-2] < self.conv_thresh:
+        if self.lower_bound[-1] - self.lower_bound[-2] < self.conv_thresh*np.abs(self.lower_bound[-1]):
             return True
         return False
         
@@ -247,20 +248,18 @@ class VRVR(VRVM):
             # ------ lower bound & convergence -------
             
             # calculate lower bound reusing previously calculated statistics
-            self._lower_bound(Y2,XMw,MwXY,XSX,E_w_sq,e_tau,e_A) 
+            self._lower_bound(Y2,XMw,MwXY,XSX,E_w_sq,e_tau,e_A,b,d) 
             
             # check convergence
-            conv = True
+            conv = self._check_convergence()
+            
+            # print progress report if required
             if self.verbose is True:
-                print "Iteration {0} is completed".format(i)
+               print "Iteration {0} is completed, lower bound equals {1}".format(i,self.lower_bound[-1])
                 
             if i== self.max_iter - 1:
-                
                 if self.verbose is True:
-                    if conv is True:
-                        print "Mean Field Approximation converged"
-                if conv is False:
-                    print 'Warning!!! Algorithm did not converge'
+                        print "Mean Field Approximation completed"
                     
                 # save parameters of Gamma distribution
                 self.b, self.d      = b, d
@@ -381,10 +380,10 @@ class VRVR(VRVM):
         return [Mw,Sigma]
         
         
-    def _lower_bound(self,Y2,XMw,MwXY,XSX,E_w_sq,e_tau,e_A):
+    def _lower_bound(self,Y2,XMw,MwXY,XSX,E_w_sq,e_tau,e_A,b,d):
         '''
-        Calculates lower bound, does not include constants that do 
-        not change from one iteration to another.
+        Calculates lower bound and writes it to instance variable self.lower_bound.
+        Does not include constants that do not change from one iteration to another.
         
         Parameters:
         -----------
@@ -410,29 +409,35 @@ class VRVR(VRVM):
         e_A: numpy array of size [self.m, 1]
              Vector of means of precision parameters for weight distribution
         
-        Returns:
-        --------
-        L: float 
-           Value of lower bound
+        b: float/int
+           Rate parameter of Gamma distribution
+        
+        d: float/int
+           Rate parameter of Gamma distribution
         '''
+        # precompute for diffrent parts of lower bound
+        e_log_tau       = psi(self.c) - np.log(d)
+        e_log_alpha     = psi(self.a) - np.log(b)
         
         # Integration of likelihood Ew[Ealpha[Etau[ log P(Y| X*w, tau^-1)]]]
-        like_first      =  float(self.n)/2 # * e_log_tau
-        like_second     = -float(e_tau)/2 * (Y2 - 2*MwXY + XMw + XSX)
-        like            = like_first + like_second
+        like_first      =  0.5 * self.n * e_log_tau
+        like_second     =  0.5 * e_tau * (Y2 - 2*MwXY + XMw + XSX)
+        like            = like_first - like_second
         
-        # Integration of weights Ew[Ea[Etau[ log P(w| 0, alpha)]]]
-        weights_first   = 0
-        weights_second  = np.dot(e_A,E_w_sq)/2
-        weights         = weights_first + weights_second
+        # Integration of weights Ew[Ealpha[Etau[ log P(w| 0, alpha)]]]
+        weights         = 0.5*(np.sum((e_log_alpha)) - np.dot(e_A,E_w_sq))
         
+        # Integration of precision parameter for weigts Ew[Ealpha[Etau[ log P(alpha| a, b)]]]
+        alpha_prior     = np.sum(self.a*np.log(b))+np.dot((self.a-1),e_log_alpha)-np.dot(b,e_A)
         
+        # Integration of precison parameter for likelihood
+        tau_prior       = self.c*np.log(d) + (self.c - 1)*e_log_tau - e_tau*d
         
+        # lower bound
         L = like + weights + alpha_prior + tau_prior
-        return L
+        self.lower_bound.append(L)
         
-    
-        
+
     @staticmethod
     def _gamma_mean(a,b):
         '''
@@ -546,7 +551,7 @@ if __name__=='__main__':
        Y       = 10*np.sinc(X[:,0]) + np.random.normal(0,1,2000) + 10
        #Y       = 4*X[:,0] + 3 + np.random.normal(0,1,2000)
        X,x,Y,y = train_test_split(X,Y, test_size = 0.3)
-       vrvr   = VRVR(X,Y, kernel = 'rbf', max_iter = 50,order = 2, scaler = 0.5)
+       vrvr   = VRVR(X,Y, kernel = 'rbf', max_iter = 100,order = 2, scaler = 0.5, verbose = True)
        vrvr.fit()
        y_hat,var_hat  = vrvr.predict_dist(x)
        plt.plot(x[:,0],y_hat,'bo')
