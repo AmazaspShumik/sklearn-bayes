@@ -230,20 +230,24 @@ class VRVR(VRVM):
             
             # update rate parameter for Gamma distributed precision of noise 
             # (note shape parameter does not need to be updated at each iteration)
-            XMw       = np.sum( np.dot(self.X,Mw)**2 )
+            
+            # XMw, XSX, MwXY are reused in lower bound computation
+            XMw       = np.sum( np.dot(self.X,Mw)**2 )    
             XSX       = np.sum( np.dot(self.X,Sigma)*X )
-            d         = self.d + 0.5*(Y2 + XMw + XSX) - np.dot(Mw,XY)
+            MwXY      = np.dot(Mw,XY)
+            d         = self.d + 0.5*(Y2 + XMw + XSX) - MwXY
             
             # ----- update q(alpha(j)) for each j ----
             
             # update rate parameter for Gamma distributed precision of weights
             # (note shape parameter b is updated before iterations started)
-            b         = self.b + Mw**2 + np.diag(Sigma)
+            E_w_sq    = Mw**2 + np.diag(Sigma)      # is reused in lower bound 
+            b         = self.b + E_w_sq
             
             # ------ lower bound & convergence -------
             
             # calculate lower bound reusing previously calculated statistics
-            #self._lower_bound(Y2,XMw,XSX) 
+            self._lower_bound(Y2,XMw,MwXY,XSX,E_w_sq,e_tau,e_A) 
             
             # check convergence
             conv = True
@@ -377,7 +381,7 @@ class VRVR(VRVM):
         return [Mw,Sigma]
         
         
-    def _lower_bound(self,Y2,XMw,XSX, e_tau):
+    def _lower_bound(self,Y2,XMw,MwXY,XSX,E_w_sq,e_tau,e_A):
         '''
         Calculates lower bound, does not include constants that do 
         not change from one iteration to another.
@@ -390,19 +394,43 @@ class VRVR(VRVM):
         XMw: float
              L2 norm of X*Mw, where Mw - mean of posterior of weights
             
+        MwXY: float
+             Product of posterior mean of weights (Mw) and X.T*Y
+             
         XSX: float
              Trace of matrix X*Sigma*X.T, where Sigma - covariance of posterior
              of weights
+             
+        E_w_sq: numpy array of size [self.m , 1]
+             Vector of weight squares
         
         e_tau: float
              Mean of precision for noise parameter
+             
+        e_A: numpy array of size [self.m, 1]
+             Vector of means of precision parameters for weight distribution
         
         Returns:
         --------
         L: float 
            Value of lower bound
         '''
-        pass
+        
+        # Integration of likelihood Ew[Ealpha[Etau[ log P(Y| X*w, tau^-1)]]]
+        like_first      =  float(self.n)/2 # * e_log_tau
+        like_second     = -float(e_tau)/2 * (Y2 - 2*MwXY + XMw + XSX)
+        like            = like_first + like_second
+        
+        # Integration of weights Ew[Ea[Etau[ log P(w| 0, alpha)]]]
+        weights_first   = 0
+        weights_second  = np.dot(e_A,E_w_sq)/2
+        weights         = weights_first + weights_second
+        
+        
+        
+        L = like + weights + alpha_prior + tau_prior
+        return L
+        
     
         
     @staticmethod
@@ -512,18 +540,20 @@ if __name__=='__main__':
        #plt.show()
        
        
-       
        # SINC
        X = np.random.random([2000,1])
        X[:,0]  = np.linspace(-5,5,2000)
        Y       = 10*np.sinc(X[:,0]) + np.random.normal(0,1,2000) + 10
        #Y       = 4*X[:,0] + 3 + np.random.normal(0,1,2000)
        X,x,Y,y = train_test_split(X,Y, test_size = 0.3)
-       vrvr   = VRVR(X,Y, kernel = 'rbf', max_iter = 30,order = 2, scaler = 0.5)
+       vrvr   = VRVR(X,Y, kernel = 'rbf', max_iter = 50,order = 2, scaler = 0.5)
        vrvr.fit()
        y_hat,var_hat  = vrvr.predict_dist(x)
        plt.plot(x[:,0],y_hat,'bo')
        plt.plot(x[:,0],y,"r+")
        plt.plot(x[:,0],y_hat + np.sqrt(var_hat),"go")
        plt.plot(x[:,0],y_hat - np.sqrt(var_hat),"go")
+       
+       
+       # 
        
