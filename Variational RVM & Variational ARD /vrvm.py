@@ -71,7 +71,7 @@ class VRVM(object):
             
         '''
         assert len(self.lower_bound) >=2, 'need to have at least 2 estimates of lower bound'
-        if self.lower_bound[-1] - self.lower_bound[-2] < self.conv_thresh*np.abs(self.lower_bound[-1]):
+        if self.lower_bound[-1] - self.lower_bound[-2] < self.conv_thresh:
             return True
         return False
         
@@ -187,7 +187,7 @@ class VRVR(VRVM):
                                                                      scaler       = 1, 
                                                                      order        = 2, 
                                                                      max_iter     = 20,
-                                                                     conv_thresh  = 1e-3,
+                                                                     conv_thresh  = 1e-2,
                                                                      bias_term    = True, 
                                                                      prune_thresh = 1e-2,
                                                                      verbose      = False):
@@ -210,6 +210,10 @@ class VRVR(VRVM):
         # precompute some values for faster iterations 
         XY       = np.dot(self.X.T,self.Y)
         Y2       = np.sum(self.Y**2)
+        
+        # initial shape parameters a & c
+        a_init   = self.a
+        c_init   = self.c 
         
         # final update for a and c
         self.a  += 1
@@ -236,7 +240,7 @@ class VRVR(VRVM):
             
             # XMw, XSX, MwXY are reused in lower bound computation
             XMw       = np.sum( np.dot(self.X,Mw)**2 )    
-            XSX       = np.sum( np.dot(self.X,Sigma)*X )
+            XSX       = np.sum( np.dot(self.X,Sigma)*self.X )
             MwXY      = np.dot(Mw,XY)
             d         = self.d + 0.5*(Y2 + XMw + XSX) - MwXY
             
@@ -245,12 +249,12 @@ class VRVR(VRVM):
             # update rate parameter for Gamma distributed precision of weights
             # (note shape parameter b is updated before iterations started)
             E_w_sq    = Mw**2 + np.diag(Sigma)      # is reused in lower bound 
-            b         = self.b + E_w_sq
+            b         = self.b + 0.5*E_w_sq
             
             # ------ lower bound & convergence -------
             
             # calculate lower bound reusing previously calculated statistics
-            self._lower_bound(Y2,XMw,MwXY,XSX,Sigma,E_w_sq,e_tau,e_A,b,d) 
+            self._lower_bound(Y2,XMw,MwXY,XSX,Sigma,E_w_sq,e_tau,e_A,b,d,a_init,c_init) 
             
             # check convergence
             conv = self._check_convergence()
@@ -259,7 +263,7 @@ class VRVR(VRVM):
             if self.verbose is True:
                print "Iteration {0} is completed, lower bound equals {1}".format(i,self.lower_bound[-1])
                 
-            if i== self.max_iter - 1:
+            if conv is True or i== self.max_iter - 1:
                 if self.verbose is True:
                         print "Mean Field Approximation completed"
                     
@@ -273,6 +277,7 @@ class VRVR(VRVM):
                 if np.sum(self.active) == 0:
                     raise ValueError('No relevant vectors selected')
                 self.rel_vecs       = self.Xraw[self.active[1:],:]
+                return 
 
                 
     def predict(self, x):
@@ -382,7 +387,7 @@ class VRVR(VRVM):
         return [Mw,Sigma]
         
         
-    def _lower_bound(self,Y2,XMw,MwXY,XSX,Sigma,E_w_sq,e_tau,e_A,b,d):
+    def _lower_bound(self,Y2,XMw,MwXY,XSX,Sigma,E_w_sq,e_tau,e_A,b,d,a_init,c_init):
         '''
         Calculates lower bound and writes it to instance variable self.lower_bound.
         Does not include constants that do not change from one iteration to another.
@@ -418,6 +423,12 @@ class VRVR(VRVM):
         
         d: float/int
            Rate parameter of Gamma distribution
+           
+        a_init: float
+           Initial shape parameter for Gamma distributed weights
+           
+        c_init: float
+           Initial shape parameter for Gamma distributed precision of likelihood
         '''
         # precompute for diffrent parts of lower bound
         e_log_tau       = psi(self.c) - np.log(d)
@@ -432,26 +443,24 @@ class VRVR(VRVM):
         weights         = 0.5*(np.sum((e_log_alpha)) - np.dot(e_A,E_w_sq))
         
         # Integration of precision parameter for weigts Ew[Ealpha[Etau[ log P(alpha| a, b)]]]
-        alpha_prior     = np.dot((self.a-1),e_log_alpha)-np.dot(b,e_A)
+        alpha_prior     = np.dot((a_init-1),e_log_alpha)-np.dot(self.b,e_A)
         
         # Integration of precison parameter for likelihood
-        tau_prior       = (self.c - 1)*e_log_tau - e_tau*d
+        tau_prior       = (c_init - 1)*e_log_tau - e_tau*self.d
         
         # E [ log( q_tau(tau) )]
         q_tau_const     = self.c*np.log(d) - gammaln(self.c)
-        
-        print gammaln(self.c)
         q_tau           = q_tau_const - d*e_tau + (self.c-1)*e_log_tau
-
         
         # E [ log( q_alpha(alpha)]
         q_alpha_const   = np.dot(self.a,np.log(b)) - np.sum(gammaln(self.a))
         q_alpha         = q_alpha_const - np.dot(b,e_A) + np.dot((self.a-1),e_log_alpha)
         
         # E [ log( q_w(w)) ]
-        q_w             = -0.5*self.n*np.linalg.det(Sigma)
-        
-        # lower bound
+        q_w             = -0.5*np.linalg.slogdet(Sigma)[1]
+        print -q_w
+
+        # lower bound        
         L = like + weights + alpha_prior + tau_prior - q_w - q_alpha - q_tau
         self.lower_bound.append(L)
         
@@ -564,18 +573,18 @@ if __name__=='__main__':
        
        
        # SINC
-       X = np.random.random([900,1])
-       X[:,0]  = np.linspace(-5,5,900)
-       Y       = 10*np.sinc(X[:,0]) + np.random.normal(0,1,900) + 10
+       X = np.random.random([4000,1])
+       X[:,0]  = np.linspace(-8,8,4000)
+       Y       = 20*np.sinc(X[:,0]) + np.random.normal(0,1,4000) + 10
        #Y       = 4*X[:,0] + 3 + np.random.normal(0,1,2000)
        X,x,Y,y = train_test_split(X,Y, test_size = 0.3)
-       vrvr   = VRVR(X,Y, kernel = 'rbf', max_iter = 500,order = 2, scaler = 0.5, verbose = True)
+       vrvr   = VRVR(X,Y, kernel = 'rbf', max_iter = 200,order = 2, scaler = 1, verbose = True)
        vrvr.fit()
        y_hat,var_hat  = vrvr.predict_dist(x)
        plt.plot(x[:,0],y_hat,'bo')
        plt.plot(x[:,0],y,"r+")
-       plt.plot(x[:,0],y_hat + np.sqrt(var_hat),"go")
-       plt.plot(x[:,0],y_hat - np.sqrt(var_hat),"go")
+       plt.plot(x[:,0],y_hat + 1.96*np.sqrt(var_hat),"go")
+       plt.plot(x[:,0],y_hat - 1.96*np.sqrt(var_hat),"go")
        
        
        # 
