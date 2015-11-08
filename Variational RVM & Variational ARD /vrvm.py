@@ -458,7 +458,6 @@ class VRVR(VRVM):
         
         # E [ log( q_w(w)) ]
         q_w             = -0.5*np.linalg.slogdet(Sigma)[1]
-        print -q_w
 
         # lower bound        
         L = like + weights + alpha_prior + tau_prior - q_w - q_alpha - q_tau
