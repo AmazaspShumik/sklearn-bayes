@@ -1,8 +1,7 @@
 import numpy as np
 from scipy.linalg import solve_triangular
-from scipy.special import psi
-from scipy.special import gamma
-from scipy.special import gammaln
+from scipy.special import psi     # digamma function 
+from scipy.special import gammaln # log gamma function
 
 
 
@@ -211,9 +210,11 @@ class VRVR(VRVM):
         XY       = np.dot(self.X.T,self.Y)
         Y2       = np.sum(self.Y**2)
         
-        # initial shape parameters a & c
+        # initial shape & rate parameters a & c
         a_init   = self.a
         c_init   = self.c 
+        b_init   = self.b
+        d_init   = self.d
         
         # final update for a and c
         self.a  += 1
@@ -254,7 +255,9 @@ class VRVR(VRVM):
             # ------ lower bound & convergence -------
             
             # calculate lower bound reusing previously calculated statistics
-            self._lower_bound(Y2,XMw,MwXY,XSX,Sigma,E_w_sq,e_tau,e_A,b,d,a_init,c_init) 
+            self._lower_bound(Y2,XMw,MwXY,XSX,Sigma,E_w_sq,e_tau,e_A,b,d,a_init,b_init,
+                                                                                c_init,
+                                                                                d_init) 
             
             # check convergence
             conv = self._check_convergence()
@@ -276,7 +279,10 @@ class VRVR(VRVM):
                 # check that there are any relevant vectors at all
                 if np.sum(self.active) == 0:
                     raise ValueError('No relevant vectors selected')
-                self.rel_vecs       = self.Xraw[self.active[1:],:]
+                if self.bias_term is True:
+                    self.rel_vecs       = self.Xraw[self.active[1:],:]
+                else:
+                    self.rel_vecs       = self.Xraw[self.active,:]
                 return 
 
                 
@@ -332,7 +338,7 @@ class VRVR(VRVM):
            x = self._kernelise(x,self.rel_vecs, self.kernel, self.scaler,self.order)
            
         # add bias term if required
-        if self.bias_term is not None:
+        if self.bias_term is True:
             n    = x.shape[0] 
             bias = np.ones([n,1],dtype = np.float)
             x    = np.concatenate((bias,x), axis = 1)
@@ -387,7 +393,9 @@ class VRVR(VRVM):
         return [Mw,Sigma]
         
         
-    def _lower_bound(self,Y2,XMw,MwXY,XSX,Sigma,E_w_sq,e_tau,e_A,b,d,a_init,c_init):
+    def _lower_bound(self,Y2,XMw,MwXY,XSX,Sigma,E_w_sq,e_tau,e_A,b,d,a_init,b_init,
+                                                                            c_init,
+                                                                            d_init):
         '''
         Calculates lower bound and writes it to instance variable self.lower_bound.
         Does not include constants that do not change from one iteration to another.
@@ -418,17 +426,23 @@ class VRVR(VRVM):
         e_A: numpy array of size [self.m, 1]
              Vector of means of precision parameters for weight distribution
         
-        b: float/int
-           Rate parameter of Gamma distribution
+        b: numpy array
+           Learned rate parameter of Gamma distribution
         
         d: float/int
-           Rate parameter of Gamma distribution
+           Learned rate parameter of Gamma distribution
            
-        a_init: float
+        a_init: numpy array
            Initial shape parameter for Gamma distributed weights
+           
+        b_init: numpy array
+           Initial rate parameter
            
         c_init: float
            Initial shape parameter for Gamma distributed precision of likelihood
+           
+        d_init: float
+           Initial rate parameter
         '''
         # precompute for diffrent parts of lower bound
         e_log_tau       = psi(self.c) - np.log(d)
@@ -443,10 +457,10 @@ class VRVR(VRVM):
         weights         = 0.5*(np.sum((e_log_alpha)) - np.dot(e_A,E_w_sq))
         
         # Integration of precision parameter for weigts Ew[Ealpha[Etau[ log P(alpha| a, b)]]]
-        alpha_prior     = np.dot((a_init-1),e_log_alpha)-np.dot(self.b,e_A)
+        alpha_prior     = np.dot((a_init-1),e_log_alpha)-np.dot(b_init,e_A)
         
         # Integration of precison parameter for likelihood
-        tau_prior       = (c_init - 1)*e_log_tau - e_tau*self.d
+        tau_prior       = (c_init - 1)*e_log_tau - e_tau*d_init
         
         # E [ log( q_tau(tau) )]
         q_tau_const     = self.c*np.log(d) - gammaln(self.c)
@@ -529,20 +543,24 @@ class VRVC(VRVM):
     
     
     def __init__(self,X, Y, a = 1e-6, b = 1e-6, kernel = 'rbf', scaler       = 1, 
-                                                                      order        = 2, 
-                                                                      max_iter     = 20,
-                                                                      conv_thresh  = 1e-3,
-                                                                      bias_term    = True, 
-                                                                      prune_thresh = 1e-2,
-                                                                      verbose      = False):
+                                                                order        = 2, 
+                                                                max_iter     = 20,
+                                                                conv_thresh  = 1e-3,
+                                                                bias_term    = True, 
+                                                                prune_thresh = 1e-2,
+                                                                verbose      = False):
         # call to constructor of superclass
         super(VRVR,self).__init__(X,Y,a,b,kernel,scaler,order,max_iter,conv_thresh,bias_term,
                                                                                    prune_thresh,
-                                                                                   verbose)
-       
-        
+                                                                                   verbose) 
         
     def fit(self):
+        pass
+        
+    def predict(self,x):
+        pass
+        
+    def predict_dist(self,x):
         pass
         
     def _lower_bound(self):
@@ -551,40 +569,4 @@ class VRVC(VRVM):
     def _posterior_weights(self):
         pass
 
-
-
-if __name__=='__main__':
-       import matplotlib.pyplot as plt
-       from sklearn.cross_validation import train_test_split
-       
-       # Linear Model
-       
-       #X = np.random.random([1000,1])
-       #X[:,0] = np.linspace(-2,2,1000)
-       #Y = 4*X[:,0]  + 50 + np.random.normal(0,1,1000)
-       #X,x,Y,y = train_test_split(X,Y, test_size = 0.3)
-       #vrvr = VRVR(X,Y, kernel = None, max_iter = 50)
-       #vrvr.fit()
-       #y_hat = vrvr.predict(x)
-       #plt.plot(x,y,'ro')
-       #plt.plot(x,y_hat,'b+')
-       #plt.show()
-       
-       
-       # SINC
-       X = np.random.random([4000,1])
-       X[:,0]  = np.linspace(-8,8,4000)
-       Y       = 20*np.sinc(X[:,0]) + np.random.normal(0,1,4000) + 10
-       #Y       = 4*X[:,0] + 3 + np.random.normal(0,1,2000)
-       X,x,Y,y = train_test_split(X,Y, test_size = 0.3)
-       vrvr   = VRVR(X,Y, kernel = 'rbf', max_iter = 200,order = 2, scaler = 1, verbose = True)
-       vrvr.fit()
-       y_hat,var_hat  = vrvr.predict_dist(x)
-       plt.plot(x[:,0],y_hat,'bo')
-       plt.plot(x[:,0],y,"r+")
-       plt.plot(x[:,0],y_hat + 1.96*np.sqrt(var_hat),"go")
-       plt.plot(x[:,0],y_hat - 1.96*np.sqrt(var_hat),"go")
-       
-       
-       # 
        
