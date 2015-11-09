@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.special import psi
+from scipy.special import gammaln
 
 
 
@@ -8,11 +10,11 @@ class VariationalLinearRegression(object):
     over latent variables. Assumes gamma prior on precision of weight distribution
     and likelihood.
     
-    Theoretical Note:
+    Graphical Model Composition:
     -----------------
     
     P ( Y | X, beta_, lambda_) = N( Y | X*beta_, lambda_^(-1)*I)
-    P ( beta_ | alpha_ )       = N( 
+    P ( beta_ | alpha_ )       = N( beta_ | 0, alpha_^(-1)*I)
     P ( alpha_ | a, b)         = Ga( alpha_ | a, b)
     P ( lambda_ | c, d)        = Ga( lambda_ | c, d)
     
@@ -40,48 +42,45 @@ class VariationalLinearRegression(object):
     conv_thresh: float (DEFAULT = 1e-3)
        Convergence threshold
        
+    verbose: bool
+       If True at each iteration progress report is printed out
     '''
     
-    def __init__(self,X,Y, ab0 = None, cd0 = None, bias_term = True, max_iter = 20, 
-                                                                     conv_thresh = 1e-3):
-        self.muX          =  np.mean(X, axis = 0)
-        self.muY          =  np.mean(Y)
-        self.X            =  X - self.muX
-        self.Y            =  Y - self.muY
+    def __init__(self,X,Y, ab0 = [1e-6,1e-6], cd0 = [1e-6,1e-6], bias_term = True, max_iter = 50, 
+                                                                                   conv_thresh = 1e-2,
+                                                                                   verbose = True):
+        self.verbose          =  verbose
+        self.bias_term        =  bias_term
+        if bias_term is True:
+            self.muX          =  np.mean(X, axis = 0)
+            self.muY          =  np.mean(Y)
+            self.X            =  X - self.muX
+            self.Y            =  Y - self.muY
+        else:
+            self.X            =  X
+            self.Y            =  Y
         
         # Number of samples & dimensioality of training set
-        self.n,self.m     =  self.X.shape
+        self.n,self.m      =  self.X.shape
         
         # Gamma distribution params. for precision of weights (beta) & likelihood 
-        if ab0 is None:
-            self.a,self.b =  [1e-2, 1e-4]
-        else:
-            self.a,self.b =  ab0
-        if cd0 is None:
-            self.c,self.d =  [1e-2, 1e-4]
-        else:
-            self.c,self.d =  cd0
-        
-        # weights for features of linear regression
-        self.beta_        =  np.zeros(self.m)
+        self.a,self.b      =  ab0
+        self.c,self.d      =  cd0
         
         # lower bound (should be non-decreasing)
-        self.lbound       =  []
+        self.lower_bound   =  [np.NINF]
         
         # termination conditions for mean-field approximation
-        self.max_iter     =  max_iter
-        self.conv_thresh  =  conv_thresh
-        
-        # precision paramters of weight distribution & likelihood
-        self.lambda_      =  0.
-        self.alpha_       =  0.
-        
+        self.max_iter      =  max_iter
+        self.conv_thresh   =  conv_thresh
+
         # covariance of posterior distribution
-        self.Sigma        =  np.zeros([self.m, self.m], dtype = np.float)
+        self.Mw,self.Sigma =  0,0
         
         # svd decomposition & precomputed values for speeding up iterations
-        self.u,self.D     =  None,None
-        self.vt, self.XY  =  None,None
+        self.u,self.D      =  0,0
+        self.vt, self.XY   =  0,0
+        
                 
         
     def fit(self):
@@ -92,58 +91,75 @@ class VariationalLinearRegression(object):
         self.u,self.D, self.vt = np.linalg.svd(self.X, full_matrices = False)
         
         # compute X'*Y  &  Y'*Y to reuse in each iteration
-        self.XY                = np.dot(self.X.T,self.Y)
+        XY                     = np.dot(self.X.T,self.Y)
         YY                     = np.dot(self.Y,self.Y)
+        # saved for lower bound calculation
+        a_init                 = self.a
+        b_init                 = self.b
+        c_init                 = self.c
+        d_init                 = self.d
         
         # some parameters of Gamma distribution have closed form solution
-        self.a                 = self.a + float(self.m) / 2
-        self.c                 = self.c + float(self.n) / 2
+        self.a                 = self.a + 0.5*self.m
+        self.c                 = self.c + 0.5*self.n
         b,d                    = self.b,self.d
         
         for i in range(self.max_iter):
             
-            #  ----------   UPDATE Q(beta_)   --------------
+            #  ----------   UPDATE Q(w)   --------------
             
             # calculate expected values of alpha and lambda
-            E_lambda     = self._gamma_mean(self.c,d)
-            E_alpha      = self._gamma_mean(self.a,b)
+            e_tau         = self._gamma_mean(self.c,d)
+            e_alpha       = self._gamma_mean(self.a,b)
             
-            # update parameters of Q(beta_)
-            self.beta,Sn  = self._posterior_dist_beta(E_lambda, E_alpha)
+            # update parameters of Q(w)
+            Mw,Sigma     = self._posterior_dist_beta(e_tau, e_alpha,XY)
+            print Mw
             
             #  ----------    UPDATE Q(alpha_)   ------------
             
             # update rate parameter for Gamma distributed precision of weights
-            b            = self.b + 0.5*np.dot(self.beta,self.beta) + 0.5*np.trace(Sn)
+            E_w_sq        = ( np.dot(Mw,Mw) + np.trace(Sigma) )
+            b             = self.b + 0.5*E_w_sq
             
             #  ----------    UPDATE Q(lambda_)   ------------
 
-            # update rate parameter for Gamma distributed precision of likelihood            
-            Xbeta        = np.sum(np.dot(self.X,self.beta)**2)
-            XSX          = np.trace(np.dot(np.dot(self.X,Sn),self.X.T))
-            d            = self.d + 0.5*(YY - 2*np.dot(self.beta,self.XY) + XSX + Xbeta)
+            # update rate parameter for Gamma distributed precision of likelihood 
+            # precalculate some values for reuse in lower bound calculation           
+            XMw           = np.sum(np.dot(self.X,Mw)**2)
+            XSX           = np.sum(np.dot(self.X,Sigma)*X)
+            MwXY          = np.dot(Mw,XY)
+            d             = self.d + 0.5*(YY + XSX + XMw) - MwXY
             
+            
+            # --------- Lower Bound and Convergence Check ---------
+            
+            # lower bound calculation
+            print Sigma
+            self._lower_bound(YY,XMw,MwXY,XSX,Sigma,E_w_sq,a_init,b_init,c_init,d_init,
+                                                                                e_tau,
+                                                                                e_alpha,
+                                                                                b,d)
+            if self.verbose is True:
+                print "Iteration {0} is completed, lower bound is {1}".format(i,self.lower_bound[-1])
             # check convergence 
-            converged = False
+            converged = self._check_convergence()
             
             # save fitted parameters
             if converged or i==(self.max_iter-1):
-                
+                if converged is True:
+                    if self.verbose is True:
+                        print "Mean Field Approximation converged"
                 # save parameters of Gamma distribution
                 self.b, self.d        = b, d
-                
                 # compute parameters of weight distributions corresponding
-                # to new alpha_ & lambda_
-                E_lambda              = self._gamma_mean(self.c,self.d)
-                E_alpha               = self._gamma_mean(self.a,self.b)
-                self.beta, self.Sigma = self._posterior_dist_beta(E_lambda,E_alpha)
+                self.Mw, self.Sigma   = Mw,Sigma
                 
                 if converged is False:
                     print("Warning!!! Algorithm did not converge")
                     
                 return
              
-        
         
         
     def predict(self,X):
@@ -164,12 +180,13 @@ class VariationalLinearRegression(object):
            
         '''
         # center data
-        x         = X - self.muX
+        if self.bias_term is True:
+           X         = X - self.muX
         # mean of predictive distribution
-        y_hat     = np.dot(x,self.beta)
+        y_hat     = np.dot(X,self.Mw)
         # take into account bias term
-        y_hat     = y_hat + self.muY
-        
+        if self.bias_term is True:
+            y_hat     = y_hat + self.muY
         return y_hat
         
         
@@ -195,11 +212,13 @@ class VariationalLinearRegression(object):
            
         '''
         # center data
-        x         = X - self.muX
+        if self.bias_term is True:
+           X         = X - self.muX
         # mean of predictive distribution
-        y_hat     = np.dot(x,self.beta)
+        y_hat     = np.dot(X,self.Mw)
         # take into account bias term
-        y_hat     = y_hat + self.muY
+        if self.bias_term is True:
+           y_hat     = y_hat + self.muY
         
         # asymptotic noise
         noise     = 1./ self._gamma_mean(self.c,self.d)
@@ -207,7 +226,7 @@ class VariationalLinearRegression(object):
         return [y_hat,var]
         
         
-    def _posterior_dist_beta(self, E_lambda, E_alpha):
+    def _posterior_dist_beta(self, e_tau, e_alpha,XY):
         '''
         Calculates parameters of approximation of posterior distribution 
         of weights
@@ -216,7 +235,7 @@ class VariationalLinearRegression(object):
         -----------
         
         E_lambda: float
-           Expectation of likelihood precision parameter with respect to 
+           Expectation of precision parameter of likelihood with respect to 
            its factored distribution Q(lambda_)
         
         E_alpha: float
@@ -235,17 +254,101 @@ class VariationalLinearRegression(object):
             
         '''
         # inverse eigenvalues of precision matrix
-        Dinv = 1. / (E_lambda*self.D**2 + E_alpha)
+        Dinv = 1. / (e_tau*self.D**2 + e_alpha)
         
         # Covariance matrix ( use numpy broadcasting to speed up)
         Sn   = np.dot(self.vt.T*(Dinv),self.vt)
         
         # mean of approximation for posterior distribution
-        Mn   = E_lambda * np.dot(Sn,self.XY)
+        Mn   = e_tau * np.dot(Sn,XY)
         return [Mn,Sn]
         
         
-    
+    def _check_convergence(self):
+        '''
+        Checks convergence of Mean Field Approximation
+        
+        Returns:
+        -------
+        : bool
+          True if approximation converged , False otherwise
+        '''
+        assert len(self.lower_bound) >=2,'There should be at least 2 values of lower bound'
+        if self.lower_bound[-1] - self.lower_bound[-2] < self.conv_thresh:
+            return True
+        return False
+        
+        
+    def _lower_bound(self,YY,XMw,MwXY,XSX,Sigma,E_w_sq,a_init,b_init,c_init,d_init,e_tau,e_alpha,b,d):
+        '''
+        Calculates lower bound and writes it to instance variable
+        
+        Parameters:
+        -----------
+        YY: float
+            Dot product Y.T*Y
+            
+        XMw: float
+             L2 norm of X*Mw, where Mw - mean of posterior of weights
+            
+        MwXY: float
+             Product of posterior mean of weights (Mw) and X.T*Y
+             
+        XSX: float
+             Trace of matrix X*Sigma*X.T, where Sigma - covariance of posterior of weights
+             
+        Sigma: numpy array of size [self.m,self.m]
+             Covariance matrix for Qw(w)
+             
+        E_w_sq: numpy array of size [self.m , 1]
+             Vector of weight squares
+            
+        a_init: float
+           Initial shape parameter for Gamma distributed weights
+           
+        b_init: float
+           Initial rate parameter
+           
+        c_init: float
+           Initial shape parameter for Gamma distributed precision of likelihood
+           
+        d_init: float
+           Initial rate parameter
+        
+        e_tau: float
+             Mean of precision for noise parameter
+             
+        e_alpha: float
+             Vector of means of precision parameters for weight distribution
+        
+        b: float
+           Learned rate parameter of Gamma distribution
+        
+        d: float
+           Learned rate parameter of Gamma distribution
+        '''
+        # < log(tau) > & < log(alpha) >
+        e_log_tau   = psi(self.c) - np.log(d)
+        e_log_alpha = psi(self.a) - np.log(b)
+        # < log P(Y|Xw, tau^-1) >
+        like        = 0.5*self.n*e_log_tau - 0.5*e_tau*(YY + XMw + XSX) - MwXY
+        # < log P(w| alpha) >
+        weights     = 0.5*self.m*e_log_alpha - 0.5*E_w_sq
+        # < log P(alpha) >
+        alpha_prior = (a_init -1)*e_log_alpha - e_alpha*b_init
+        # < log P(tau) > 
+        tau_prior   = (c_init -1)*e_log_tau - e_tau*c_init
+        # < log q(w) >
+        q_w         = -0.5*np.linalg.slogdet(Sigma)[1]
+        # < log q(alpha)>
+        q_alpha     = self.a*np.log(b) + (self.a - 1)*e_log_alpha - e_alpha*b - gammaln(self.a)
+        # < log q(tau)>
+        q_tau       = self.c*np.log(d) + (self.c - 1)*e_log_tau - e_tau*d - gammaln(self.c)
+        # lower bound calculation
+        L           = like + weights + tau_prior + alpha_prior - q_w - q_alpha - q_tau
+        self.lower_bound.append(L)
+        
+        
     @staticmethod
     def _gamma_mean(a,b):
        '''
@@ -265,3 +368,5 @@ class VariationalLinearRegression(object):
            Mean of gamma distribution
        '''
        return a/b
+ 
+    
