@@ -114,7 +114,6 @@ class VariationalLinearRegression(object):
             
             # update parameters of Q(w)
             Mw,Sigma     = self._posterior_dist_beta(e_tau, e_alpha,XY)
-            print Mw
             
             #  ----------    UPDATE Q(alpha_)   ------------
             
@@ -127,7 +126,7 @@ class VariationalLinearRegression(object):
             # update rate parameter for Gamma distributed precision of likelihood 
             # precalculate some values for reuse in lower bound calculation           
             XMw           = np.sum(np.dot(self.X,Mw)**2)
-            XSX           = np.sum(np.dot(self.X,Sigma)*X)
+            XSX           = np.sum(np.dot(self.X,Sigma)*self.X)
             MwXY          = np.dot(Mw,XY)
             d             = self.d + 0.5*(YY + XSX + XMw) - MwXY
             
@@ -135,7 +134,6 @@ class VariationalLinearRegression(object):
             # --------- Lower Bound and Convergence Check ---------
             
             # lower bound calculation
-            print Sigma
             self._lower_bound(YY,XMw,MwXY,XSX,Sigma,E_w_sq,a_init,b_init,c_init,d_init,
                                                                                 e_tau,
                                                                                 e_alpha,
@@ -156,8 +154,7 @@ class VariationalLinearRegression(object):
                 self.Mw, self.Sigma   = Mw,Sigma
                 
                 if converged is False:
-                    print("Warning!!! Algorithm did not converge")
-                    
+                    print("Warning!!! Variational approximation did not converge") 
                 return
              
         
@@ -222,7 +219,7 @@ class VariationalLinearRegression(object):
         
         # asymptotic noise
         noise     = 1./ self._gamma_mean(self.c,self.d)
-        var       = noise + np.sum(np.dot(x,self.Sigma)*x,axis = 1)
+        var       = noise + np.sum(np.dot(X,self.Sigma)*X,axis = 1)
         return [y_hat,var]
         
         
