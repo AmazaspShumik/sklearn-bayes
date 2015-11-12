@@ -232,8 +232,12 @@ class VRVR(VRVM):
             e_A     = self._gamma_mean(self.a,b)    
                  
             # parameters of updated posterior distribution
-            Mw,Sigma  = self._posterior_weights(XY,e_tau,e_A)
-            
+            try:
+                Mw,Sigma  = self._posterior_weights(XY,e_tau,e_A)
+            except np.linalg.LinAlgError:
+                raise ValueError("Non positive definite matrix, usually caused by value \
+                      of scaler, try different values of scaler or normalise inputs")
+                
             # ------------ update q(tau) ------------
             
             # update rate parameter for Gamma distributed precision of noise 
@@ -278,12 +282,8 @@ class VRVR(VRVM):
                 self.active         = np.abs(self.Mw) > self.prune_thresh
                 # check that there are any relevant vectors at all
                 if np.sum(self.active) == 0:
-                    raise ValueError('No relevant vectors selected')
-                if self.bias_term is True:
-                    self.rel_vecs       = self.Xraw[self.active[1:],:]
-                else:
-                    self.rel_vecs       = self.Xraw[self.active,:]
-                return 
+                    raise ValueError('No relevant vectors selected, reconsider your choice of prune_thresh')
+                self.rel_vecs       = self.Xraw[self.active[1:],:]
 
                 
     def predict(self, x):
@@ -310,7 +310,8 @@ class VRVR(VRVM):
         else:
             y_hat  = np.dot(x,self.Mw[1:][self.active[1:]])
             #add bias term if required
-            y_hat += self.Mw[0]
+            if self.active[0]:
+               y_hat += self.Mw[0]
             return y_hat
             
             
@@ -340,8 +341,9 @@ class VRVR(VRVM):
         # add bias term if required
         if self.bias_term is True:
             n    = x.shape[0] 
-            bias = np.ones([n,1],dtype = np.float)
-            x    = np.concatenate((bias,x), axis = 1)
+            if self.active[0]:
+               bias = np.ones([n,1],dtype = np.float)
+               x    = np.concatenate((bias,x), axis = 1)
             
         y_hat    = np.dot(x,self.Mw[self.active])
         e_tau    = self._gamma_mean(self.c,self.d)
@@ -568,5 +570,6 @@ class VRVC(VRVM):
         
     def _posterior_weights(self):
         pass
+    
 
        
