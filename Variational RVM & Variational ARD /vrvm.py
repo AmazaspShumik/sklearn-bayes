@@ -2,6 +2,7 @@ import numpy as np
 from scipy.linalg import solve_triangular
 from scipy.special import psi     # digamma function 
 from scipy.special import gammaln # log gamma function
+import warnings
 
 
 
@@ -10,12 +11,10 @@ class VRVM(object):
     Superclass for Variational Relevance Vector Regression and Variational
     Relevance Vector Classification
     '''
-    def __init__(self,X,Y,a,b,kernel,scaler,order,max_iter,conv_thresh,bias_term,prune_thresh,
-                                                                                 verbose):
+    def __init__(self,X,Y,a,b,kernel,scaler,order,max_iter,conv_thresh,prune_thresh,verbose):
         
         self.max_iter            = max_iter
         self.conv_thresh         = conv_thresh
-        self.bias_term           = bias_term
         self.prune_thresh        = prune_thresh
         
         # kernel parameters
@@ -39,10 +38,9 @@ class VRVM(object):
         self.n, self.m           = self.X.shape
         
         # add bias term if required
-        if self.bias_term is True:
-            bias                 = np.ones([self.n,1])
-            self.X               = np.concatenate((bias,self.X), axis = 1)
-            self.m              += 1
+        bias                     = np.ones([self.n,1])
+        self.X                   = np.concatenate((bias,self.X), axis = 1)
+        self.m                  += 1
         self.Y                   = Y
         
         # number of features used 
@@ -187,12 +185,10 @@ class VRVR(VRVM):
                                                                      order        = 2, 
                                                                      max_iter     = 20,
                                                                      conv_thresh  = 1e-2,
-                                                                     bias_term    = True, 
                                                                      prune_thresh = 1e-2,
                                                                      verbose      = False):
         # call to constructor of superclass
-        super(VRVR,self).__init__(X,Y,a,b,kernel,scaler,order,max_iter,conv_thresh,bias_term,
-                                                                                   prune_thresh,
+        super(VRVR,self).__init__(X,Y,a,b,kernel,scaler,order,max_iter,conv_thresh,prune_thresh,
                                                                                    verbose)
         
         # parameters of Gamma distribution for precision of likelihood
@@ -235,8 +231,9 @@ class VRVR(VRVM):
             try:
                 Mw,Sigma  = self._posterior_weights(XY,e_tau,e_A)
             except np.linalg.LinAlgError:
-                raise ValueError("Non positive definite matrix, usually caused by value \
-                      of scaler, try different values of scaler or normalise inputs")
+                raise ValueError(("Non positive definite matrix, usually caused by value "
+                                  "of scaler, try different values of scaler or normalise"
+                                  "inputs"))
                 
             # ------------ update q(tau) ------------
             
@@ -282,7 +279,13 @@ class VRVR(VRVM):
                 self.active         = np.abs(self.Mw) > self.prune_thresh
                 # check that there are any relevant vectors at all
                 if np.sum(self.active) == 0:
-                    raise ValueError('No relevant vectors selected, reconsider your choice of prune_thresh')
+                    warnings.warn(("Warning!!! All vectors were pruned, choose smaller "
+                                   "value for parameter prune_thresh, by default this implementation "
+                                   " will use single rv with largest posterior mean"))
+                    
+                    # choose rv with largest posterior mean
+                    largest = np.argmax(self.Mw)
+                    self.active[largest] = True
                 self.rel_vecs       = self.Xraw[self.active[1:],:]
 
                 
@@ -304,15 +307,11 @@ class VRVR(VRVM):
         # kernelise data
         if self.kernel is not None:
             x = self._kernelise(x,self.rel_vecs,self.kernel,self.scaler,self.order)
-        # bias term
-        if self.bias_term is False:
-            return np.dot(x,self.Mw[self.active])
-        else:
-            y_hat  = np.dot(x,self.Mw[1:][self.active[1:]])
-            #add bias term if required
-            if self.active[0]:
-               y_hat += self.Mw[0]
-            return y_hat
+        y_hat  = np.dot(x,self.Mw[1:][self.active[1:]])
+        #add bias term if required
+        if self.active[0]:
+            y_hat += self.Mw[0]
+        return y_hat
             
             
     def predict_dist(self, x):
@@ -339,11 +338,10 @@ class VRVR(VRVM):
            x = self._kernelise(x,self.rel_vecs, self.kernel, self.scaler,self.order)
            
         # add bias term if required
-        if self.bias_term is True:
-            n    = x.shape[0] 
-            if self.active[0]:
-               bias = np.ones([n,1],dtype = np.float)
-               x    = np.concatenate((bias,x), axis = 1)
+        n    = x.shape[0] 
+        if self.active[0]:
+            bias = np.ones([n,1],dtype = np.float)
+            x    = np.concatenate((bias,x), axis = 1)
             
         y_hat    = np.dot(x,self.Mw[self.active])
         e_tau    = self._gamma_mean(self.c,self.d)
