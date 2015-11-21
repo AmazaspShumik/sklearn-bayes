@@ -34,7 +34,6 @@ class VBPCA(object):
     '''
     
     def __init__(self,X,max_iter = 50, conv_thresh = 1e-2):
-        
         self.max_iter    = max_iter
         self.conv_thresh = conv_thresh
         
@@ -44,9 +43,21 @@ class VBPCA(object):
         for i in range(self.max_iter):
             
             # single iteration of Mean Field Approximation
+            
+            # ---------- update Q(W) -----------
+            
             Qw     = 
+            
+            # ---------- update Q(alpha) -------
+            
             Qalpha = 
+            
+            # ---------- update Q(tau) ---------
+            
             Qtau   = 
+            
+            # ---------- update Q(mu) ----------
+            
             Qmu    = 
         
     def transform(self):
