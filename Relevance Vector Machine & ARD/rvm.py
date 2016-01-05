@@ -45,7 +45,9 @@ class SparseBayesianLearner(object):
     max_iter_irls: int
        Maximum number of iterations for IRLS (works in case of regression)
        
-       
+    lambda_0: float (DEAFAULT = 1e-6)
+       Prevents overflow and underflow of precision parameters, if MSE is below
+       lambda_0 algorithm is terminated
        
     References:
     -----------
@@ -63,7 +65,8 @@ class SparseBayesianLearner(object):
                                                           max_iter_irls = 20,
                                                           pgtol_irls    = 1e-3,
                                                           p_order       = 2,
-                                                          verbose       = False):
+                                                          verbose       = False,
+                                                          lambda_0      = 1e-6):
         self.verbose         = verbose
         self.kernel          = kernel
         self.scaler          = scaler 
@@ -74,6 +77,7 @@ class SparseBayesianLearner(object):
         self.conv_thresh     = thresh
         self.alpha_max       = alpha_max
         self.max_iter        = max_iter
+        self.lambda_0        = lambda_0
         
         # method for evidence approximation , either "EM" or "fixed-point"
         self.method          = method
@@ -193,7 +197,9 @@ class SparseBayesianLearner(object):
                    if delta_beta < self.conv_thresh:
                       break
             if i==self.max_iter:
-                print "Warning!!! Algorithm did not converge"
+                warnings.warn('Algorithm did not converge')
+            if self.learn_type == 'regression' and err_sq / self.n < self.lambda_0:
+                break
                 
             
         self.active          = diagA < self.alpha_max
