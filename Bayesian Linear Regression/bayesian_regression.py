@@ -2,6 +2,7 @@
 
 import numpy as np
 from scipy.linalg import pinvh
+import warnings
 
 
 class BayesianRegression(object):
@@ -25,7 +26,7 @@ class BayesianRegression(object):
     lambda_0: float (DEAFAULT = 1e-10)
        Prevents overflow of precision parameters (this is smallest value RSS can have).
        ( !!! Note if using EM instead of fixed-point, try smaller values
-             of lambda_0 )
+             of lambda_0, for better estimates of variance of predictive distribution )
        
     alpha: float (DEFAULT = 1e-6)
        Initial value of precision paramter for coefficients ( by default we define 
@@ -36,8 +37,8 @@ class BayesianRegression(object):
        broad distribution )
     '''
     
-    def __init__(self,X,Y, bias_term = True, thresh = 1e-3, lambda_0 = 1e-13, alpha = 1e-6,
-                                                                             beta  = 1e-6):
+    def __init__(self,X,Y, bias_term = True, thresh = 1e-3, lambda_0 = 1e-8, alpha = 1,
+                                                                             beta  = 1):
         # center input data for simplicity of further computations
         self.mu_X              =  np.mean(X,axis = 0)
         self.X                 =  X - np.outer(self.mu_X, np.ones(X.shape[0])).T
@@ -62,6 +63,7 @@ class BayesianRegression(object):
         
         # log-likelihood
         self.logLike           = [np.NINF]
+        self.perfect_fit       = False
 
             
     def fit(self, evidence_approx_method="fixed-point",max_iter = 100):
@@ -109,9 +111,13 @@ class BayesianRegression(object):
         
         '''
         x            =  x - self.mu_X
-        mu_pred      =  np.dot(x,self.w_mu) + self.mu_Y
-        var_pred     =  1/self.beta + np.sum( np.dot( x, self.D )* x, axis = 1)
-        return [mu_pred,var_pred]
+        Y_hat        =  np.dot(x,self.w_mu)
+        y_hat        =  Y_hat + self.mu_Y
+        if self.perfect_fit is False:
+            var_pred     =  1./self.beta + np.sum( np.dot( x, self.D )* x, axis = 1)
+        else:
+            var_pred     =  np.ones(x.shape[0])*np.sum( (self.Y - Y_hat)**2 ) / self.X.shape[0]
+        return [y_hat,var_pred]
         
     
     def predict(self,x):
@@ -168,6 +174,16 @@ class BayesianRegression(object):
             error   = self.Y - np.dot(self.X,mu)
             sqdErr  = np.dot(error,error)
             
+            if sqdErr / n < self.lambda_0:
+                self.perfect_fit = True
+                warnings.warn( 
+                ('Almost perfect fit!!! Estimated values of variance '
+                 'for predictive distribution are computed using only '
+                 'Residual Sum of Squares, terefore they do not increase '
+                 'in case of extrapolation')
+                             )
+                break
+            
             if method == "fixed-point":           
                 # update gamma
                 gamma      =  np.sum(dsq/(dsq + alpha/beta))
@@ -182,17 +198,15 @@ class BayesianRegression(object):
             else:
                 raise ValueError("Only 'EM' and 'fixed-point' algorithms are implemented ")
             
-
             # calculate log likelihood p(Y | X, alpha, beta) (constants are not included)
             normaliser =  0.5 * ( m*np.log(alpha) + n*np.log(beta) - np.sum(np.log(beta*dsq+alpha)))
             log_like   =  normaliser - 0.5*alpha*np.sum(mu**2) - 0.5*beta*sqdErr - 0.5*n*np.log(2*np.pi)         
             self.logLike.append(log_like)
 
-            
             # if change in log-likelihood is smaller than threshold stop iterations
             # if squared error is below threshold termonate, to avoide overflow in beta
             if i >=1:
-                if self.logLike[-1] - self.logLike[-2] == self.thresh or sqdErr < self.lambda_0:
+                if self.logLike[-1] - self.logLike[-2] == self.thresh:
                     break
         
         # write optimal alpha and beta to instance variables
@@ -234,5 +248,3 @@ class BayesianRegression(object):
         p2                    = np.dot(self.u.T,self.Y)
         w_mu                  = np.dot(p1,p2)
         return [w_mu,precision]
-
-
