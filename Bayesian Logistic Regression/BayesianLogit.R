@@ -56,10 +56,13 @@ BayesianLogisticRegression <- setClass(
                   bias.term   = 'logical',
                   max.iter    = 'numeric',
                   conv.thresh = 'numeric',
-                  w.mean0     = 'numeric',
+                  scale       = 'logical',
+                  muX         = 'numeric', # vector of column means
+                  sdX         = 'numeric', # vector of column standard devs
+                  w.mean0     = 'numeric', 
                   w.prec0     = 'numeric',
-                  coefs       = 'numeric',
-                  coefs.prec  = 'matrix',
+                  coefs       = 'matrix',
+                  coefs.cov   = 'matrix',
                   N           = 'numeric',
                   M           = 'numeric'
                  ),
@@ -70,7 +73,8 @@ BayesianLogisticRegression <- setClass(
                       bias.term   = TRUE,
                       max.iter    = 100,
                       conv.thresh = 1e-5,
-                      w.prec0     = 1e-6,
+                      scale       = TRUE,
+                      w.prec0     = 1e-3,
                       N           = 0,
                       M           = 0
                      ),
@@ -98,17 +102,27 @@ BayesianLogisticRegression <- setClass(
               definition = function(theObject,X,Y){
               	
               	# check whether dimensionality is correct, if wrong change it
-              	if ( dim(X)[1]  ==  theObject@N ) theObject@N = dim(X)[1]
-              	if ( dim(X)[2]  ==  theObject@M ) theObject@M = dim(X)[2]
+              	if ( dim(X)[1]  !=  theObject@N ) theObject@N = dim(X)[1]
+              	if ( dim(X)[2]  !=  theObject@M ) theObject@M = dim(X)[2]
               	N               =   theObject@N
+              	
+              	# transform Y into matrix to have conformable arguments for inner product 
+                Y = matrix(Y, ncol = 1)
+              	
+              	# scale X for better convergence if necessary
+              	if ( theObject@scale ) {
+              		theObject@muX = colMeans(X)
+              		theObject@sdX = sapply(1:theObject@M, function(i){sd(X[,i])})
+              		X = scale(X, center = theObject@muX, scale = theObject@sdX)
+              	}
               	
               	# add bias term to matrix of explanatory variables if required
               	if ( theObject@bias.term) {
-              		newX        = matrix(data = NA, ncol = theObject@M + 1, nrow = N)
-              		newX[,1]    = rep(1,times = N)
-              		newX[,2:M]  = X
-              		X           = newX
-              		theObject@M = theObject@M + 1
+              		theObject@M          = theObject@M + 1
+             		newX                 = matrix(data = NA, ncol = theObject@M, nrow = N)
+              		newX[,1]             = rep(1,times = N)
+              		newX[,2:theObject@M] = X
+              		X                    = newX
               	}
               	M               = theObject@M
               	
@@ -118,7 +132,7 @@ BayesianLogisticRegression <- setClass(
               	eps            = runif(N)
               	
               	# precompute some values before
-              	XY   = colSums( X %*% t( Y - 0.5 ) )
+              	XY   = matrix( t(X) %*% ( Y - 0.5 ) , ncol = 1)
               	
               	# iterations of EM algorithm
               	for( i in 1:theObject@max.iter){
@@ -128,34 +142,48 @@ BayesianLogisticRegression <- setClass(
               		#          2) mean of posterior
               		
               		# covariance update
-              		Xw       = X * matrix( rep(lambda(eps),times = M), ncol = M)   
-              		XXw      = t(X) %*% Xw
+              		Xw        = X * matrix( rep(lambda(eps),times = M), ncol = M)   
+              		XXw       = t(X) %*% Xw
               		# do not 'regularise' constant !!!
-              		Sn.inv   = 2*XXw + diag(alpha, nrow = M)
+              		Diag      = diag(alpha, nrow = M)
+              		#Diag[1,1] = 0
+              		Sn.inv    = 2*XXw + Diag
               		
               		# Sn.inv is positive definite due to adding of positive diagonal
               		# hence Cholesky decomposition (that is used for inversion) should be stable
-              		Sn       = chol2inv(Sn.inv)
+              		Sn       = qr.solve(Sn.inv, tol = 1e-7)
               		
               		# mean update
+              		print ("XY,Sn,Sn.inv")
+              		print (XY)
+              		print (Sn)
+              		print (Sn.inv)
               		Mn       = Sn %*% XY
               		
               		# M-step : 1) update variational parameter eps for each observation
               		#          2) update precision parameter (alpha)
               		
               		# variational parameter update
-              		XM   = (X %*% Mn)^2
+              		Xm   = (X %*% Mn)^2
               		XSX  = rowSums(X %*% Sn * X)
               		eps  = sqrt( Xm + XSX ) 
+              		print("EPS,XSX,XM")
+              		print (Xm)
+              		print (XSX)
+              		print (eps)
               		
-              		# update of precision parameter for coefficients
-              		alpha = M / ( sum(Mn^2) + trace(Sn) )
+              		# update of precision parameter for coefficients (except for )
+              		alpha = M / ( sum(Mn[2:M]^2) + sum(diag((Sn))) - Sn[1,1] )
               		
+              		print(Mn)
               		# check convergence
+              		if ( i== theObject@max.iter-1){
+              			theObject@coefs     = Mn
+              			theObject@coefs.cov = Sn
+              		}
               	}
-              	
-              	
-              }) 
+
+              })
 
 
     # @Method Name : predict
@@ -165,16 +193,33 @@ BayesianLogisticRegression <- setClass(
     # @Parameters  :
     # ==============
     #
+    # X: matrix of size  (number of samples in test set, number of features)
+    #    Matrix of explanatory variables
     #
-    #
-    setGeneric('predict', def = function(theObject,x){ standardGeneric('predict')})
-    setMethod('predict', signature)
-    
-    
-    
-    
-    setMethod('summary', signature = c('BayesianLogisticRegression'),
-             definition = function(theObject){
-             })              
+    setGeneric('predict.probs', def = function(theObject,X){ standardGeneric('predict.probs')})
+    setMethod('predict.probs', signature = c('BayesianLogisticRegression','matrix'), 
+              definition = function(theObject,X){
+              	
+              	# dimensionality of X
+              	n = dim(X)[1]
+              	m = dim(X)[2]
+              	
+              	# scale test data if required
+              	if ( theObject@scale ){
+              		X = scale(X, center = theObject@muX, scale = theObject@sdX)
+              	}
+              	
+              	# add bias term if required
+              	if ( theObject@bias.term ){
+              		newX                 = matrix(data = NA, ncol = m, nrow = n)
+              		newX[,1]             = rep(1,times = n)
+              		newX[,2:theObject@M] = X
+              		X                    = newX
+              	}
+              	
+              	probs = sigmoid( X %*% theObject@Mn )
+              	
+              	return (probs)
+              })
 
 
