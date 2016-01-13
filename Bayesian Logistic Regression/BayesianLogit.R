@@ -43,7 +43,7 @@ BayesianLogisticRegression <- setClass(
     # ============
     # 1) Bishop 2006, Pattern Recognition and Machine Learning ( Chapter 10 )
     # 2) Jaakola & Jordan 1994, 
-    # 3) Murphy 2012,
+    # 3) Murphy 2012, Machine Learning A Probabilistic Perspective
     # 4) Barber 2015, Bayesian Reasoning and Machine Learning ()
     
     # ----------------- set name of the class ------------------------
@@ -62,7 +62,7 @@ BayesianLogisticRegression <- setClass(
                   coefs.prec  = 'matrix',
                   N           = 'numeric',
                   M           = 'numeric'
-                 )
+                 ),
                  
     # ------------- default values for instance variables -------------
     
@@ -73,7 +73,9 @@ BayesianLogisticRegression <- setClass(
                       w.prec0     = 1e-6,
                       N           = 0,
                       M           = 0
-                     )
+                     ),
+                     
+    )
                              
     # ----------------------- define methods --------------------------
     
@@ -90,58 +92,89 @@ BayesianLogisticRegression <- setClass(
     # Y: numeric vector of dimensionality (number of samples, 1)
     #     Vector of dependent variables
     #
-    #      
+    #
+    setGeneric( 'fit', def = function(theObject,X,Y){ standardGeneric('fit') } )
     setMethod('fit',signature = c('BayesianLogisticRegression','matrix','numeric'), 
               definition = function(theObject,X,Y){
               	
               	# check whether dimensionality is correct, if wrong change it
-              	if ( dim(X)[1] == theObject@N ) theObject@N = dim(X)[1]
-              	if ( dim(X)[2] == theObject@M ) theObject@M = dim(X)[2]
-              	N              =  theObject@N
-              	M              =  theObject@M
+              	if ( dim(X)[1]  ==  theObject@N ) theObject@N = dim(X)[1]
+              	if ( dim(X)[2]  ==  theObject@M ) theObject@M = dim(X)[2]
+              	N               =   theObject@N
               	
               	# add bias term to matrix of explanatory variables if required
               	if ( theObject@bias.term) {
-              		newX       = matrix(data = NA, ncol = M + 1, nrow = N)
-              		newX[,1]   = rep(1,times = N)
-              		newX[,2:M] = X
-              		X          = newX
+              		newX        = matrix(data = NA, ncol = theObject@M + 1, nrow = N)
+              		newX[,1]    = rep(1,times = N)
+              		newX[,2:M]  = X
+              		X           = newX
+              		theObject@M = theObject@M + 1
               	}
+              	M               = theObject@M
               	
               	# mean , precision and variational parameters
               	w.mean0        = rep(0, times = M)
-              	w.prec0        = theObject@w.prec0
+              	alpha          = theObject@w.prec0
               	eps            = runif(N)
               	
               	# precompute some values before
-              	XY   = X %*% t( Y - 0.5 )
+              	XY   = colSums( X %*% t( Y - 0.5 ) )
               	
-              	# iterations for optimization
+              	# iterations of EM algorithm
               	for( i in 1:theObject@max.iter){
               		
-              		Sn = lambda(eps)
+              		# E-step : find parameters of posterior distribution of coefficients
+              		#          1) covariance of posterior
+              		#          2) mean of posterior
               		
+              		# covariance update
+              		Xw       = X * matrix( rep(lambda(eps),times = M), ncol = M)   
+              		XXw      = t(X) %*% Xw
+              		# do not 'regularise' constant !!!
+              		Sn.inv   = 2*XXw + diag(alpha, nrow = M)
               		
+              		# Sn.inv is positive definite due to adding of positive diagonal
+              		# hence Cholesky decomposition (that is used for inversion) should be stable
+              		Sn       = chol2inv(Sn.inv)
               		
+              		# mean update
+              		Mn       = Sn %*% XY
               		
+              		# M-step : 1) update variational parameter eps for each observation
+              		#          2) update precision parameter (alpha)
               		
+              		# variational parameter update
+              		XM   = (X %*% Mn)^2
+              		XSX  = rowSums(X %*% Sn * X)
+              		eps  = sqrt( Xm + XSX ) 
               		
+              		# update of precision parameter for coefficients
+              		alpha = M / ( sum(Mn^2) + trace(Sn) )
+              		
+              		# check convergence
               	}
               	
               	
-              	
-              	
-              	
-              })
-              
-              
-              
-    setMethod('predict')
-    setMethod('predict.probs')
-    setMethod('show')
- )
+              }) 
 
 
-
+    # @Method Name : predict
+    #
+    # @Description : predicts target value for explanatory variables
+    #
+    # @Parameters  :
+    # ==============
+    #
+    #
+    #
+    setGeneric('predict', def = function(theObject,x){ standardGeneric('predict')})
+    setMethod('predict', signature)
+    
+    
+    
+    
+    setMethod('summary', signature = c('BayesianLogisticRegression'),
+             definition = function(theObject){
+             })              
 
 
