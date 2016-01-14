@@ -47,7 +47,7 @@ class VariationalLinearRegression(object):
     '''
     
     def __init__(self,X,Y, ab0 = [1e-6,1e-6], cd0 = [1e-6,1e-6], bias_term = True, max_iter = 50, 
-                                                                                   conv_thresh = 1e-2,
+                                                                                   conv_thresh = 1e-5,
                                                                                    verbose = True):
         self.verbose          =  verbose
         self.bias_term        =  bias_term
@@ -141,7 +141,8 @@ class VariationalLinearRegression(object):
             if self.verbose is True:
                 print "Iteration {0} is completed, lower bound is {1}".format(i,self.lower_bound[-1])
             # check convergence 
-            converged = self._check_convergence()
+            #converged = self._check_convergence()
+            converged = False
             
             # save fitted parameters
             if converged or i==(self.max_iter-1):
@@ -332,9 +333,9 @@ class VariationalLinearRegression(object):
         # < log P(w| alpha) >
         weights     = 0.5*self.m*e_log_alpha - 0.5*E_w_sq
         # < log P(alpha) >
-        alpha_prior = (a_init -1)*e_log_alpha - e_alpha*b_init
+        alpha_prior = (a_init - 1)*e_log_alpha - e_alpha*b_init
         # < log P(tau) > 
-        tau_prior   = (c_init -1)*e_log_tau - e_tau*c_init
+        tau_prior   = (c_init - 1)*e_log_tau - e_tau*c_init
         # < log q(w) >
         q_w         = -0.5*np.linalg.slogdet(Sigma)[1]
         # < log q(alpha)>
@@ -365,5 +366,19 @@ class VariationalLinearRegression(object):
            Mean of gamma distribution
        '''
        return a/b
+       
+       
+       
+if __name__=='__main__':
+    X = np.array([[ 0.1,  -0.1,  -0.2,   0.02],
+                  [ 0.3,  -0.3,  -0.6,   0.06],
+               [ 0.4,  -0.4,  -0.8,   0.08],
+               [ 0.5,  -0.5,  -1.,    0.1 ]])
+
+    Y = np.array([ 0.2,  0.6,  0.8,  1. ])  
+    vr = VariationalLinearRegression(X,Y)
+    vr.fit()
+    y_hat = vr.predict(X)
+    print y_hat
  
     
