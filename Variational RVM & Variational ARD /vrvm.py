@@ -2,6 +2,7 @@ import numpy as np
 from scipy.linalg import solve_triangular
 from scipy.special import psi     # digamma function 
 from scipy.special import gammaln # log gamma function
+from scipy.linalg import pinvh
 import warnings
 
 
@@ -37,7 +38,7 @@ class VRVM(object):
         # number of features & dimensionality
         self.n, self.m           = self.X.shape
         
-        # add bias term if required
+        # add bias term 
         bias                     = np.ones([self.n,1])
         self.X                   = np.concatenate((bias,self.X), axis = 1)
         self.m                  += 1
@@ -134,7 +135,13 @@ class VRVM(object):
         
 class VRVR(VRVM):
     '''
-    Variational Relevance Vector Regressor
+    Variational Relevance Vector Regression.
+    Uses Mean Field Method for approximating fully bayesian regression model. 
+    
+    Practical Advice:
+    -----------------
+    For faster convergence & numerical stability of algorithm scale matrix of 
+    explanatory variables before fitting model.
     
     Parameters:
     -----------
@@ -487,7 +494,7 @@ class VRVR(VRVM):
         
                      
  
-#-------------------- Variational Relevance Vector Classifier --------------------# 
+#----------------------- Variational Relevance Vector Classifier -----------------------# 
         
               
 class VRVC(VRVM):
@@ -503,6 +510,11 @@ class VRVC(VRVM):
     When using hierarchical prior analytical derivation of Bayeisan Model becomes
     impossible, so we use Jaakkola & Jordan local variational bound that 
     approximates value of lower bound.
+    
+    Practical Advice:
+    -----------------
+    For faster convergence & numerical stability of algorithm scale matrix of 
+    explanatory variables before fitting model.
 
     Parameters:
     ----------
@@ -548,26 +560,134 @@ class VRVC(VRVM):
                                                                 conv_thresh  = 1e-3,
                                                                 bias_term    = True, 
                                                                 prune_thresh = 1e-2,
-                                                                verbose      = False):
+                                                                verbose      = False,
+                                                                eps          = None):
         # call to constructor of superclass
         super(VRVR,self).__init__(X,Y,a,b,kernel,scaler,order,max_iter,conv_thresh,bias_term,
                                                                                    prune_thresh,
-                                                                                   verbose) 
+                                                                                   verbose)
+                                                                                   
+        # check number of classes & binarise dependent variable
+        classes = set(Y)
+        assert len(classes)==2,"Number of classes in dependent variable should be 2"
+        self.Y  = self._binarise(Y,2)
+        
+        # check & assign variational parameter
+        if self.eps is None: 
+            self.eps = 0.1*np.ones(X.shape[0])
+        else:
+            assert len(eps)==X.shape[0], ('Number of variational parameters should '
+                                          'be equal to number of observations')
+            self.eps = eps
+            
+            
         
     def fit(self):
-        pass
+        '''
+        Fits Variational Relevance Vector Classifier
+        '''        
+        # precompute some values for faster iteration
+        XY   = np.dot(self.X.T,(self.Y - 0.5) )
+        aN   = self.a + 0.5
+        bN   = self.b
+        eps  = self.eps
+        
+        for i in range(self.max_iter):
+            
+            # PART I: mean field approximation for posterior distribution 
+            # of coefficients and precision
+            
+            # precision of posterior
+            E_alpha = aN / bN
+            lXX     = np.dot(self.X.T*lam(eps),self.X)
+            Sinv    = 2*lXX 
+            _       = np.fill_diagonal(Sinv, np.diag(Sinv) + E_alpha)
+            
+            # mean & covariance of posterior for coefficients
+            Sn      = pinvh(Sinv)  # since Sinv is guaranteed to be PD we can use pinvh
+            Mn      = np.dot(Sn,XY)
+            
+            MnSn    = np.outer(Mn,Mn) + Sn
+            # update posterior for precision paramters
+            bN      = np.diag(MnSn) + self.b
+            
+            # PART II: update variational parameters
+            eps     = np.sum( np.dot(self.X,MnSn)*self.X, axis = 1)
+            
+            # PART III: calculate lower bound & check convergence
+            self._lower_bound()
+            conv = self._check_convergence()
+            
+            # print progress report if required
+            if self.verbose is True:
+               print "Iteration {0} is completed, lower bound equals {1}".format(i,self.lower_bound[-1])
+                
+            if conv is True or i== self.max_iter - 1:
+                if self.verbose is True:
+                        print "Mean Field Approximation completed"
+            
+        
         
     def predict(self,x):
-        pass
+        '''
+        Predicts value of targets on test set
+        '''
         
     def predict_dist(self,x):
         pass
         
-    def _lower_bound(self):
-        pass
+    def _lower_bound(self,eps,aN,bN,MnSn):
+        '''
+        Calculates lower bound
+        '''
+        E_ph     = np.sum( np.log(sigmoid(eps)) - eps/2 + lam(eps)*eps**2)
         
-    def _posterior_weights(self):
-        pass
+        E_pw     = np.sum( 0.5*(psi(aN) - np.log(bN) - aN/bN * np.diag(MnSn)) )
+        E_palpha = np.sum( (self.a - 1)*( psi(aN) - np.log(bN) ) - self.b * aN / bN )
+        E_qw     = 
+        E_qalpha = 
+        
+    
+    def _binarise(self, Y, classes):
+        '''
+        Transform vector of two classes into binary vector
+        '''
+        self.inverse_encoding = {}
+        for el,val in zip(list(classes),[0,1]):
+            self.inverse_encoding[val] = el
+        y  =  np.zeros(Y.shape[0])
+        y[Y==self.inverse_encoding[1]] = 1
+        return y
+        
+    
+    def _inverse_binarise(self,y):
+        '''
+        Transform binary vector into vector of original classes
+        
+        Parameters:
+        -----------
+        y: numpy 
+        '''
+        Y = np.array([self.inverse_encoding[0] for e in range(y.shape[0])])
+        Y[y==1] = self.inverse_encoding[1]
+        return Y
+    
+    
+    
+# ======================== Helper Functions =====================================
+    
+def sigmoid(theta):
+    '''
+    Sigmoid function
+    '''
+    return 1./( 1 + np.exp(-theta))
+
+
+def lam(eps):
+    '''
+    Helper function for local variational approximation of sigmoid function
+    '''
+    return 0.5 / eps * ( sigmoid(eps) - 0.5)
     
 
        
