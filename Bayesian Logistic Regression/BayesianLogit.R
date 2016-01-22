@@ -8,9 +8,37 @@ sigmoid <- function(x) {
 	return ( 1.0 / ( 1 + exp(-x)) )
 }
 
-lambda <- function(x){
+lambda <- function(eps){
 	# helper function used for local variational bound calculation
-	return (-0.5 / x * ( sigmoid(x) - 0.5 ) )
+	return (0.5 / eps * ( sigmoid(eps) - 0.5 ) )
+}
+
+# Transforms vector Y into numeric vector of zeros and ones
+#
+# Parameters:
+# ===========
+# Y: vector of size (number of samples, 1)
+#     Vector of dependent variables
+#
+# y: factor with 2 levels
+#    Factor
+# 
+# Returns:
+# ========
+# binariser.list
+#
+#
+binarise <- function(Y,y){
+	y_hat = (Y == levels(y)[1])*1
+	binariser.list = list(zero = levels(y)[2], ones = levels(y)[1] , numericY = y_hat) )
+	return ( binariser.list )
+}
+
+
+inverse.binarise <- function(y_pred, binariser.list){
+	Y            = rep(binariser.list$zero, times = length(y_pred))
+	Y[y_pred==1] = binariser.list$ones
+	return (Y)
 }
 
 % ======================= Bayesian Logistic Regression =========================
@@ -64,7 +92,8 @@ BayesianLogisticRegression <- setClass(
                   coefs       = 'matrix',
                   coefs.cov   = 'matrix',
                   N           = 'numeric',
-                  M           = 'numeric'
+                  M           = 'numeric',
+                  binariser   = 'list'
                  ),
                  
     # ------------- default values for instance variables -------------
@@ -81,10 +110,10 @@ BayesianLogisticRegression <- setClass(
                      
     )
                              
-    # ----------------------- define methods --------------------------
+    # ---------------------------------- define methods --------------------------------------
     
     
-    # @Method Name : fit
+    # @Method Name : fit.model
     # 
     # @Description : Fits Bayesian Logistic Regression
     #
@@ -94,11 +123,10 @@ BayesianLogisticRegression <- setClass(
     #     Matrix of explanatory variables
     #
     # Y: numeric vector of dimensionality (number of samples, 1)
-    #     Vector of dependent variables
+    #     Vector of dependent variables (it should contain only zeros and ones)
     #
-    #
-    setGeneric( 'fit', def = function(theObject,X,Y){ standardGeneric('fit') } )
-    setMethod('fit',signature = c('BayesianLogisticRegression','matrix','numeric'), 
+    setGeneric( 'fit.model', def = function(theObject,X,Y){ standardGeneric('fit.model') } )
+    setMethod('fit.model',signature = c('BayesianLogisticRegression','matrix','numeric'), 
               definition = function(theObject,X,Y){
               	
               	# check whether dimensionality is correct, if wrong change it
@@ -129,7 +157,7 @@ BayesianLogisticRegression <- setClass(
               	# mean , precision and variational parameters
               	w.mean0        = rep(0, times = M)
               	alpha          = theObject@w.prec0
-              	eps            = runif(N)
+              	eps            = rep(1,times = N)
               	
               	# precompute some values before
               	XY   = matrix( t(X) %*% ( Y - 0.5 ) , ncol = 1)
@@ -165,12 +193,11 @@ BayesianLogisticRegression <- setClass(
               		
               		# variational parameter update
               		Xm   = (X %*% Mn)^2
-              		XSX  = rowSums(X %*% Sn * X)
+              		#XSX  = rowSums(X %*% Sn * X)
+              		XSX  = diag(X %*% Sn %*% t(X))
               		eps  = sqrt( Xm + XSX ) 
               		print("EPS,XSX,XM")
-              		print (Xm)
-              		print (XSX)
-              		print (eps)
+              		print (det(Sn))
               		
               		# update of precision parameter for coefficients (except for )
               		alpha = M / ( sum(Mn[2:M]^2) + sum(diag((Sn))) - Sn[1,1] )
@@ -184,15 +211,69 @@ BayesianLogisticRegression <- setClass(
               	}
 
               })
+              
+              
+              
+    # @Method Name : fit
+    #
+    # @Description : Wrappers for fit.model method. 'fit' is overloaded method, there are 
+    #                several implementations corresponding to several signatures
+    setGeneric( 'fit.model', def = function(theObject,X,Y){ standardGeneric('fit.model') } )
+    
+    
+    # @Overloaded fit, Implementation 1
+    #
+    # ==============
+    # X: matrix of dimensionality (number of samples, number of features)
+    #     Matrix of explanatory variables
+    #
+    # Y: numeric vector of dimensionality (number of samples, 1)
+    #     Vector of dependent variables (character vector)
+    #
+    setMethod('fit', signature = c('BayesianLogisticRegression','matrix','character'),
+               definition = function(theObject,X,Y){
+               	
+               	# make dependent variable a factor & check that it has exactly two levels
+               	y  =  factor(Y)
+               	if ( length( levels( y ) ) != 2) stop('There can be only two classes')
+               	
+               	# check that data matrix is numeric
+               	if ( !is.numeric(X) ) stop('X should be numeric')
+               	
+               	# binarise dependent variable & 
+               	theObject@binariser = label.binariser(Y,y)
+               	fit.model( theObject, X, theObject@binariser$numericY )
+               	
+               })
+               
+               
+    # @Overloaded fit, Implementation 2
+    #
+    # ==============
+    # X: data.frame of dimensionality (number of samples, number of features)
+    #     data.frame of explanatory variables
+    #
+    # Y: numeric vector of dimensionality (number of samples, 1)
+    #     Vector of dependent variables (character vector)
+    #
+    setMethod('fit', signature = c('BayesianLogisticRegression','data.frame','character'),
+               definition = function(theObject,X,Y){
+               	
+               	
+               	
+
+    
+    
+    
+    
 
 
-    # @Method Name : predict
+    # @Method Name : predict.probs
     #
     # @Description : predicts target value for explanatory variables
     #
     # @Parameters  :
     # ==============
-    #
     # X: matrix of size  (number of samples in test set, number of features)
     #    Matrix of explanatory variables
     #
@@ -218,8 +299,18 @@ BayesianLogisticRegression <- setClass(
               	}
               	
               	probs = sigmoid( X %*% theObject@Mn )
-              	
               	return (probs)
               })
+              
+              
+              
+     setMethod('predict', signature = c('BayesianLogisticRegression','matrix'),
+               definition = function(theObject,X){
+               	
+               	
+               	
+               	
+               	
+               })
 
 
