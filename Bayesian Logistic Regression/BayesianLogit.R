@@ -1,7 +1,7 @@
 
 
 
-# ========================== Helper Functions ==================================
+# ==================================== Helper Functions ====================================
 
 sigmoid <- function(x) {
 	# Calculates value of sigmoid function
@@ -50,9 +50,9 @@ check_X_y <- function(X,Y){
 # @Returns:
 # ========
 # binariser.list:
-#                 $zero      : character or numeric , corresponding to 0's in binarised vector
-#                 $ones      : character or numeric , corresponding to 1's in binarised vector
-#                 $numericY  : binarised vector
+#                 $zero     : character or numeric , corresponding to 0's in binarised vector
+#                 $ones     : character or numeric , corresponding to 1's in binarised vector
+#                 $numericY : binarised vector
 #
 binarise <- function(Y,y){
 	y_hat = (Y == levels(y)[1])*1
@@ -62,7 +62,8 @@ binarise <- function(Y,y){
 }
 
 
-# @Description : Transforms vector binarised vector into target vector
+
+# @Description : Transforms binarised vector into target vector
 #
 # Parameters:
 # ===========
@@ -85,7 +86,9 @@ inverse.binarise <- function(y_pred, binariser.list){
 }
 
 
-% =========================== Bayesian Logistic Regression ============================
+
+# =========================== Bayesian Logistic Regression ============================
+
 
 
 BayesianLogisticRegression <- setClass(
@@ -118,11 +121,11 @@ BayesianLogisticRegression <- setClass(
     # 3) Murphy 2012, Machine Learning A Probabilistic Perspective
     # 4) Barber 2015, Bayesian Reasoning and Machine Learning ()
     
-    # ----------------- set name of the class ------------------------
+    # --------------------------------- set name of the class ------------------------------
     
     "BayesianLogisticRegression",
     
-    # -----------------  define instance variables -------------------
+    # -------------------------------- define instance variables ---------------------------
     
     slots = list(
                   bias.term   = 'logical',
@@ -140,7 +143,7 @@ BayesianLogisticRegression <- setClass(
                   binariser   = 'list'
                  ),
                  
-    # ------------- default values for instance variables -------------
+    # --------------------------- default values for instance variables --------------------
     
     prototype = list(
                       bias.term   = TRUE,
@@ -151,8 +154,8 @@ BayesianLogisticRegression <- setClass(
                       N           = 0,
                       M           = 0
                      ),
-                     
     )
+                     
                              
     # ---------------------------------- define methods --------------------------------------
     
@@ -346,8 +349,8 @@ BayesianLogisticRegression <- setClass(
 
     # @Method Name : predict.probs
     #
-    # @Description : predicts target value for explanatory variables, uses probit function
-    #                for approximating convolution of sigmoid and gaussian.
+    # @Description : calculates predictive probability distribution for test examples, 
+    #                uses probit function for approximating convolution of sigmoid and gaussian.
     #
     setGeneric('predict.probs', def = function(theObject,X){ standardGeneric('predict.probs')})
     
@@ -362,8 +365,8 @@ BayesianLogisticRegression <- setClass(
     #
     # @Returns:
     # =========
-    #
-    #
+    # probs: numeric vector of size ( number of samples in test set, 1 )
+    #        Predicted probability distribution for test examples
     #
     setMethod('predict.probs', signature = c('BayesianLogisticRegression','matrix'), 
               definition = function(theObject,X){
@@ -389,6 +392,7 @@ BayesianLogisticRegression <- setClass(
               	return (probs)
               })
               
+         
               
     # @Overloaded predict.probs, Implementation 2
     #
@@ -399,8 +403,8 @@ BayesianLogisticRegression <- setClass(
     #
     # @Returns:
     # =========
-    #
-    #
+    # probs: numeric vector of size ( number of samples , 1 )
+    #        Predicted probability distribution for test examples
     #
     setMethod('predict.probs', signature = c('BayesianLogisticRegression','matrix'), 
               definition = function(theObject,X){
@@ -410,13 +414,69 @@ BayesianLogisticRegression <- setClass(
               
               
               
-     setMethod('predict', signature = c('BayesianLogisticRegression','matrix'),
+    # @Method Name : predict.targets
+    #
+    # @Description : predicts target value for explanatory variables, uses probit function
+    #                for approximating convolution of sigmoid and gaussian.
+    #    
+    setGeneric('predict.targets', def = function(theObject,X){ standardGeneric('predict.targets') })
+     
+     
+     
+    # @Overloaded  predict.targets, Implementation 1
+    #
+    # @Parameters :
+    # =============
+    # X: matrix of size  (number of samples in test set, number of features)
+    #    matrix of explanatory variables
+    #
+    # @Returns:
+    # =========
+    # : numeric or character vector of size ( number of samples , 1 )
+    #        Predicted targets for test set
+    # 
+    setMethod('predict.targets', signature = c('BayesianLogisticRegression','matrix'),
                definition = function(theObject,X){
                	
-               	
-               	
-               	
-               	
+               	 # dimensionality of X
+              	 n = dim(X)[1]
+              	 m = dim(X)[2]
+              	
+              	 # scale test data if required
+              	 if ( theObject@scale ){
+                		X = scale(X, center = theObject@muX, scale = theObject@sdX)
+              	 }
+              	
+              	 # add bias term if required
+              	 if ( theObject@bias.term ){
+                		newX                 = matrix(data = NA, ncol = m, nrow = n)
+              	    	newX[,1]             = rep(1,times = n)
+              		    newX[,2:theObject@M] = X
+              	 }
+              	 
+              	 y_hat = X %*% theObject@Mn
+              	 y     = rep(0,times = n)
+              	 y[y_hat > 0 ] = 1
+              	 return (inverse.binarise(y,theObject@binariser))
                })
+               
+       
+               
+    # @Overloaded  predict.targets, Implementation 2
+    #
+    # @Parameters :
+    # =============
+    # X: data.frame  (number of samples in test set, number of features)
+    #    data.frame of explanatory variables
+    #
+    # @Returns:
+    # =========
+    # : numeric or character vector of size ( number of samples , 1 )
+    #        Predicted targets for test set
+    #            
+    setMethod('predict.targets', signature = c('BayesianLogisticRegression','data.frome'),
+              definition = function(theObject,X){
+              	return (predict.targets(theObject,as.matrix(X)))
+              }) 
 
 
