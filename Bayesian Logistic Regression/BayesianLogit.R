@@ -13,9 +13,33 @@ lambda <- function(eps){
 	return (0.5 / eps * ( sigmoid(eps) - 0.5 ) )
 }
 
-# Transforms vector Y into numeric vector of zeros and ones
+
+# @Description: Checks whether X and Y are acceptable inputs
 #
-# Parameters:
+# @Parameters  : 
+# ==============
+# X: matrix of dimensionality (number of samples, number of features)
+#     Matrix of explanatory variables
+#
+# Y: numeric vector of dimensionality (number of samples, 1)
+#     Vector of dependent variables (it should contain only zeros and ones)
+#
+check_X_y <- function(X,Y){
+    # make dependent variable a factor & check that it has exactly two levels
+    y  =  factor(Y)
+    if ( length( levels( y ) ) != 2) stop('There can be only two classes')
+               	
+    # check that data matrix is numeric
+    if ( !is.numeric(X) ) stop('X should be numeric')
+    
+    # check that both X and Y have the same number of rows
+    if( dim(X)[1] != length(Y) ) stop('Number of samples in X and Y should be the same')
+}
+
+
+# @Description : Transforms vector Y into numeric vector of zeros and ones
+#
+# @Parameters:
 # ===========
 # Y: vector of size (number of samples, 1)
 #     Vector of dependent variables
@@ -23,25 +47,45 @@ lambda <- function(eps){
 # y: factor with 2 levels
 #    Factor
 # 
-# Returns:
+# @Returns:
 # ========
-# binariser.list
-#
+# binariser.list:
+#                 $zero      : character or numeric , corresponding to 0's in binarised vector
+#                 $ones      : character or numeric , corresponding to 1's in binarised vector
+#                 $numericY  : binarised vector
 #
 binarise <- function(Y,y){
 	y_hat = (Y == levels(y)[1])*1
-	binariser.list = list(zero = levels(y)[2], ones = levels(y)[1] , numericY = y_hat) )
+	binariser.list = list(zero = levels(y)[2], ones   = levels(y)[1] , 
+	                      numericY = y_hat   , classY = class(Y))
 	return ( binariser.list )
 }
 
 
+# @Description : Transforms vector binarised vector into target vector
+#
+# Parameters:
+# ===========
+# y_pred: vector of size (number of samples, 1)
+#     Binarised vector (i.e. contains only 0's and 1's)
+#
+# binarise.list: list( zero, ones, numericY )
+#     Output of binarise function (see description in binarise function)
+# 
+# Returns:
+# ========
+# Y: vector of size (number of samples, 1) 
+#    Vector of target values
+#
 inverse.binarise <- function(y_pred, binariser.list){
 	Y            = rep(binariser.list$zero, times = length(y_pred))
 	Y[y_pred==1] = binariser.list$ones
+	if(binariser.list$classY=='numeric') Y = as.numeric(Y)
 	return (Y)
 }
 
-% ======================= Bayesian Logistic Regression =========================
+
+% =========================== Bayesian Logistic Regression ============================
 
 
 BayesianLogisticRegression <- setClass(
@@ -182,10 +226,6 @@ BayesianLogisticRegression <- setClass(
               		Sn       = qr.solve(Sn.inv, tol = 1e-7)
               		
               		# mean update
-              		print ("XY,Sn,Sn.inv")
-              		print (XY)
-              		print (Sn)
-              		print (Sn.inv)
               		Mn       = Sn %*% XY
               		
               		# M-step : 1) update variational parameter eps for each observation
@@ -209,75 +249,122 @@ BayesianLogisticRegression <- setClass(
               			theObject@coefs.cov = Sn
               		}
               	}
-
               })
               
-              
+            
               
     # @Method Name : fit
     #
     # @Description : Wrappers for fit.model method. 'fit' is overloaded method, there are 
     #                several implementations corresponding to several signatures
-    setGeneric( 'fit.model', def = function(theObject,X,Y){ standardGeneric('fit.model') } )
+    #
+    setGeneric( 'fit', def = function(theObject,X,Y){ standardGeneric('fit') } )
+    
     
     
     # @Overloaded fit, Implementation 1
     #
-    # ==============
+    # @Parameters:
+    # ============
     # X: matrix of dimensionality (number of samples, number of features)
     #     Matrix of explanatory variables
     #
-    # Y: numeric vector of dimensionality (number of samples, 1)
-    #     Vector of dependent variables (character vector)
+    # Y: character vector of dimensionality (number of samples, 1)
+    #     Vector of dependent variables 
     #
     setMethod('fit', signature = c('BayesianLogisticRegression','matrix','character'),
                definition = function(theObject,X,Y){
                	
-               	# make dependent variable a factor & check that it has exactly two levels
-               	y  =  factor(Y)
-               	if ( length( levels( y ) ) != 2) stop('There can be only two classes')
+                # check whether X and Y are acceptable inputs
+                check_X_y(X,Y)
                	
-               	# check that data matrix is numeric
-               	if ( !is.numeric(X) ) stop('X should be numeric')
-               	
-               	# binarise dependent variable & 
+               	# binarise dependent variable & save binarization data for later use 
+               	# in 'predict' method
                	theObject@binariser = label.binariser(Y,y)
                	fit.model( theObject, X, theObject@binariser$numericY )
-               	
                })
+               
                
                
     # @Overloaded fit, Implementation 2
     #
-    # ==============
+    # @Parameters :
+    # =============
+    # X: matrix of dimensionality (number of samples, number of features)
+    #     Matrix of explanatory variables
+    #
+    # Y: numeric vector of dimensionality (number of samples, 1)
+    #     Vector of dependent variables
+    #
+    setMethod('fit', signature = c('BayesianLogisticRegression','matrix','numeric'),
+               definition = function(theObject,X,Y){
+               	
+                # check whether X and Y are acceptable inputs
+                check_X_y(X,Y)
+               	
+               	# binarise dependent variable & save binarization data for later use 
+               	# in 'predict' method
+               	theObject@binariser = label.binariser(Y,y)
+               	fit.model( theObject, X, theObject@binariser$numericY )
+               })
+               
+               
+               
+    # @Overloaded fit, Implementation 3
+    #
+    # @Parameters :
+    # =============
+    # X: data.frame of dimensionality (number of samples, number of features)
+    #     data.frame of explanatory variables
+    #
+    # Y: character vector of dimensionality (number of samples, 1)
+    #     Vector of dependent variables 
+    #               
+    setMethod('fit', signature = c('BayesianLogisticRegression','data.frame','character'),
+               definition = function(theObject,X,Y){
+               	fit(theObject,as.matrix(X),Y)
+               })
+               
+               
+               
+    # @Overloaded fit, Implementation 4
+    #
+    # @Parameters :
+    # =============
     # X: data.frame of dimensionality (number of samples, number of features)
     #     data.frame of explanatory variables
     #
     # Y: numeric vector of dimensionality (number of samples, 1)
-    #     Vector of dependent variables (character vector)
-    #
-    setMethod('fit', signature = c('BayesianLogisticRegression','data.frame','character'),
-               definition = function(theObject,X,Y){
+    #     Vector of dependent variables 
+    #               
+    setMethod('fit', signature = c('BayesianLogisticRegression','data.frame','numeric'),
+              definition = function(theObject,X,Y){
+              	fit(theOBject,as.matrix(X),Y)
+              })
                	
                	
-               	
-
-    
-    
-    
-    
-
 
     # @Method Name : predict.probs
     #
-    # @Description : predicts target value for explanatory variables
+    # @Description : predicts target value for explanatory variables, uses probit function
+    #                for approximating convolution of sigmoid and gaussian.
+    #
+    setGeneric('predict.probs', def = function(theObject,X){ standardGeneric('predict.probs')})
+    
+    
+    
+    # @Overloaded predict.probs, Implementation 1
     #
     # @Parameters  :
     # ==============
     # X: matrix of size  (number of samples in test set, number of features)
     #    Matrix of explanatory variables
     #
-    setGeneric('predict.probs', def = function(theObject,X){ standardGeneric('predict.probs')})
+    # @Returns:
+    # =========
+    #
+    #
+    #
     setMethod('predict.probs', signature = c('BayesianLogisticRegression','matrix'), 
               definition = function(theObject,X){
               	
@@ -301,6 +388,25 @@ BayesianLogisticRegression <- setClass(
               	probs = sigmoid( X %*% theObject@Mn )
               	return (probs)
               })
+              
+              
+    # @Overloaded predict.probs, Implementation 2
+    #
+    # @Parameters  :
+    # ==============
+    # X: data.frame of size  (number of samples in test set, number of features)
+    #    data.frame of explanatory variables
+    #
+    # @Returns:
+    # =========
+    #
+    #
+    #
+    setMethod('predict.probs', signature = c('BayesianLogisticRegression','matrix'), 
+              definition = function(theObject,X){
+              	y.hat = predict.probs(theObject,as.matrix(X))
+              	return (y.hat)
+             })
               
               
               
