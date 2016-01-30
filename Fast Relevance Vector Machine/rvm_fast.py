@@ -152,9 +152,9 @@ class RegressionARD(LinearModel,RegressorMixin):
         
     '''
     
-    def __init__( self, n_iter = 500, tol = 1e-3, perfect_fit_tol = 1e-4, 
-                  fit_intercept = True, normalize = False, 
-                  copy_X = True, verbose = False):
+    def __init__( self, n_iter = 200, tol = 1e-3, perfect_fit_tol = 1e-4, 
+                  fit_intercept = True, normalize = False, copy_X = True,
+                  verbose = False):
         self.n_iter          = n_iter
         self.tol             = tol
         self.perfect_fit_tol = perfect_fit_tol
@@ -184,7 +184,9 @@ class RegressionARD(LinearModel,RegressorMixin):
         X, y, X_mean, y_mean, X_std = self._center_data(X, y, self.fit_intercept,
                                                         self.normalize, self.copy_X)
         #TODO: how construct predict dist        
-        self._X_mean_ = X_mean
+        self._x_mean_ = X_mean
+        self._y_mean  = y_mean
+        self._x_std   = X_std
 
         #  precompute X'*Y , X'*X for faster iterations & allocate memory for
         #  sparsity & quality vectors
@@ -192,7 +194,6 @@ class RegressionARD(LinearModel,RegressorMixin):
         XX     = np.dot(X.T,X)
         XXd    = np.diag(XX)
 
-        
         #  initialise precision of noise & and coefficients
         var_y  = np.var(y)
         beta   = 1. / np.var(y)
@@ -271,10 +272,8 @@ class RegressionARD(LinearModel,RegressorMixin):
         std_hat: array of size [n_samples]
            Standard deviation of predictive distribution
         '''
-        # mean of predictive distribution
-        y_hat     = self.predict(X)
-        # variance of predictivee distribution
-        x         = (X - self._X_mean_)[:,self.active_]
+        x         = (X - self._x_mean_[self.active_])
+        y_hat     = np.dot(x,self.coef_[self.active_]) + self._y_mean 
         var_hat   = self.alpha_
         var_hat  += np.sum( np.dot(x,self.sigma_) * x, axis = 1)
         std_hat   = np.sqrt(var_hat)
@@ -312,12 +311,20 @@ class RegressionARD(LinearModel,RegressorMixin):
             S = bxx - np.diag(np.dot(bxsn,XX[active,:]))
         else:
             S = bxx - np.sum( np.dot(bxsn,X[:,active].T) * X.T, axis = 1).T
-        qi         = Q
-        si         = S # copy not to change S itself
+        qi         = np.copy(Q)
+        si         = np.copy(S) # copy not to change S itself
         Qa,Sa      = Q[active], S[active]
         qi[active] = Aa * Qa / (Aa - Sa )
         si[active] = Aa * Sa / (Aa - Sa )
         return [si,qi,S,Q]
+        
+        
+    def _sparsity_quality_hd(Cinv,):
+        '''
+        Calculates sparsity & quality parameters for each feature in case of
+        extremely high dimensional data 
+        '''
+        
         
         
         
@@ -423,7 +430,7 @@ class ClassificationARD(LinearModel,ClassifierMixin):
     array([ 1.])
     
     '''
-    def __init__(self, n_iter = 150, tol = 1e-4, solver = 'lbfgs_b', 
+    def __init__(self, n_iter = 300, tol = 1e-4, solver = 'lbfgs_b', 
                  n_iter_solver = 30, tol_solver = 1e-5,
                  compute_score = False, fit_intercept = True, normalize = False, 
                  copy_X = True, verbose = False):
@@ -501,8 +508,8 @@ class ClassificationARD(LinearModel,ClassifierMixin):
         bxy   = np.dot(XB,y)        
         Q     = bxy - np.dot( np.dot(XB,XSX), YB)
         S     = np.sum( XB*X.T,1 ) - np.sum( np.dot( XB,XSX )*XB,1 )
-        qi    = Q
-        si    = S 
+        qi    = np.copy(Q)
+        si    = np.copy(S) 
         Qa,Sa      = Q[active], S[active]
         qi[active] = Aa * Qa / (Aa - Sa )
         si[active] = Aa * Sa / (Aa - Sa )
@@ -536,7 +543,7 @@ class ClassificationARD(LinearModel,ClassifierMixin):
 #        R            = np.linalg.cholesky(S)        
         
         
-        return [Mn,Sn,1./B,t_hat]
+        return [Mn,Sn,B,t_hat]
         
         
     def _preprocess_predictive_x(self,x):
@@ -669,9 +676,9 @@ class RVR(RegressionARD):
     def __init__(self, n_iter=1200, tol = 1e-3, perfect_fit_tol = 1e-6, 
                  compute_score = False, fit_intercept = True, normalize = False, 
                  copy_X = True, verbose = False, kernel = 'rbf', degree = 3,
-                 gamma  = None, coef0  = 0.1, kernel_params = None):
+                 gamma  = None, coef0  = 1, kernel_params = None):
                      
-        super(RVR,self).__init__(n_iter, tol, perfect_fit_tol, compute_score, 
+        super(RVR,self).__init__(n_iter, tol, perfect_fit_tol, 
                                  fit_intercept, normalize, copy_X, verbose)
         self.kernel = kernel
         self.degree = degree
@@ -716,11 +723,14 @@ class RVR(RegressionARD):
         
     def predict_dist(self,X):
         '''
-        
         Predictive distribution is calculated for each data point
         
-        Returns:
-        --------
+        Parameters
+        ----------
+        
+        Returns
+        -------
+        
         '''
         # mean of predictive distribution
         K = get_kernel( X, self.relevant_vectors_, self.gamma, self.degree, 
@@ -731,10 +741,27 @@ class RVR(RegressionARD):
     
 class RVC(ClassificationARD):
     
-    def __init__(self):
-        pass
-    
-    def fit(self):
+    def __init__(self, n_iter = 300, tol = 1e-4, solver = 'lbfgs_b', 
+                 n_iter_solver = 30, tol_solver = 1e-5,
+                 compute_score = False, fit_intercept = True, normalize = False, 
+                 copy_X = True, verbose = False, kernel = 'rbf', degree = 3,
+                 gamma  = None, coef0  = 1, kernel_params = None):
+                     
+        super(RVC,self).__init__(n_iter = 300, tol = 1e-4, solver = 'lbfgs_b', 
+             n_iter_solver = 30, tol_solver = 1e-5,
+             compute_score = False, fit_intercept = True, normalize = False, 
+             copy_X = True, verbose = False)
+        self.kernel = kernel
+        self.degree = degree
+        self.gamma  = gamma
+        self.coef0  = coef0
+        self.kernel_params = kernel_params
+        
+        
+    def fit(self,X):
+        '''
+        Fits relevance vector classification
+        '''
         pass
     
     
@@ -756,16 +783,16 @@ class RVC(ClassificationARD):
 if __name__ == "__main__":
     from sklearn.cross_validation import train_test_split
     import time
-
+#
 #    n_features = 180
-#    n_samples  = 200
-#    X      = np.random.random([n_samples,n_features]) + 100
-#    X[:,5] = np.linspace(0,10,n_samples)
-#    Y      = 20*X[:,5] + 5 + np.random.normal(0,1,n_samples)
+#    n_samples  = 400
+#    X      = np.random.random([n_samples,n_features])
+#    X[:,0] = np.linspace(0,10,n_samples)
+#    Y      = 20*X[:,0] + 5 + np.random.normal(0,1,n_samples)
 #    X,x,Y,y = train_test_split(X,Y,test_size = 0.4)
 #    
 #    # RegressionARD
-#    ard = RegressionARD(n_iter = 20, compute_score = True, verbose = True)
+#    ard = RegressionARD(n_iter = 200, verbose = True)
 #    start_ard = time.time()
 #    ard.fit(X,Y)
 #    end_ard   = time.time()
@@ -811,14 +838,14 @@ if __name__ == "__main__":
 #        
 #    test_toy_ard_object()
     
-#    
+    
 #    from scipy import stats
 #    ###############################################################################
 #    # Generating simulated data with Gaussian weights
 #    
 #
 #    # Parameters of the example
-#    n_samples, n_features = 800, 800
+#    n_samples, n_features = 500, 20000
 #    # Create Gaussian data
 #    X = np.random.randn(n_samples, n_features)
 #    # Create weigts with a precision lambda_ of 4.
@@ -859,9 +886,10 @@ if __name__ == "__main__":
 #    print 'timing sklearn {0}, features {1}'.format(sk_time,np.sum(skard.coef_!=0))
 #    print 'timing ard sbl {0}, features {1}'.format(ard_time,np.sum(ard.coef_!=0))
     
+    
 #    from scipy import stats
 #    # Parameters of the example
-#    n_samples, n_features = 600, 100
+#    n_samples, n_features = 600, 600
 #    # Create Gaussian data
 #    X = np.random.randn(n_samples, n_features)
 #    # Create weigts with a precision lambda_ of 4.
@@ -877,16 +905,9 @@ if __name__ == "__main__":
 #    y[y > 0] = 1
 #    y[y < 0] = 0
 #    X,x,Y,y = train_test_split(X,y, test_size = 0.2)
-
-#    x          = np.zeros([500,2])
-#    x[:,0]     = np.random.normal(0,1,500)
-#    x[:,1]     = np.random.normal(0,1,500)
-#    x[0:200,0] = x[0:200,0] + 6
-#    x[0:200,1] = x[0:200,1] + 2
-#    y          = np.ones(500)
-#    y[0:200]   = 0
-    
-#    clf = ClassificationARD(normalize = True)
+#
+#    
+#    clf = ClassificationARD(normalize = False)
 #    t1 = time.time()
 #    clf.fit(X,Y)
 #    t2 = time.time()
@@ -898,7 +919,7 @@ if __name__ == "__main__":
 #    print 'time ard {0}'.format(t2-t1)
 #    
 #    from sklearn.linear_model import LogisticRegression
-#    lr = LogisticRegression(C = 100)
+#    lr = LogisticRegression(C = 1)
 #    t1 = time.time()
 #
 #    lr.fit(X,Y)
@@ -907,6 +928,57 @@ if __name__ == "__main__":
 #    print 'error log reg'
 #    print float(np.sum(y_lr!=y)) / y.shape[0]
 #    print 'time lr {0}'.format(t2-t1)
+    
+    
+    
+    
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from sklearn.cross_validation import train_test_split
+    from sklearn.grid_search import GridSearchCV
+    from sklearn.metrics import mean_squared_error
+    
+    # parameters
+    n = 5000
+    
+    # generate data set
+    np.random.seed(0)
+    Xc       = np.ones([n,1])
+    Xc[:,0]  = np.linspace(-5,5,n)
+    Yc       = 10*np.sinc(Xc[:,0]) + np.random.normal(0,1,n)
+    X,x,Y,y  = train_test_split(Xc,Yc,test_size = 0.5, random_state = 0)
+    
+    # train rvm with fixed-point optimization
+    rvm = RVR(gamma = 1)
+    t1 = time.time()
+    rvm.fit(X,Y)
+    t2 = time.time()
+    y_hat,var = rvm.predict_dist(x)
+    rvm_err   = mean_squared_error(y_hat,y)
+    rvs       = np.sum(rvm.active_)
+    print "RVM error on test set is {0}, number of relevant vectors is {1}, time {2}".format(rvm_err, rvs, t2 - t1)
+    from sklearn.svm import SVR
+    from sklearn.grid_search import GridSearchCV
+    svr = GridSearchCV(SVR(gamma = 1), param_grid = {'C':[0.001,0.01,0.1,1,10,100]}, cv = 5)
+    t1 = time.time()
+    svr.fit(X,Y)
+    t2 = time.time()
+    svm_err = mean_squared_error(svr.predict(x),y)
+    svs     = svr.best_estimator_.support_vectors_.shape[0]
+    print "SVM error on test set is {0}, number of relevant vectors is {1}, time {2}".format(svm_err, svs, t2 - t1)
+
+    
+    # plot test vs predicted data
+    plt.figure(figsize = (12,8))
+    plt.plot(x[:,0],y,"b+",markersize = 3, label = "test data")
+    plt.plot(x[:,0],y_hat,"rD", markersize = 3, label = "mean of predictive distribution")
+    # plot one standard deviation bounds
+    plt.plot(x[:,0],y_hat + np.sqrt(var),"co", markersize = 3, label = "y_hat +- std")
+    plt.plot(x[:,0],y_hat - np.sqrt(var),"co", markersize = 3)
+    plt.plot(rvm.relevant_vectors_,Y[rvm.active_],"co",markersize = 11,  label = "relevant vectors")
+    plt.legend()
+    plt.title("RVM")
+    plt.show()
     
     
     
