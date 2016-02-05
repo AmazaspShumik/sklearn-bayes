@@ -5,13 +5,13 @@ from sklearn.base import RegressorMixin, BaseEstimator
 from sklearn.linear_model.base import LinearModel, LinearClassifierMixin
 from sklearn.utils import check_X_y,check_array
 from sklearn.utils.multiclass import check_classification_targets
-from sklearn.utils.extmath import pinvh,safe_sparse_dot,log_logistic
+from sklearn.utils.extmath import pinvh,log_logistic
 from sklearn.metrics.pairwise import pairwise_kernels
-from sklearn.utils.validation import check_is_fitted, NotFittedError
+from sklearn.utils.validation import check_is_fitted
 from scipy.special import expit
 from scipy.optimize import fmin_l_bfgs_b
-from sklearn.linear_model import ARDRegression
 from scipy.linalg import solve_triangular
+from scipy.stats import logistic
 from sklearn.utils.optimize import newton_cg
 import scipy.sparse
 import warnings
@@ -46,6 +46,7 @@ def update_precisions(Q,S,q,s,A,active,tol, clf_bias = True):
     deltaL[add]       = ( Qadd**2 - Sadd ) / Sadd + np.log(Sadd/Qadd**2 )
     deltaL[recompute] = Qrec**2 / (Srec + 1. / delta_alpha) - np.log(1 + Srec*delta_alpha)
     deltaL[delete]    = Qdel**2 / (Sdel - Adel) - np.log(1 - Sdel / Adel)
+    
     
     # find feature which caused largest change in likelihood
     feature_index = np.argmax(deltaL)
@@ -152,7 +153,7 @@ class RegressionARD(LinearModel,RegressorMixin):
         
     '''
     
-    def __init__( self, n_iter = 300, tol = 1e-1, perfect_fit_tol = 1e-4, 
+    def __init__( self, n_iter = 300, tol = 1e-1, perfect_fit_tol = 1e-3, 
                   fit_intercept = True, normalize = False, copy_X = True,
                   verbose = False):
         self.n_iter          = n_iter
@@ -200,15 +201,26 @@ class RegressionARD(LinearModel,RegressorMixin):
 
         #  initialise precision of noise & and coefficients
         var_y  = np.var(y)
-        beta   = 1. / np.var(y)
+        # check that variance is non zero !!!
+        if var_y == 0 :
+            beta = 1e-2
+        else:
+            beta = 1. / np.var(y)
+        
         A      = np.PINF * np.ones(n_features)
         active = np.zeros(n_features , dtype = np.bool)
         
-        # start from a single basis vector with largest projection on targets
-        proj  = XY**2 / XXd
-        start = np.argmax(proj)
-        active[start] = True
-        A[start]      = XXd[start]/( proj[start] - var_y)
+        # in case of perfect multicollinearity start from first feature
+        if np.sum(XXd==0) > 0:
+            A[0]       = 1e-3
+            active[0]  = True
+        else:
+            # start from a single basis vector with largest projection on targets
+            proj  = XY**2 / XXd
+            start = np.argmax(proj)
+            active[start] = True
+            A[start]      = XXd[start]/( proj[start] - var_y)
+
 
         for i in range(self.n_iter):
             
@@ -225,6 +237,10 @@ class RegressionARD(LinearModel,RegressorMixin):
                 
             # update precision parameter for noise distribution
             rss     = np.sum( ( y - np.dot(X[:,active] , Mn) )**2 )
+            # if near perfect fit , them terminate
+            if rss / n_samples < self.perfect_fit_tol:
+                warnings.warn('Early termination due to near perfect fit')
+                break
             beta    = n_samples - np.sum(active) + np.sum(Aa * Sdiag )
             beta   /= rss
 
@@ -234,12 +250,6 @@ class RegressionARD(LinearModel,RegressorMixin):
             if self.verbose:
                 print(('Iteration: {0}, number of features '
                        'in the model: {1}').format(i,np.sum(active)))
-            
-
-            # if converged OR if near perfect fit , them terminate
-            if rss / n_samples < self.perfect_fit_tol:
-                warnings.warn('Early termination due to near perfect fit')
-                break
             
             if converged or i == self.n_iter - 1:
                 if converged and self.verbose:
@@ -290,8 +300,8 @@ class RegressionARD(LinearModel,RegressorMixin):
 
     def _posterior_dist(self,A,beta,XX,XY,full_covar = False):
         '''
-        Calculates mean and covariance matrix of 
-        posterior distribution of coefficients
+        Calculates mean and covariance matrix of posterior distribution
+        of coefficients.
         '''
         # precision matrix 
         Sinv = beta * XX
@@ -345,7 +355,8 @@ def _logistic_cost_grad(X,Y,w,diagA, penalise_intercept):
     wdA   = w*diagA
     if not penalise_intercept:
         wdA[0] = 0
-    cost  = np.sum( -1*np.log(s)*Y - np.log(si)*(1 - Y)) + np.sum(w*wdA)/2
+    cost = np.sum( -Xw*Y - log_logistic(-Xw)) + np.sum(w*wdA)/2 
+    #cost  = np.sum( -1*np.log(s)*Y - np.log(si)*(1 - Y)) + np.sum(w*wdA)/2
     grad  = np.dot(X.T, s - Y) + wdA
     return [cost/n,grad/n]
     
@@ -649,10 +660,10 @@ class ClassificationARD(BaseEstimator,LinearClassifierMixin):
                                     maxiter = self.n_iter_solver)[0]
             Xm      = np.dot(X,Mn)
             s       = expit(Xm)
-            B       = (1-s) * s
+            B       = logistic._pdf(Xm) # avoids underflow
             S       = np.dot(X.T*B,X)
             np.fill_diagonal(S, np.diag(S) + A)
-            t_hat   = Xm + (y - s)*1./B
+            t_hat   = Xm + (y - s) / B
             Sn      = pinvh(S)
         elif self.solver == 'newton_cg':
             # TODO: Implement Newton-CG
@@ -857,7 +868,10 @@ class RVR(RegressionARD):
         # mean of predictive distribution
         K = get_kernel( X, self.relevant_vectors_, self.gamma, self.degree, 
                        self.coef0, self.kernel, self.kernel_params)
-        y_hat     = decision_function(self,self.coef_[self.active_], K, self.intercept_)
+        y_hat     = decision_function(self,self.coef_[self.active_], X, 
+                                      self.intercept_,self.relevant_vectors_, 
+                                      self.gamma, self.degree, self.coef0,
+                                      self.kernel,self.kernel_params)
         var_hat   = self.alpha_
         var_hat  += np.sum( np.dot(K,self.sigma_) * K, axis = 1)
         std_hat   = np.sqrt(var_hat)
