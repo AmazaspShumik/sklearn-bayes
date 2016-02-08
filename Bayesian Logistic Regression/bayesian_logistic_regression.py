@@ -1,91 +1,71 @@
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
-from scipy.linalg import solve_triangular
-
-#------------------------- Helper functions for logistic --------------------------#
-
-
-def sigmoid(X):
-    '''
-    Evaluates sigmoid function
-    '''
-    return 1. / ( 1 + np.exp(-X))
-    
-    
-def inv_sigmoid(X):
-    '''
-    Returns 1 - sigmoid
-    '''
-    return np.exp( -X) / (1 + np.exp(-X))
+from sklearn.utils.optimize import newton_cg
+from scipy.special import expit
+from scipy.linalg import pinvh
+from scipy.linalg import eigvalsh
+from sklearn.utils.multiclass import check_classification_targets
+from sklearn.linear_model.base import LinearClassifierMixin, BaseEstimator
+from sklearn.utils import check_X_y
+#from sklearn.preprocessing import LabelBinariser
+from sklearn.linear_model.logistic import ( _logistic_loss_and_grad, _logistic_loss, 
+                                            _logistic_grad_hess,)
 
 
-def cost_grad(X,Y,w,alpha, bias_term = True):
-    '''
-    Calculates cost and gradient for logistic regression
-    
-    X: numpy matrix of size 'n x m'
-       Matrix of explanatory variables       
-       
-    Y: numpy vector of size 'n x 1'
-       Vector of dependent variables
-       
-    w: numpy array of size 'm x 1'
-    '''
-    n                = X.shape[0]
-    m                = w.shape[0]
-    Xw               = np.dot(X,w)
-    s                = sigmoid(Xw)
-    si               = inv_sigmoid(Xw)
-    cost             = np.sum( -1*np.log(s)*Y - np.log(si)*(1 - Y))
-    grad             = np.dot(X.T, s - Y)
-    if bias_term is False:
-       cost += alpha * np.dot(w,w)
-       grad += alpha * w
-    else:
-       cost     += alpha * np.dot(w[1:],w[1:])
-       w_tr      = np.zeros(m)
-       w_tr[1:]  = w[1:]
-       grad     += alpha * w_tr
-    return [cost/n,grad/n]
-    
 
-#--------------------------- Bayesian Logistic Regression ------------------------#
-    
-
-class BayesianLogisticRegression(object):
+class BayesianLogisticRegression(LinearClassifierMixin,BaseEstimator):
     '''
     Implements Bayesian Logistic Regression with type II maximum likelihood, uses
     Gaussian (Laplace) method for approximation of evidence function.
     
-    Parameters:
-    -----------
-    X: numpy matrix of size 'n x m'
-       Matrix of explanatory variables       
-       
-    Y: numpy vector of size 'n x 1'
-       Vector of dependent variables
-       
-    evidence_max_method: str (either 'fixed-point' or 'EM')
-       Optimization method used for evidence maximization
+
+    Parameters
+    ----------
+    n_iter: int, optional (DEFAULT = 300)
+        Maximum number of iterations before termination
+        
+    tol: float, optional (DEFAULT = 1e-3)
+        If absolute change in precision parameter for weights is below threshold
+        algorithm terminates.
+        
+    solver: str, optional (DEFAULT = 'lbfgs_b')
+        Optimization method that is used for finding parameters of posterior
+        distribution ['lbfgs_b','newton_cg']
+        
+    n_iter_solver: int, optional (DEFAULT = 10)
+        Maximum number of iterations before termination of solver
+        
+    tol_solver: float, optional (DEFAULT = 1e-3)
+        Convergence threshold for solver (it is used in estimating posterior
+        distribution), 
+
+    fit_intercept : bool, optional ( DEFAULT = True )
+        If True will use intercept in the model. If set
+        to false, no intercept will be used in calculations
+        
+    alpha: float (DEFAULT = 1e-6)
+        Initial regularization parameter (precision of prior distribution)
     
-    max_iter_evidence_max: float 
-       Maximum number of iterations for maximizing marginal likelihood
-       
-    max_iter_irls: float
-       Maximum number of iterations for minimizing cost function of logistic
-       regression (in its regularised version)
+    optimizer: str, optional (DEFAULT = 'fp') {"fp","em"}
+        Method to optimize hyperparameter alpha. ('em' - Expectation Maximization,
+        'fp' - Fixed Point Iterations)
+        
+    verbose : boolean, optional (DEFAULT = True)
+        Verbose mode when fitting the model
+        
+        
+    Attributes
+    ----------
+    coef_ : array, shape = (n_features)
+        Coefficients of the regression model (mean of posterior distribution)
+
+    sigma_ : array, shape = (n_features, n_features)
+        estimated covariance matrix of the weights, computed only
+        for non-zero coefficients
     
-    conv_thresh_evidence: float 
-       convergence threshold for evidence maximization procedure
-       
-    conv_thresh_irls: float
-       convergence threshold for irls
-       
-    w_init: numpy array of size 'm x 1' (DEFAULT = None)
-       Initial guess on parameters, if not defined then random guess
-       
-    alpha_init: float (DEFAULT = None)
-       Initial guess on precision parameter of prior, if not defined random guess
+    intercept_: array, shape = (n_features)
+        intercepts
+
     
     References:
     -----------
@@ -94,186 +74,171 @@ class BayesianLogisticRegression(object):
        arXiv preprint arXiv:1509.08880 (2015).
     '''
     
-    
-    def __init__(self,X,Y,evidence_max_method = "fixed-point", max_iter_evidence     = 100,
-                                                               max_iter_irls         = 50,
-                                                               w_init                = None,
-                                                               conv_thresh_evidence  = 1e-3,
-                                                               conv_thresh_irls      = 1e-3,
-                                                               alpha_init            = None):
-        self.X    = np.concatenate((np.ones([X.shape[0],1]),X),1)
-        # all classes in Y
-        classes   = set(Y)
-        # check that there are only two classes in vector Y
-        assert len(classes)==2,"Number of classes in dependent variable should be 2"
-        # convert dependent variable to 0 1 vector
-        self.Y    = self._binarise(Y, classes)
-        # check that optimisation algorithm is set correctly
-        assert evidence_max_method in ['fixed-point','EM'], 'Can be either "fixed-point" or "EM"'
-        self.evidence_max_method    = evidence_max_method
-        self.max_iter_evidence      = max_iter_evidence
-        self.max_iter_irls          = max_iter_irls
-        self.conv_thresh_evidence   = conv_thresh_evidence
-        self.conv_thresh_irls       = conv_thresh_irls
+    def __init__(self, n_iter = 30, tol = 1e-3,solver = 'lbfgs_b',n_iter_solver = 10,
+                 tol_solver = 1e-3, fit_intercept = True, alpha = 1e-6, 
+                 optimizer = 'fp', verbose = False):
+        self.n_iter            = n_iter
+        self.tol               = tol
+        self.n_iter_solver     = n_iter_solver
+        self.tol_solver        = tol_solver
+        self.verbose           = verbose
+        self.fit_intercept     = fit_intercept
+        self.alpha             = alpha
+        if solver not in ['lbfgs_b','newton_cg']:
+            raise ValueError(('Only "lbfgs_b" and "newton_cg" '
+                              'solvers are implemented'))
+        self.solver            = solver
+        if optimizer not in ['em','fp']:
+            raise ValueError(('Only "em" and "fp" solvers are implemented'))
+        self.optimizer         = optimizer
         
-        # dimensionality & number of inputs 
-        self.m                      = self.X.shape[1]
-        self.n                      = self.X.shape[0]
         
-        if w_init is None:
-           self.w_init              = np.random.random(self.m)
-           self.alpha_init          = np.random.random()
-           
+    def fit(self,X,y):
+        '''
+        Fits Bayesian Logistic Regression with Laplace approximation
 
-        # list of values for type II likelihood
-        self.evid                   = []
-        
-        
-    def fit(self):
-        '''
-        Fits Bayesian Logistic Regression with Laplace approximation 
-        '''
-        self._evidence_maximize()
-        
-        
-    def predict(self,X):
-        '''
-        Predicts target value for new observations
-        
-        Parameters:
+        Parameters
         -----------
-        X: numpy array of size 'unknown x m'
-           Matrix of explanatory variables for test data
+        X: array-like of size [n_samples, n_features]
+           Training data, matrix of explanatory variables
+        
+        y: array-like of size [n_samples, n_features] 
+           Target values
            
-        Returns:
-        --------
-        : numpy array of size 'unknown x 1'
-           Vector of estimated target values
+        Returns
+        -------
+        self: object
+           self
         '''
-        probs          = self.predict_prob(X)
-        y              = np.zeros(X.shape[0])
-        y[probs > 0.5] = 1 
-        return self._inverse_binarise(y)
+        # preprocess data
+        X,y = check_X_y( X, y , dtype = np.float64)
+        check_classification_targets(y)
+        self.classes_ = np.unique(y)
+        n_classes = len(self.classes_)
+        
+        # take into account bias term if required 
+        n_samples, n_features = X.shape
+        n_features = n_features + int(self.fit_intercept)
+        
+        if n_classes < 2:
+            raise ValueError("Need samples of at least 2 classes")
+        if n_classes > 2:
+            self.coef_, self.sigma_ = [0]*n_classes,[0]*n_classes
+            self.intercept_         = [0]*n_classes
+        else:
+            self.coef_, self.sigma_, self.intercept_ = [0],[0],[0]
+
+        for i in range(len(self.coef_)):
+            w0 = np.zeros(n_features)
+            if n_classes == 2:
+                pos_class = self.classes_[1]
+            else:
+                pos_class = self.classes_[i]
+            mask = (y == pos_class)
+            y_bin = np.ones(y.shape, dtype=np.float64)
+            y_bin[~mask] = -1.
+            coef, sigma_ = self._fit(X,y_bin,w0, self.alpha)
+            if self.fit_intercept:
+                self.intercept_[i] = coef[-1]
+                coef_              = coef[:-1]
+            self.coef_[i]  = coef_
+            self.sigma_[i] = sigma_
+            
+        self.coef_  = np.asarray(self.coef_)
+        self.sigma_ = np.asarray(self.sigma_)
+        return self
         
         
-    def predict_prob(self,X):
+        
+    def predict_proba(self,X):
         '''
-        Predicts probability of observation being of particular class
+        Predicts probabilities of targets for test set
         
-        Parameters:
-        -----------
-        X: numpy array of size 'unknown x m'
-           Matrix of explanatory variables for test data
+        Parameters
+        ----------
+        X: array-like of size [n_samples_test,n_features]
+           Matrix of explanatory variables (test set)
            
-        Returns:
-        --------
-        P: numpy array of size 'unknown x 1'
-           Vector of probabilities
+        Returns
+        -------
+        probs: numpy array of size [n_samples_test]
+           Estimated probabilities of target classes
         '''
-        x      = np.concatenate((np.ones([X.shape[0],1]),X),1)
-        mu     = np.dot(x,self.Wmap)
-        sigma = np.sum(np.dot(x,self.Sigma)*x,axis = 1)
+        scores = self.decision_function(X)
+        sigma = np.sum(np.dot(X,self.sigma_[0])*X,axis = 1)
         ks = 1. / ( 1. + np.pi*sigma / 8)**0.5
-        return sigmoid(mu*ks)
+        probs = expit(scores.T*ks).T
+        if probs.ndim == 1:
+            probs =  np.vstack([1 - probs, probs]).T
+        else:
+            probs /= np.reshape(np.sum(probs, axis = 1), (probs.shape[0],1))
+        return probs
         
         
-    def _evidence_maximize(self):
+    def _fit(self,X,y,w0, alpha0):
         '''
-        Maximize evidence (type II maximum likelihood) 
+        Maximizes evidence function (type II maximum likelihood) 
         '''
-        # initial guess on paramters
-        alpha_old    = self.alpha_init
-        Wmap         = self.w_init
-                
-        # evidence maximization iterative procedure
-        for i in range(self.max_iter_evidence):
+        # iterative evidence maximization
+        for i in range(self.n_iter):
                         
             # find mean & covariance of Laplace approximation to posterior
-            Wmap, d           = self._irls(self.X, self.Y, alpha_old, Wmap) 
-            mu_sq             = np.dot(Wmap,Wmap)
+            w, d   = self._posterior(X, y, alpha0, w0) 
+            mu_sq  = np.dot(w,w)
             
             # use EM or fixed-point procedures to update parameters            
-            if self.evidence_max_method == "EM":
-                alpha = self.m / (mu_sq + np.sum(d)) 
+            if self.optimizer == 'em':
+                alpha = X.shape[1] / (mu_sq + np.sum(d)) 
             else:
-                gamma = np.sum((d - alpha_old) / d)
+                gamma = np.sum((d - alpha0) / d)
                 alpha = gamma / mu_sq
                 
-            # check termination conditions, if true write optimal values of 
-            # parameters to instance variables
-            delta_alpha = abs(alpha - alpha_old)
-            if delta_alpha < self.conv_thresh_evidence or i==self.max_iter_evidence-1:
-                self.alpha  = alpha
+            # check convergence
+            delta_alpha = abs(alpha - alpha0)
+            if delta_alpha < self.tol or i==self.n_iter-1:
                 break
-            alpha_old   = alpha
             
         # after convergence we need to find updated MAP vector of parameters
         # and covariance matrix of Laplace approximation
-        self.Wmap, self.Sigma = self._irls(self.X,self.Y, self.alpha, Wmap, True)
+        coef_, sigma_ = self._posterior(X, y, alpha , w, True)
+        return coef_, sigma_
             
             
-            
-    def _irls(self, X, Y, alpha, Theta, full_covar = False):
+    def _posterior(self, X, Y, alpha0, w0, full_covar = False):
         '''
         Iteratively refitted least squares method using l_bfgs_b.
         Finds MAP estimates for weights and Hessian at convergence point
-        
-        Returns:
-        --------
-        
-        [Wmap,negHessian]: list of two numpy arrays
-              
-              Wmap: numpy array of size 'm x 1'
-                    Mode of posterior distribution (mean for Gaussian approx.)
-                    
-              inv_eigs: numpy array of size 'm x 1'
-                    Eigenvalues of covariance of Laplace approximation
-              
-              inv: numpy array of size 'm x m'
-                    Covariance of Gaussian (Laplace) approximation
         '''
-        # calculate solution using version of Newton-Raphson
-        f          = lambda w: cost_grad(X,Y,w,alpha)
-        Wmap       = fmin_l_bfgs_b(f, x0 = Theta, pgtol   = self.conv_thresh_irls,
-                                                  maxiter = self.max_iter_irls)[0]
-        
-        # calculate negative of Hessian at w = Wmap
-        s          = sigmoid(np.dot(X,Wmap))
+        if self.solver == 'lbfgs_b':
+            f = lambda w: _logistic_loss_and_grad(w,X,Y,alpha0)
+            w = fmin_l_bfgs_b(f, x0 = w0, pgtol = self.tol_solver,
+                              maxiter = self.n_iter_solver)[0]
+        elif self.solver == 'newton_cg':
+            f    = _logistic_loss
+            grad = lambda w,*args: _logistic_loss_and_grad(w,*args)[1]
+            hess = _logistic_grad_hess               
+            args = (X,Y,alpha0)
+            w    = newton_cg(hess, f, grad, w0, args=args,
+                             maxiter=self.n_iter, tol=self.tol)[0]
+        else:
+            raise NotImplementedError('Liblinear solver is not yet implemented')
+            
+        # calculate negative of Hessian at w
+        if self.fit_intercept:
+            XW = np.dot(X,w[:-1]) + w[-1]
+        else:
+            XW = np.dot(X,w)
+        s          = expit(XW)
         R          = s * (1 - s)
         negHessian = np.dot(X.T*R,X)
-        np.fill_diagonal(negHessian,np.diag(negHessian + alpha))
         
+        # do not regularise constant
+        alpha_vec     = np.zeros(negHessian.shape[0])
+        alpha_vec     = alpha0   
+        np.fill_diagonal(negHessian,np.diag(negHessian) + alpha_vec)
         if full_covar is False:
-            # sum of trace elements equal to sum of eigenvalues
-            eigs = np.linalg.eig(negHessian)[0]
-            return [Wmap,eigs]
+            eigs = eigvalsh(negHessian)
+            return [w,eigs]
         else:
-            inv = np.linalg.inv(negHessian)
-            return [Wmap, inv]     
-        
-        
-    def _binarise(self, Y, classes):
-        '''
-        Transform vector of two classes into binary vector
-        '''
-        self.inverse_encoding = {}
-        for el,val in zip(list(classes),[0,1]):
-            self.inverse_encoding[val] = el
-        y  =  np.zeros(Y.shape[0])
-        y[Y==self.inverse_encoding[1]] = 1
-        return y
-        
-    
-    def _inverse_binarise(self,y):
-        '''
-        Transform binary vector into vector of original classes
-        
-        Parameters:
-        -----------
-        y: numpy 
-        '''
-        Y = np.array([self.inverse_encoding[0] for e in range(y.shape[0])])
-        Y[y==1] = self.inverse_encoding[1]
-        return Y
-
-    
+            inv = pinvh(negHessian)
+            return [w, inv]

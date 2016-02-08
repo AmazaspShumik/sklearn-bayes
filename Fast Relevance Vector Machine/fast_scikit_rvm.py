@@ -351,12 +351,10 @@ def _logistic_cost_grad(X,Y,w,diagA, penalise_intercept):
     n     = X.shape[0]
     Xw    = np.dot(X,w)
     s     = expit(Xw)
-    si    = 1 - s
     wdA   = w*diagA
     if not penalise_intercept:
         wdA[0] = 0
     cost = np.sum( -Xw*Y - log_logistic(-Xw)) + np.sum(w*wdA)/2 
-    #cost  = np.sum( -1*np.log(s)*Y - np.log(si)*(1 - Y)) + np.sum(w*wdA)/2
     grad  = np.dot(X.T, s - Y) + wdA
     return [cost/n,grad/n]
     
