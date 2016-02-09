@@ -13,6 +13,7 @@ def inversion_checker(X,alpha,beta):
     Checks accuracy of inversion
     '''
     n,m    = X.shape
+    #X      = X - np.mean(X,0)
     u,d,vh = np.linalg.svd(X,full_matrices = False)
     dsq    = d**2
     # precision matrix
@@ -23,7 +24,7 @@ def inversion_checker(X,alpha,beta):
     
     # inverting precision : CURRENT VERSION
     a2     = pinvh(S)
-    return [a1,a2]
+    return [S,a1,a2]
     
     
 if __name__ == '__main__':
@@ -32,21 +33,26 @@ if __name__ == '__main__':
                     [ 0.4,  -0.4,  -0.8,   0.08],
                     [ 0.5,  -0.5,  -1.,    0.1 ]])
     # small beta case    
-    alpha = 1.5
+    alpha = 1
     beta = 1000
     print('\n Example 1: beta = {0} \n'.format(beta))
-    v1, v2 = inversion_checker(X, alpha, beta)
+    S,v1, v2 = inversion_checker(X, alpha, beta)
     print "Previous inversion method \n"
     print v1
     print '\n Current inversion method \n'
     print v2
     
     # large beta case
-    beta = 1e+30
+    beta = 1e+16
     print('\n Example 2: beta = {0}  \n'.format(beta))
-    v1, v2 = inversion_checker(X, alpha, beta)
+    S,v1, v2 = inversion_checker(X, alpha, beta)
     print "Previous inversion method \n"
     print v1
     print '\n Current inversion method \n'
     print v2
+    
+    
+    X = np.random.random([5,5]) + 0.00000001*np.eye(5)
+    #print np.linalg.inv(X)
+    #print pinvh(X)
                     
