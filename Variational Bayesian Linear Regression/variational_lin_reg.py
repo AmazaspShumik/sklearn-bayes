@@ -1,130 +1,117 @@
 import numpy as np
-from scipy.special import psi
-from scipy.special import gammaln
+from sklearn.base import RegressorMixin
+from sklearn.linear_model.base import LinearModel
+from sklearn.utils import check_X_y
+from scipy.linalg import svd
 
 
 
-class VariationalLinearRegression(object):
+class VariationalLinearRegression(RegressorMixin,LinearModel):
     '''
     Implements fully Bayesian Linear Regression using mean-field approximation 
-    over latent variables. Assumes gamma prior on precision of weight distribution
-    and likelihood.
-    
-    Graphical Model Composition:
-    -----------------
-    
-    P ( Y | X, beta_, lambda_) = N( Y | X*beta_, lambda_^(-1)*I)
-    P ( beta_ | alpha_ )       = N( beta_ | 0, alpha_^(-1)*I)
-    P ( alpha_ | a, b)         = Ga( alpha_ | a, b)
-    P ( lambda_ | c, d)        = Ga( lambda_ | c, d)
-    
+    over latent variables. Assumes gamma prior on precision of coefficients 
+    and noise.
+
     Parameters:
     -----------
-    
-    X: numpy array of size [n_samples,n_features]
-       Matrix of explanatory variables
-       
-    Y: numpy array of size [n_samples,1]
-       Vector of dependent variables
-       
-    ab0: list of floats [a0,b0] (Default = [1e-1, 1e-1])
-       Parameters of Gamma prior for variance of likelihood
-       
-    cd0: list of floats [c0,d0] (Deafult = [1e-1, 1e-1])
-       Parameters of Gamma prior for variance of 
-       
-    bias_term: bool (DEFAULT = True)
-       If True will use bias term, if False bias term is not used
-       
-    max_iter: int (DEFAULT = 10)
+    n_iter: int, optional (DEFAULT = 10)
        Maximum number of iterations for KL minimization
-       
-    conv_thresh: float (DEFAULT = 1e-3)
+
+    tol: float, optional (DEFAULT = 1e-3)
        Convergence threshold
        
-    verbose: bool
+    fit_intercept: bool, optional (DEFAULT = True)
+       If True will use bias term in model fitting
+
+    a: float, optional (Default = 1e-6)
+       Shape parameter of Gamma prior for precision of coefficients
+       
+    b: float, optional (Default = 1e-6)
+       Rate parameter of Gamma prior for precision coefficients
+       
+    c: float, optional (Default = 1e-6)
+       Shape parameter of  Gamma prior for precision of noise
+       
+    d: float, optional (Default = 1e-6)
+       Rate parameter of  Gamma prior for precision of noise
+       
+    verbose: bool, optional (Default = False)
        If True at each iteration progress report is printed out
+       
+       
+    Attributes
+    ----------
+    
+    
     '''
     
-    def __init__(self,X,Y, ab0 = [1e-6,1e-6], cd0 = [1e-6,1e-6], bias_term = True, max_iter = 50, 
-                 conv_thresh = 1e-3, verbose = False):
-        self.verbose          =  verbose
-        self.bias_term        =  bias_term
-        if bias_term is True:
-            self.muX          =  np.mean(X, axis = 0)
-            self.muY          =  np.mean(Y)
-            self.X            =  X - self.muX
-            self.Y            =  Y - self.muY
-        else:
-            self.X            =  X
-            self.Y            =  Y
-        
-        # Number of samples & dimensioality of training set
-        self.n,self.m      =  self.X.shape
-        
-        # Gamma distribution params. for precision of weights (beta) & likelihood 
-        self.a,self.b      =  ab0
-        self.c,self.d      =  cd0
-        
-        # lower bound (should be non-decreasing)
-        self.lower_bound   =  [np.NINF]
-        
-        # termination conditions for mean-field approximation
-        self.max_iter      =  max_iter
-        self.conv_thresh   =  conv_thresh
+    def __init__(self, n_iter = 300, tol =1e-3, fit_intercept = True, 
+                 a = 1e-6, b = 1e-6, c = 1e-6, d = 1e-6, copy_X = True,
+                 verbose = False):
+        self.n_iter     =  n_iter
+        self.tol        =  tol
+        self.a,self.b   =  a, b
+        self.c,self.d   =  c, d
+        self.copy_X     =  copy_X
+        self.fit_intercept = fit_intercept
+        self.verbose       = verbose
 
-        # covariance of posterior distribution
-        self.Mw,self.Sigma =  0,0
         
-        # svd decomposition & precomputed values for speeding up iterations
-        self.u,self.D      =  0,0
-        self.vt, self.XY   =  0,0
         
-                
-        
-    def fit(self):
+    def fit(self,X,y):
         '''
         Fits Variational Bayesian Linear Regression Model
         '''
+        # preprocess data
+        X, y = check_X_y(X, y, dtype=np.float64, y_numeric=True)
+        n_samples, n_features = X.shape
+        X, y, X_mean, y_mean, X_std = self._center_data(X, y, self.fit_intercept,
+                                                        self.copy_X)
+        self._x_mean_  = X_mean
+        self._y_mean_  = y_mean
+        self._x_std_   = X_std
+        self.scores_   = [np.NINF]
+        
         # SVD decomposition, done once , reused at each iteration
-        self.u,self.D, self.vt = np.linalg.svd(self.X, full_matrices = False)
+        u,D,vt = svd(X, full_matrices = False)
+        Dsq    = D**2
         
         # compute X'*Y  &  Y'*Y to reuse in each iteration
-        XY                     = np.dot(self.X.T,self.Y)
-        YY                     = np.dot(self.Y,self.Y)
+        XY             = np.dot(X.T,y)
+        YY             = np.dot(y,y)
         
         # some parameters of Gamma distribution have closed form solution
-        self.a                 = self.a + 0.5*self.m
-        self.c                 = self.c + 0.5*self.n
-        b,d                    = self.b,self.d
+        a              = self.a + 0.5 * n_features
+        c              = self.c + 0.5 * n_samples
+        b,d            = self.b,  self.d
         
         # initial mean of posterior for coefficients
         Mw = 0
                 
-        for i in range(self.max_iter):
+        for i in range(self.n_iter):
             
             #  ----------   UPDATE Q(w)   --------------
             
             # calculate expected values of alpha and lambda
-            e_tau         = self._gamma_mean(self.c,d)
-            e_alpha       = self._gamma_mean(self.a,b)
+            e_tau         = self._gamma_mean(c,d)
+            e_alpha       = self._gamma_mean(a,b)
             
             # update parameters of Q(w)
             Mw_old       = np.copy(Mw)
-            Mw,Sigma     = self._posterior_dist_beta(e_tau, e_alpha,XY)
+            Mw,Sigma     = self._posterior_dist_beta(e_tau, e_alpha,XY,Dsq,vt)
             
             #  ----------    UPDATE Q(alpha_)   ------------
             
             # update rate parameter for Gamma distributed precision of weights
-            E_w_sq        = ( np.dot(Mw,Mw) + np.trace(Sigma) )
+            E_w_sq        = np.dot(Mw,Mw) + np.trace(Sigma)
             b             = self.b + 0.5*E_w_sq
             
             #  ----------    UPDATE Q(lambda_)   ------------
 
             # update rate parameter for Gamma distributed precision of likelihood 
             # precalculate some values for reuse in lower bound calculation           
-            XMw           = np.sum(np.dot(self.X,Mw)**2)
-            XSX           = np.sum(np.dot(self.X,Sigma)*self.X)
+            XMw           = np.sum(np.dot(X,Mw)**2)
+            XSX           = np.sum(np.dot(X,Sigma)*X)
             MwXY          = np.dot(Mw,XY)
             d             = self.d + 0.5*(YY + XSX + XMw) - MwXY
             
@@ -138,47 +125,16 @@ class VariationalLinearRegression(object):
             converged = self._check_convergence(Mw,Mw_old)
             
             # save fitted parameters
-            if converged or i==(self.max_iter-1):
-                if converged is True:
-                    if self.verbose is True:
-                        print "Mean Field Approximation converged"
-                # save parameters of Gamma distribution
-                self.b, self.d        = b, d
-                # compute parameters of weight distributions corresponding
-                self.Mw, self.Sigma   = Mw,Sigma
-                
-                if converged is False:
-                    print("Warning!!! Variational approximation did not converge") 
-                return
-             
-        
-        
-    def predict(self,X):
-        '''
-        Calcuates mean of predictive distribution
-        
-        Parameters:
-        -----------
-        
-        X: numpy array of size [unknown, n_features]
-           Matrix of explanatory variables for test set
-           
-        Returns:
-        --------
-        
-        y_hat: numpy array of size [unknown, 1]
-           Mean of predictive distribution
-           
-        '''
-        # center data
-        if self.bias_term is True:
-           X         = X - self.muX
-        # mean of predictive distribution
-        y_hat     = np.dot(X,self.Mw)
-        # take into account bias term
-        if self.bias_term is True:
-            y_hat     = y_hat + self.muY
-        return y_hat
+            if converged or i==(self.n_iter-1):
+                break
+            
+        e_tau   = self._gamma_mean(c,d)
+        e_alpha = self._gamma_mean(a,b)
+        self.coef_, self.sigma_ = self._posterior_dist_beta(e_tau, e_alpha,XY,
+                                                            Dsq,vt)
+        self._set_intercept(X_mean,y_mean,X_std)
+        self._c_ , self._d_ = c,d
+        return self
         
         
     def predict_dist(self,X):
@@ -187,7 +143,6 @@ class VariationalLinearRegression(object):
         
         Parameters:
         -----------
-        
         X: numpy array of size [unknown, n_features]
            Matrix of explanatory variables for test set
            
@@ -202,32 +157,24 @@ class VariationalLinearRegression(object):
            Variance of predictive distribution at each point
            
         '''
-        # center data
-        if self.bias_term is True:
-           X         = X - self.muX
-        # mean of predictive distribution
-        y_hat     = np.dot(X,self.Mw)
-        # take into account bias term
-        if self.bias_term is True:
-           y_hat     = y_hat + self.muY
+        y_hat  = self._decision_function(X)
+        x      = (X - self._x_mean_) / self._x_std_
         
         # asymptotic noise
-        noise     = 1./ self._gamma_mean(self.c,self.d)
-        var       = noise + np.sum(np.dot(X,self.Sigma)*X,axis = 1)
+        noise     = 1./ self._gamma_mean(self._c_,self._d_)
+        var       = noise + np.sum(np.dot(x,self.sigma_)*x,axis = 1)
         return [y_hat,var]
         
         
-    def _posterior_dist_beta(self, e_tau, e_alpha,XY):
+    def _posterior_dist_beta(self, e_tau, e_alpha, XY, Dsq, vt):
         '''
         Calculates parameters of approximation of posterior distribution 
         of weights
         '''
         # inverse eigenvalues of precision matrix
-        Dinv = 1. / (e_tau*self.D**2 + e_alpha)
-        
+        Dinv = 1. / (e_tau*Dsq + e_alpha)
         # Covariance matrix ( use numpy broadcasting to speed up)
-        Sn   = np.dot(self.vt.T*(Dinv),self.vt)
-        
+        Sn   = np.dot(vt.T*(Dinv),vt)
         # mean of approximation for posterior distribution
         Mn   = e_tau * np.dot(Sn,XY)
         return [Mn,Sn]
@@ -237,7 +184,7 @@ class VariationalLinearRegression(object):
         '''
         Checks convergence of Mean Field Approximation
         '''
-        if np.sum( abs(Mw - Mw_old) > self.conv_thresh ) == 0:
+        if np.sum( abs(Mw - Mw_old) > self.tol ) == 0:
             return True
         return False
         
@@ -247,6 +194,44 @@ class VariationalLinearRegression(object):
        '''
        Calculates mean of gamma distribution
        '''
-       return a/b
+       return float(a) / b
+
+if __name__ == "__main__":
+    x           = np.zeros([100,1])
+    x[0:100,0]  = np.linspace(-3,3,100)
+    model       = lambda x: 2 + 2*x[:,0]
+    y           = model(x) + np.random.normal(0,1,100)
+    br2         = VariationalLinearRegression()
+    br2.fit(x,y)
+    x_test      = np.zeros([20,1])
+    x_test[:,0] = np.linspace(-200,200,20)
+    y_hat, var  = br2.predict_dist(x_test)
+    y_model     = model(x_test)
+    
+    
+    def simple_plotter(x,y, br = None, title = None):
+        '''
+        Plots mean and variance of predictive distribution
+        '''
+        # predictive distribution
+        y_hat, var = br.predict_dist(x)
+        y_lo       = y_hat - 1.96*np.sqrt(var)
+        y_hi       = y_hat + 1.96*np.sqrt(var)
+        # plotting
+        plt.figure(figsize = (12,8))
+        plt.plot(x[:,0],y,"b+",label = 'data')
+        plt.plot(x[:,0],y_hat,'ro', label = 'model prediction')
+        plt.plot(x[:,0],y_lo,'g-', label = 'means +- 1.96*std')
+        plt.plot(x[:,0],y_hi,'g-', label = 'means +- 1.96*std')    
+        plt.legend(loc = 2)
+        plt.xlabel("x")
+        plt.ylabel("y")
+        plt.title(title)
+        plt.show()
+        return y_hat, var
+        
+        
+    y1,v1 = simple_plotter(x,y,br2,'predictive distribution, Bayesian Linear Regression')
+    y2,v2 = simple_plotter(x_test,y_model,br2,'predictive distribution, Extrapolation')
 
     
