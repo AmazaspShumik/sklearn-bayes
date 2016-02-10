@@ -61,6 +61,19 @@ class VariationalLinearRegression(RegressorMixin,LinearModel):
     def fit(self,X,y):
         '''
         Fits Variational Bayesian Linear Regression Model
+        
+        Parameters
+        ----------
+        X: array-like of size [n_samples,n_features]
+           Matrix of explanatory variables (should not include bias term)
+       
+        Y: array-like of size [n_features]
+           Vector of dependent variables.
+           
+        Returns
+        -------
+        object: self
+          self
         '''
         # preprocess data
         X, y = check_X_y(X, y, dtype=np.float64, y_numeric=True)
