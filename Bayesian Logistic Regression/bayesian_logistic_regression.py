@@ -45,10 +45,6 @@ class BayesianLogisticRegression(LinearClassifierMixin,BaseEstimator):
         
     alpha: float (DEFAULT = 1e-6)
         Initial regularization parameter (precision of prior distribution)
-    
-    optimizer: str, optional (DEFAULT = 'fp') {"fp","em"}
-        Method to optimize hyperparameter alpha. ('em' - Expectation Maximization,
-        'fp' - Fixed Point Iterations)
         
     verbose : boolean, optional (DEFAULT = True)
         Verbose mode when fitting the model
@@ -75,8 +71,7 @@ class BayesianLogisticRegression(LinearClassifierMixin,BaseEstimator):
     '''
     
     def __init__(self, n_iter = 30, tol = 1e-3,solver = 'lbfgs_b',n_iter_solver = 10,
-                 tol_solver = 1e-3, fit_intercept = True, alpha = 1e-6, 
-                 optimizer = 'fp', verbose = False):
+                 tol_solver = 1e-3, fit_intercept = True, alpha = 1e-5,  verbose = False):
         self.n_iter            = n_iter
         self.tol               = tol
         self.n_iter_solver     = n_iter_solver
@@ -88,9 +83,6 @@ class BayesianLogisticRegression(LinearClassifierMixin,BaseEstimator):
             raise ValueError(('Only "lbfgs_b" and "newton_cg" '
                               'solvers are implemented'))
         self.solver            = solver
-        if optimizer not in ['em','fp']:
-            raise ValueError(('Only "em" and "fp" solvers are implemented'))
-        self.optimizer         = optimizer
         
         
     def fit(self,X,y):
@@ -145,7 +137,6 @@ class BayesianLogisticRegression(LinearClassifierMixin,BaseEstimator):
             self.sigma_[i] = sigma_
             
         self.coef_  = np.asarray(self.coef_)
-        self.sigma_ = np.asarray(self.sigma_)
         return self
         
         
@@ -165,11 +156,11 @@ class BayesianLogisticRegression(LinearClassifierMixin,BaseEstimator):
            Estimated probabilities of target classes
         '''
         scores = self.decision_function(X)
-        sigma = np.sum(np.dot(X,self.sigma_[0])*X,axis = 1)
+        sigma = np.asarray([np.sum(np.dot(X,s)*X,axis = 1) for s in self.sigma_])
         ks = 1. / ( 1. + np.pi*sigma / 8)**0.5
         probs = expit(scores.T*ks).T
-        if probs.ndim == 1:
-            probs =  np.vstack([1 - probs, probs]).T
+        if probs.shape[1] == 1:
+            probs =  np.hstack([1 - probs, probs])
         else:
             probs /= np.reshape(np.sum(probs, axis = 1), (probs.shape[0],1))
         return probs
@@ -180,28 +171,27 @@ class BayesianLogisticRegression(LinearClassifierMixin,BaseEstimator):
         Maximizes evidence function (type II maximum likelihood) 
         '''
         # iterative evidence maximization
+        alpha = alpha0
         for i in range(self.n_iter):
                         
             # find mean & covariance of Laplace approximation to posterior
-            w, d   = self._posterior(X, y, alpha0, w0) 
+            w, d   = self._posterior(X, y, alpha, w0) 
             mu_sq  = np.dot(w,w)
             
-            # use EM or fixed-point procedures to update parameters            
-            if self.optimizer == 'em':
-                alpha = X.shape[1] / (mu_sq + np.sum(d)) 
-            else:
-                gamma = np.sum((d - alpha0) / d)
-                alpha = gamma / mu_sq
-                
+            # use EM  to update parameters            
+            alpha = X.shape[1] / (mu_sq + np.sum(d)) 
+            
             # check convergence
             delta_alpha = abs(alpha - alpha0)
             if delta_alpha < self.tol or i==self.n_iter-1:
                 break
+            alpha0 = alpha
             
         # after convergence we need to find updated MAP vector of parameters
         # and covariance matrix of Laplace approximation
         coef_, sigma_ = self._posterior(X, y, alpha , w, True)
         return coef_, sigma_
+            
             
             
     def _posterior(self, X, Y, alpha0, w0, full_covar = False):
@@ -237,8 +227,124 @@ class BayesianLogisticRegression(LinearClassifierMixin,BaseEstimator):
         alpha_vec     = alpha0   
         np.fill_diagonal(negHessian,np.diag(negHessian) + alpha_vec)
         if full_covar is False:
-            eigs = eigvalsh(negHessian)
+            eigs = 1./eigvalsh(negHessian)
             return [w,eigs]
         else:
             inv = pinvh(negHessian)
             return [w, inv]
+            
+            
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt     
+#    # create data set 
+#    x          = np.zeros([500,2])
+#    x[:,0]     = np.random.normal(0,1,500) 
+#    x[:,1]     = np.random.normal(0,1,500) 
+#    x[0:250,0] = x[0:250,0] + 3
+#    x[0:250,1] = x[0:250,1] + 5
+#    #x          = x - np.mean(x,0)
+#    #x          = scale(x)
+#    y          = -1*np.ones(500)
+#    y[0:250]   = 1
+#    blr        = BayesianLogisticRegression(solver = 'newton_cg')
+#    blr.fit(x,y)
+#    
+#    # create grid for heatmap
+#    n_grid = 500
+#    max_x      = np.max(x,axis = 0)
+#    min_x      = np.min(x,axis = 0)
+#    X1         = np.linspace(min_x[0],max_x[0],n_grid)
+#    X2         = np.linspace(min_x[1],max_x[1],n_grid)
+#    x1,x2      = np.meshgrid(X1,X2)
+#    Xgrid      = np.zeros([n_grid**2,2])
+#    Xgrid[:,0] = np.reshape(x1,(n_grid**2,))
+#    Xgrid[:,1] = np.reshape(x2,(n_grid**2,))
+#    
+#    blr_grid   = blr.predict_proba(Xgrid)[:,1]
+#    plt.figure(figsize=(8,6))
+#    plt.contourf(X1,X2,np.reshape(blr_grid,(n_grid,n_grid)),cmap="coolwarm")
+#    plt.plot(x[y==-1,0],x[y==-1,1],"bo", markersize = 3)
+#    plt.plot(x[y==1,0],x[y==1,1],"ro", markersize = 3)
+#    plt.colorbar()
+#    plt.title("Bayesian Logistic Regression, fitted with EM")
+#    plt.xlabel("x")
+#    plt.ylabel("y")
+#    plt.show()
+
+    
+    import matplotlib.pyplot as plt
+    from sklearn.preprocessing import scale
+    from sklearn.cross_validation import train_test_split
+    from sklearn.linear_model import LogisticRegressionCV 
+    import numpy as np
+    from scipy import stats
+    import matplotlib.pyplot as plt
+    
+    
+    # Parameters of the example
+    n_samples, n_features = 1000, 1200
+    # Create Gaussian data
+    np.random.seed(0)
+    X = np.random.randn(n_samples, n_features)
+    # Create weigts
+    lambda_ = 100
+    w = np.zeros(n_features)
+    # Only 2 relevant features (so that we can vizualise)
+    relevant_features = np.random.randint(0, n_features, 2)
+    for i in relevant_features:
+       w[i] = stats.norm.rvs(loc=0, scale=1. / np.sqrt(lambda_))
+    # Create the target
+    y = np.dot(X, w) + 10
+    y_hat  = np.ones(y.shape[0])
+    y_hat[y < 10] = -1
+    X,x,Y,y = train_test_split(X,y_hat, test_size = 0.2)
+    
+    # logistic regression
+    lrl2 = LogisticRegressionCV(Cs=[0.01,0.1,1,10,100], penalty = 'l2')
+    lrl1 = LogisticRegressionCV(Cs=[0.01,0.1,1,10,100], penalty = 'l1',
+                                solver = 'liblinear')
+    clf_ard =  BayesianLogisticRegression()
+    
+    lrl2.fit(X,Y)
+    lrl1.fit(X,Y)
+    clf_ard.fit(X,Y)
+    
+    n_grid = 100
+    max_x      = np.max(x[:,relevant_features],axis = 0)
+    min_x      = np.min(x[:,relevant_features],axis = 0)
+    X1         = np.linspace(min_x[0],max_x[0],n_grid)
+    X2         = np.linspace(min_x[1],max_x[1],n_grid)
+    x1,x2      = np.meshgrid(X1,X2)
+    Xgrid      = np.zeros([n_grid**2,2])
+    Xgrid[:,0] = np.reshape(x1,(n_grid**2,))
+    Xgrid[:,1] = np.reshape(x2,(n_grid**2,))
+    Xg         = np.random.randn(n_grid**2,n_features)
+    Xg[:,relevant_features[0]] = Xgrid[:,0]
+    Xg[:,relevant_features[1]] = Xgrid[:,1]
+    
+    blr_grid  = clf_ard.predict_proba(Xg)[:,1]
+    lrl2_grid = lrl2.predict_proba(Xg)[:,1]
+    lrl1_grid = lrl1.predict_proba(Xg)[:,1]
+    a1,a2     = relevant_features
+    titles = ["ARD Logistic regression","Logistic Regression L2 penalty",
+              "Logistic Regression L1 penalty"]
+    models  = [blr_grid,lrl2_grid,lrl1_grid]
+    
+    print "Logistic Regression L1 {0} misclassification rate".format(float(np.sum(y!=lrl1.predict(x))) / x.shape[0])
+    print "Logistic Regression L2 {0} misclassification rate".format(float(np.sum(y!=lrl2.predict(x))) / x.shape[0])
+    print "ARD Classification {0} misclassification rate".format(float(np.sum(y!=clf_ard.predict(x))) / x.shape[0])
+    
+    for title,model in zip(titles,models):
+       plt.figure(figsize=(8,6))
+       plt.contourf(X1,X2,np.reshape(model,(n_grid,n_grid)),cmap="coolwarm")
+       plt.plot(x[y==-1,a1],x[y==-1,a2],"bo", markersize = 3)
+       plt.plot(x[y==1,a1],x[y==1,a2],"ro", markersize = 3)
+       plt.colorbar()
+       plt.title(title)
+       plt.xlabel("x")
+       plt.ylabel("y")
+       plt.show()
+       
+       
+    from sklearn.utils.estimator_checks import check_estimator
+    check_estimator(BayesianLogisticRegression)

@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from scipy.optimize import fmin_l_bfgs_b
-from sklearn.utils.optimize import newton_cg
 from scipy.special import expit
-from scipy.linalg import pinvh, eigvalsh
-from scipy.linalg import eigvalsh
+from scipy.linalg import pinvh
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.linear_model.base import LinearClassifierMixin, BaseEstimator
 from sklearn.utils import check_X_y
+
 
 #----------------------- Helper functions ----------------------------------
 
@@ -16,7 +14,7 @@ def lam(eps):
     ''' Calculates lambda eps '''
     return 0.5 / eps * ( expit(eps) - 0.5 )
     
-
+#---------------------------------------------------------------------------
 
 
 class VariationalLogisticRegression(LinearClassifierMixin, BaseEstimator):
@@ -36,15 +34,28 @@ class VariationalLogisticRegression(LinearClassifierMixin, BaseEstimator):
        If True uses bias term in model fitting
        
     a: float, optional (DEFAULT = 1e-6)
-       rate
+       Rate parameter for Gamma prior on precision parameter of coefficients
        
     b: float, optional (DEFAULT = 1e-6)
-    
+       Shape parameter for Gamma prior on precision parameter of coefficients
     
     verbose: bool, optional (DEFAULT = False)
        Verbose mode
+       
+       
+    Attributes
+    ----------
+    coef_ : array, shape = (n_features)
+        Coefficients of the regression model (mean of posterior distribution)
 
-      
+    sigma_ : array, shape = (n_features, n_features)
+        estimated covariance matrix of the weights, computed only
+        for non-zero coefficients
+    
+    intercept_: array, shape = (n_features)
+        intercepts
+        
+
     References:
     -----------
     Bishop 2006, Pattern Recognition and Machine Learning ( Chapter 10 )
@@ -99,7 +110,7 @@ class VariationalLogisticRegression(LinearClassifierMixin, BaseEstimator):
             self.coef_, self.sigma_, self.intercept_ = [0],[0],[0]
         
         # huperparameters of 
-        a  = self.a + 0.5*n_features
+        a  = self.a + 0.5 * n_features
         b  = self.b
         
         for i in range(len(self.coef_)):
@@ -119,9 +130,34 @@ class VariationalLogisticRegression(LinearClassifierMixin, BaseEstimator):
             self.intercept_[i] = intercept_
             self.sigma_[i]  = sigma_
         self.coef_  = np.asarray(self.coef_)
-        self.sigma_ = np.asarray(self.sigma_)
         return self
+        
 
+    def predict_proba(self,x):
+        '''
+        Predicts probabilities of targets for test set
+        
+        Parameters
+        ----------
+        X: array-like of size [n_samples_test,n_features]
+           Matrix of explanatory variables (test set)
+           
+        Returns
+        -------
+        probs: numpy array of size [n_samples_test]
+           Estimated probabilities of target classes
+        '''
+        scores = self.decision_function(x)
+        if self.fit_intercept:
+            x = np.hstack( (np.ones([x.shape[0],1]),x))
+        sigma  = np.asarray([np.sum(np.dot(x,s)*x,axis = 1) for s in self.sigma_])
+        ks = 1. / ( 1. + np.pi*sigma / 8)**0.5
+        probs = expit(scores.T*ks).T
+        if probs.shape[1] == 1:
+            probs =  np.hstack([1 - probs, probs])
+        else:
+            probs /= np.reshape(np.sum(probs, axis = 1), (probs.shape[0],1))
+        return probs
 
             
     def _fit(self,X,y,a,b):
@@ -138,10 +174,8 @@ class VariationalLogisticRegression(LinearClassifierMixin, BaseEstimator):
             
             # --------- update q(w) ------------------
             l  = lam(eps)
-            print "a, b  =  {0}, {1}".format(a,b)
             w,sigma = self._posterior_dist(X,l,a,b,XY)
             
-            print "w^2, trace_sigma , XY = {0}, {1}, {2}".format(np.sum(w**2),np.trace(sigma), np.sum(XY))
             
             # -------- update q(alpha) ---------------
             
@@ -175,123 +209,4 @@ class VariationalLogisticRegression(LinearClassifierMixin, BaseEstimator):
         sigma_   = pinvh(sigma_inv)
         mean_    = np.dot(sigma_,XY)     
         return [mean_, sigma_]
-        
-    
-    def predict_proba(self,x):
-        pass
-        
-    
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt     
-#    # create data set 
-#    x          = np.zeros([500,2])
-#    x[:,0]     = np.random.normal(0,1,500) -3
-#    x[:,1]     = np.random.normal(0,1,500) -3
-#    x[0:250,0] = x[0:250,0] + 12
-#    x[0:250,1] = x[0:250,1] + 1
-#    #x          = x - np.mean(x,0)
-#    #x          = scale(x)
-#    y          = -1*np.ones(500)
-#    y[0:250]   = 1
-#    blr        = VariationalLogisticRegression(n_iter = 50, fit_intercept = True)
-#    blr.fit(x,y)
-#    y_hat      = blr.predict(x) 
-#    
-#    
-#    
-#    # create grid for heatmap
-#    n_grid = 500
-#    max_x      = np.max(x,axis = 0)
-#    min_x      = np.min(x,axis = 0)
-#    X1         = np.linspace(min_x[0],max_x[0],n_grid)
-#    X2         = np.linspace(min_x[1],max_x[1],n_grid)
-#    x1,x2      = np.meshgrid(X1,X2)
-#    Xgrid      = np.zeros([n_grid**2,2])
-#    Xgrid[:,0] = np.reshape(x1,(n_grid**2,))
-#    Xgrid[:,1] = np.reshape(x2,(n_grid**2,))
-#    
-#    blr_grid   = blr.decision_function(Xgrid)
-#    plt.figure(figsize=(8,6))
-#    plt.contourf(X1,X2,np.reshape(blr_grid,(n_grid,n_grid)),cmap="coolwarm")
-#    plt.plot(x[y==-1,0],x[y==-1,1],"bo", markersize = 3)
-#    plt.plot(x[y==1,0],x[y==1,1],"ro", markersize = 3)
-#    plt.colorbar()
-#    plt.title("Bayesian Logistic Regression, fitted with EM")
-#    plt.xlabel("x")
-#    plt.ylabel("y")
-#    plt.show()
-    
-    
-    
-    import matplotlib.pyplot as plt
-    from sklearn.preprocessing import scale
-    from sklearn.cross_validation import train_test_split
-    from sklearn.linear_model import LogisticRegressionCV 
-    import numpy as np
-    from scipy import stats
-    import matplotlib.pyplot as plt
-    
-    
-    # Parameters of the example
-    n_samples, n_features = 500, 400
-    # Create Gaussian data
-    X = np.random.randn(n_samples, n_features)
-    # Create weigts
-    lambda_ = 100
-    w = np.zeros(n_features)
-    # Only 2 relevant features (so that we can vizualise)
-    relevant_features = np.random.randint(0, n_features, 2)
-    for i in relevant_features:
-       w[i] = stats.norm.rvs(loc=0, scale=1. / np.sqrt(lambda_))
-    # Create the target
-    y = np.dot(X, w) + 10
-    y_hat  = np.ones(y.shape[0])
-    y_hat[y < 10] = -1
-    X[y_hat>0,:] = X[y_hat>0,:] + 0.2
-    X,x,Y,y = train_test_split(X,y_hat, test_size = 0.2)
-    
-    # logistic regression
-    lrl2 = LogisticRegressionCV(Cs=[1e+10], penalty = 'l2')
-    lrl1 = LogisticRegressionCV(Cs=[0.01,0.1], penalty = 'l1',
-                                solver = 'liblinear')
-    clf_ard =  VariationalLogisticRegression(n_iter = 20)
-    
-    lrl2.fit(X,Y)
-    lrl1.fit(X,Y)
-    clf_ard.fit(X,Y)
-    
-    n_grid = 100
-    max_x      = np.max(x[:,relevant_features],axis = 0)
-    min_x      = np.min(x[:,relevant_features],axis = 0)
-    X1         = np.linspace(min_x[0],max_x[0],n_grid)
-    X2         = np.linspace(min_x[1],max_x[1],n_grid)
-    x1,x2      = np.meshgrid(X1,X2)
-    Xgrid      = np.zeros([n_grid**2,2])
-    Xgrid[:,0] = np.reshape(x1,(n_grid**2,))
-    Xgrid[:,1] = np.reshape(x2,(n_grid**2,))
-    Xg         = np.random.randn(n_grid**2,n_features)
-    Xg[:,relevant_features[0]] = Xgrid[:,0]
-    Xg[:,relevant_features[1]] = Xgrid[:,1]
-    
-    blr_grid  = clf_ard.decision_function(Xg)
-    lrl2_grid = lrl2.decision_function(Xg)
-    lrl1_grid = lrl1.decision_function(Xg)
-    a1,a2     = relevant_features
-    titles = ["ARD Logistic regression","Logistic Regression L2 penalty",
-              "Logistic Regression L1 penalty"]
-    models  = [blr_grid,lrl2_grid,lrl1_grid]
-    
-    print "Logistic Regression L1 {0} misclassification rate".format(float(np.sum(y!=lrl1.predict(x))) / x.shape[0])
-    print "Logistic Regression L2 {0} misclassification rate".format(float(np.sum(y!=lrl2.predict(x))) / x.shape[0])
-    print "ARD Classification {0} misclassification rate".format(float(np.sum(y!=clf_ard.predict(x))) / x.shape[0])
-    
-    for title,model in zip(titles,models):
-       plt.figure(figsize=(8,6))
-       plt.contourf(X1,X2,np.reshape(model,(n_grid,n_grid)),cmap="coolwarm")
-       plt.plot(x[y==-1,a1],x[y==-1,a2],"bo", markersize = 3)
-       plt.plot(x[y==1,a1],x[y==1,a2],"ro", markersize = 3)
-       plt.colorbar()
-       plt.title(title)
-       plt.xlabel("x")
-       plt.ylabel("y")
-       plt.show()
+
