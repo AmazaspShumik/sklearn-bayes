@@ -5,6 +5,8 @@ from scipy.linalg import pinvh
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.linear_model.base import LinearClassifierMixin, BaseEstimator
 from sklearn.utils import check_X_y
+from scipy.linalg import solve_triangular
+import time
 
 
 #----------------------- Helper functions ----------------------------------
@@ -23,7 +25,7 @@ class VariationalLogisticRegression(LinearClassifierMixin, BaseEstimator):
     
     Parameters:
     -----------
-    n_iter: int, optional (DEFAULT = 300 )
+    n_iter: int, optional (DEFAULT = 50 )
        Maximum number of iterations
        
     tol: float, optional (DEFAULT = 1e-3)
@@ -61,7 +63,7 @@ class VariationalLogisticRegression(LinearClassifierMixin, BaseEstimator):
     Bishop 2006, Pattern Recognition and Machine Learning ( Chapter 10 )
     Murphy 2012, Machine Learning A Probabilistic Perspective ( Chapter 21 )
     '''
-    def __init__(self,  n_iter = 300, tol = 1e-3, fit_intercept = True,
+    def __init__(self,  n_iter = 50, tol = 1e-3, fit_intercept = True,
                  a = 1e-6, b = 1e-6, verbose = True):
         self.n_iter            = n_iter
         self.tol               = tol
@@ -121,7 +123,7 @@ class VariationalLogisticRegression(LinearClassifierMixin, BaseEstimator):
             mask            = (y == pos_class)
             y_bin           = np.ones(y.shape, dtype=np.float64)
             y_bin[~mask]    = 0
-            coef_, sigma_  = self._fit(X,y_bin,a,b)
+            coef_, sigma_   = self._fit(X,y_bin,a,b)
             intercept_ = 0
             if self.fit_intercept:
                 intercept_  = coef_[0]
@@ -174,17 +176,17 @@ class VariationalLogisticRegression(LinearClassifierMixin, BaseEstimator):
             
             # --------- update q(w) ------------------
             l  = lam(eps)
-            w,sigma = self._posterior_dist(X,l,a,b,XY)
-            
-            
+            w,Ri = self._posterior_dist(X,l,a,b,XY)
+                        
             # -------- update q(alpha) ---------------
             
-            E_w_sq = np.outer(w,w) + sigma
-            b = self.b + np.sum(w**2) + np.trace(sigma)#0.5*np.trace(E_w_sq)
-            
+            b = self.b + np.sum(w**2) + np.sum(Ri**2)
+
             # In the M-step we update parameter eps which controls 
             # accuracy of local variational approximation
-            eps = np.sqrt( np.sum( np.dot(X,E_w_sq)*X, axis = 1))
+            XMX = np.dot(X,w)**2
+            XSX = np.sum( np.dot(X,Ri.T)**2, axis = 1)
+            eps = np.sqrt( XMX + XSX )
             
             # convergence
             if np.sum(abs(w-w0) > self.tol) == 0 or i==self.n_iter-1:
@@ -192,12 +194,11 @@ class VariationalLogisticRegression(LinearClassifierMixin, BaseEstimator):
             w0 = w
             
         l  = lam(eps)
-        coef_, sigma_  = self._posterior_dist(X,l,a,b,XY)
-
+        coef_, sigma_  = self._posterior_dist(X,l,a,b,XY,True)
         return coef_, sigma_
 
 
-    def _posterior_dist(self,X,l,a,b,XY):
+    def _posterior_dist(self,X,l,a,b,XY,full_covar = False):
         '''
         Finds gaussian approximation to posterior of coefficients
         '''
@@ -206,7 +207,14 @@ class VariationalLogisticRegression(LinearClassifierMixin, BaseEstimator):
         if self.fit_intercept:
             alpha_vec[0] = 0
         np.fill_diagonal(sigma_inv, np.diag(sigma_inv) + alpha_vec)
-        sigma_   = pinvh(sigma_inv)
-        mean_    = np.dot(sigma_,XY)     
-        return [mean_, sigma_]
+        R     = np.linalg.cholesky(sigma_inv)
+        Z     = solve_triangular(R,XY, lower = True)
+        mean_ = solve_triangular(R.T,Z,lower = False)
+        Ri    = solve_triangular(R,np.eye(X.shape[1]), lower = True)
+        if full_covar:
+            sigma_   = np.dot(Ri.T,Ri)
+            return mean_ , sigma_
+        else:
+            return mean_ , Ri
+
 
