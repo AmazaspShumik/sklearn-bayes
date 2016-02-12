@@ -965,10 +965,10 @@ class RVC(ClassificationARD):
                  verbose = False, kernel = 'rbf', degree = 2,
                  gamma  = None, coef0  = 1, kernel_params = None):
         # use constructor of Classification ARD
-        super(RVC,self).__init__(n_iter = 300, tol = 1e-4, solver = 'lbfgs_b', 
-                                 n_iter_solver = 30, tol_solver = 1e-5, 
-                                 fit_intercept = True, normalize = False,
-                                 verbose = False)
+        super(RVC,self).__init__(n_iter=n_iter, tol=tol, solver=solver, 
+                                 n_iter_solver=n_iter_solver, tol_solver=tol_solver, 
+                                 fit_intercept=fit_intercept, normalize=False,
+                                 verbose=verbose)
         self.kernel = kernel
         self.degree = degree
         self.gamma  = gamma
