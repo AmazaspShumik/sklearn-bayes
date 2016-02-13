@@ -133,7 +133,7 @@ class VariationalRegressionARD(LinearModel,RegressorMixin):
             e_A     = self._gamma_mean(a,b)    
                  
             # parameters of updated posterior distribution
-            Mw,Sigma  = self._posterior_weights(XX,XY,e_tau,e_A)
+            Mw,Ri  = self._posterior_weights(XX,XY,e_tau,e_A)
                 
             # ------------ update q(tau) ------------
             
@@ -141,8 +141,9 @@ class VariationalRegressionARD(LinearModel,RegressorMixin):
             # (note shape parameter does not need to be updated at each iteration)
             
             # XMw, XSX, MwXY are reused in lower bound computation
+            XSXd      = np.sum( np.dot(X,Ri.T)**2, axis = 1)
             XMw       = np.sum( np.dot(X,Mw)**2 )    
-            XSX       = np.sum( np.dot(X,Sigma)*X )
+            XSX       = np.sum( XSXd )
             MwXY      = np.dot(Mw,XY)
             d         = self.d + 0.5*(Y2 + XMw + XSX) - MwXY
             
@@ -150,7 +151,7 @@ class VariationalRegressionARD(LinearModel,RegressorMixin):
             
             # update rate parameter for Gamma distributed precision of weights
             # (note shape parameter b is updated before iterations started)
-            E_w_sq    = Mw**2 + np.diag(Sigma)      # is reused in lower bound 
+            E_w_sq    = Mw**2 + np.diag(XSXd)      # is reused in lower bound 
             b         = self.b + 0.5*E_w_sq
             
             # ---------- check convergence ------------
@@ -217,7 +218,7 @@ class VariationalRegressionARD(LinearModel,RegressorMixin):
         
     
     
-    def _posterior_weights(self, XX, XY, exp_tau, exp_A):
+    def _posterior_weights(self, XX, XY, exp_tau, exp_A, full_covar = False):
         '''
         Calculates parameters of posterior distribution of weights
         
@@ -255,8 +256,11 @@ class VariationalRegressionARD(LinearModel,RegressorMixin):
         
         # use cholesky decomposition of S to find inverse ( or diagonal of inverse)
         Ri    = solve_triangular(R, np.eye(R.shape[1]), lower = True, check_finite = False)
-        Sigma = np.dot(Ri.T,Ri)
-        return [Mw,Sigma]
+        if full_covar:
+            Sigma = np.dot(Ri.T,Ri)
+            return [Mw,Sigma]
+        else:
+            return [Mw,Ri]
 
 
     @staticmethod
@@ -440,8 +444,4 @@ class VRVR(VariationalRegressionARD):
                       "coef0": self.coef0  }
         return pairwise_kernels(X, Y, metric=self.kernel, filter_params=True,
                                 **params)
-        
 
-    
-
-       
