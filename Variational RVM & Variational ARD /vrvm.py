@@ -171,7 +171,7 @@ class VariationalRegressionARD(LinearModel,RegressorMixin):
         e_tau       = self._gamma_mean(c,d)
         self.alpha_ = e_tau
         e_A         = self._gamma_mean(a,b)    
-        self.coef_, self.sigma_ = self._posterior_weights(XX,XY,e_tau,e_A)
+        self.coef_, self.sigma_ = self._posterior_weights(XX,XY,e_tau,e_A,True)
         # determine relevant vectors
         self.active_ = np.abs(Mw) > self.prune_thresh
         if np.sum(self.active_) == 0:
@@ -444,4 +444,4 @@ class VRVR(VariationalRegressionARD):
                       "coef0": self.coef0  }
         return pairwise_kernels(X, Y, metric=self.kernel, filter_params=True,
                                 **params)
-
+                                
