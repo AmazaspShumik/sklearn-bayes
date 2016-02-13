@@ -8,6 +8,8 @@ from scipy.misc import logsumexp
 from scipy.sparse import csr_matrix
 from sklearn.base import ClassifierMixin
 from sklearn.base import BaseEstimator
+from sklearn.utils import check_X_y, check_array
+from sklearn.utils import check_is_fitted
 import warnings
 
 
@@ -455,7 +457,7 @@ class VBGMMARDClassifier(ClassifierMixin,BaseEstimator):
     def __init__(self, max_components = 10,means = None, dof = None, covar = None,  
                        weights = None, beta = 1e-3, max_iter = 100,
                        conv_thresh = 1e-5,n_kmean_inits = 3, prune_thresh = 1e-5,
-                       rand_state = 1, mfa_max_iter = 1):
+                       rand_state = 1, mfa_max_iter = 5):
                            
         self.n_components               =  max_components
         self.dof, self.covar            =  dof,covar
@@ -543,11 +545,12 @@ class VBGMMARDClassifier(ClassifierMixin,BaseEstimator):
         classes: numpy array of size [n_sample_test, 1]
            Predicted class            
         '''
+        check_is_fitted(self,'coef_')
         probs = self.predict_prob(x)
         return self.binariser.convert_prob_matrix_to_vec(probs)
         
 
-    def predict_prob(self,x):
+    def predict_proba(self,x):
         '''
         Predicts class to which observations belong
         
@@ -561,6 +564,7 @@ class VBGMMARDClassifier(ClassifierMixin,BaseEstimator):
         probs: numpy array of size [n_sample_test, n_classes]
            Matrix of probabilities
         '''
+        che
         pr = [clf.predictive_pdf(x)*prior for prior,clf in zip(self.prior,self.clfs)]
         P  = np.array(pr).T
         P  = P / np.sum(P, axis = 1, keepdims = True)
@@ -599,6 +603,7 @@ class StudentMultivariate(object):
         return np.exp(self.logpdf(x))
         
 # ---------------- Label Binariser ( Helper class ) -------------------------------#
+        
         
 class LabelBinariser(object):
     '''
