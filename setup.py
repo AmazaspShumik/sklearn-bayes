@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup, find_packages
-version = sklearn_bayes.__version__
 
 setup(
        name = 'sklearn_bayes',
-       version  = version,
+       version  = '0.1.0a1',
        description = "bayesian machine learning algorithms with scikit-learn api",
        url         = 'https://github.com/AmazaspShumik/sklearn_bayes',
        author      = 'Amazasp Shaumyan',
        author_email = 'amazasp.shaumyan@gmail.com',
        license      = 'MIT',
+       packages=find_packages(exclude=['tests*']),
+       install_requires=[
+        'numpy>=1.9.2',
+        'scipy>=0.15.1',
+        'scikit-learn>=0.16.1'],
        packages=find_packages(exclude=['tests*']),
        test_suite='tests',
        tests_require=[
