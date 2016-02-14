@@ -15,7 +15,6 @@ setup(
         'numpy>=1.9.2',
         'scipy>=0.15.1',
         'scikit-learn>=0.16.1'],
-       packages=find_packages(exclude=['tests*']),
        test_suite='tests',
        tests_require=[
             'coverage>=3.7.1',
