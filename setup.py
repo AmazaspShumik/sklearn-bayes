@@ -20,7 +20,6 @@ setup(
        tests_require=[
             'coverage>=3.7.1',
             'nose==1.3.7'],
-       zip_safe=False,
        classifiers=[
         'Development Status :: 3 - Alpha',
         'Operating System :: OS Independent',
