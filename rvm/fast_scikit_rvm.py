@@ -704,7 +704,6 @@ def decision_function(estimator , active_coef_ , X , intercept_,
    
 
 
-
 class RVR(RegressionARD):
     '''
     Relevance Vector Regression is ARD regression with kernelised features
@@ -870,6 +869,7 @@ class RVR(RegressionARD):
                                       self.intercept_,self.relevant_vectors_, 
                                       self.gamma, self.degree, self.coef0,
                                       self.kernel,self.kernel_params)
+        K         = (K - self._x_mean_[self.active_])
         var_hat   = self.alpha_
         var_hat  += np.sum( np.dot(K,self.sigma_) * K, axis = 1)
         std_hat   = np.sqrt(var_hat)

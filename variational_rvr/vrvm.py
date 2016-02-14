@@ -1,15 +1,11 @@
 import numpy as np
 from scipy.linalg import solve_triangular
-from scipy.special import psi     # digamma function 
-from scipy.special import gammaln # log gamma function
 from sklearn.linear_model.base import LinearModel
 from sklearn.base import RegressorMixin
 from sklearn.utils import check_X_y,check_array
-from sklearn.utils.extmath import pinvh
 from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.utils.validation import check_is_fitted
 from scipy.linalg import solve_triangular
-import scipy.sparse
 import warnings
 
 
@@ -141,7 +137,7 @@ class VariationalRegressionARD(LinearModel,RegressorMixin):
             # (note shape parameter does not need to be updated at each iteration)
             
             # XMw, XSX, MwXY are reused in lower bound computation
-            XSXd      = np.sum( np.dot(X,Ri.T)**2, axis = 1)
+            XSXd      = np.sum( np.dot(X,Ri.T)**2, axis = 0)
             XMw       = np.sum( np.dot(X,Mw)**2 )    
             XSX       = np.sum( XSXd )
             MwXY      = np.dot(Mw,XY)
@@ -151,7 +147,8 @@ class VariationalRegressionARD(LinearModel,RegressorMixin):
             
             # update rate parameter for Gamma distributed precision of weights
             # (note shape parameter b is updated before iterations started)
-            E_w_sq    = Mw**2 + np.diag(XSXd)      # is reused in lower bound 
+            
+            E_w_sq    = Mw**2 + XSXd       # is reused in lower bound 
             b         = self.b + 0.5*E_w_sq
             
             # ---------- check convergence ------------
@@ -411,15 +408,12 @@ class VRVR(VariationalRegressionARD):
         check_is_fitted(self,'coef_')
         X = check_array(X, accept_sparse = None, dtype = np.float64) 
         K = self._get_kernel( X, self.relevant_vectors_)
-        print K.shape
-        print self._x_mean_.shape
         K = (K-self._x_mean_[self.active_]) / self._x_std[self.active_]
         y_hat = np.dot(K,self.coef_[self.active_]) + self._y_mean
         var_hat   = self.alpha_
         var_hat  += np.sum( np.dot(K,self.sigma_) * K, axis = 1)
         std_hat   = np.sqrt(var_hat)
         return y_hat, std_hat
-        
         
         
     def _decision_function(self, X ):
@@ -444,4 +438,3 @@ class VRVR(VariationalRegressionARD):
                       "coef0": self.coef0  }
         return pairwise_kernels(X, Y, metric=self.kernel, filter_params=True,
                                 **params)
-                                

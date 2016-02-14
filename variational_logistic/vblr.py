@@ -6,7 +6,6 @@ from sklearn.utils.multiclass import check_classification_targets
 from sklearn.linear_model.base import LinearClassifierMixin, BaseEstimator
 from sklearn.utils import check_X_y
 from scipy.linalg import solve_triangular
-import time
 
 
 #----------------------- Helper functions ----------------------------------
@@ -216,5 +215,4 @@ class VariationalLogisticRegression(LinearClassifierMixin, BaseEstimator):
             return mean_ , sigma_
         else:
             return mean_ , Ri
-
 
