@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.linalg import solve_triangular
-from sklearn.linear_model.base import LinearModel
-from sklearn.base import RegressorMixin
+from sklearn.linear_model.base import LinearModel, LinearClassifierMixin
+from sklearn.base import RegressorMixin, BaseEstimator
 from sklearn.utils import check_X_y,check_array
 from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.utils.validation import check_is_fitted
@@ -267,6 +267,11 @@ class VariationalRegressionARD(LinearModel,RegressorMixin):
         '''
         return a / b
         
+
+#TODO
+class VariationalClassificationARD(LinearClassifierMixin,BaseEstimator):
+    pass
+
         
         
         

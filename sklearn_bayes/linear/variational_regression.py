@@ -83,7 +83,6 @@ class VariationalLinearRegression(RegressorMixin,LinearModel):
         self._x_mean_  = X_mean
         self._y_mean_  = y_mean
         self._x_std_   = X_std
-        self.scores_   = [np.NINF]
         
         # SVD decomposition, done once , reused at each iteration
         u,D,vt = svd(X, full_matrices = False)
