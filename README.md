@@ -4,8 +4,8 @@
 
 Implemented Algorithms:
 
-    Type II Maximum Likelihood Bayesian Linear Regression
-    Type II Maximum Likelihood Bayesian Logistic Regression
+** Type II Maximum Likelihood Bayesian Linear Regression [https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/bayes_linear/bayesian_regression.py](code), [https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/bayes_linear/bayesian_regression_demo.ipynb](tutorial)
+** Type II Maximum Likelihood Bayesian Logistic Regression [https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/bayes_logistic/bayesian_logistic_regression.py](code) [https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/bayes_logistic/bayesian_logistic_demo.ipynb](tutorial)
     Type II Maximum Likelihood ARD Linear Regression
     Type II Maximum Likelihood ARD Logistic Regression
     Relevance Vector Regression (version 2.0)
