@@ -38,18 +38,18 @@ if __name__ == '__main__':
     print('\n Example 1: beta = {0} \n'.format(beta))
     S,v1, v2 = inversion_checker(X, alpha, beta)
     print "Previous inversion method \n"
-    print v1
+    print (v1)
     print '\n Current inversion method \n'
-    print v2
+    print (v2)
     
     # large beta case
     beta = 1e+16
     print('\n Example 2: beta = {0}  \n'.format(beta))
     S,v1, v2 = inversion_checker(X, alpha, beta)
     print "Previous inversion method \n"
-    print v1
+    print (v1)
     print '\n Current inversion method \n'
-    print v2
+    print (v2)
     
     
     X = np.random.random([5,5]) + 0.00000001*np.eye(5)
