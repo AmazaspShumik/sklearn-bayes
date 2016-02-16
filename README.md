@@ -9,37 +9,34 @@
 ### Implemented Algorithms
 
   Relevance Vector Regression (version 2.0)
-  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/rvm/fast_scikit_rvm.py), [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/rvm/tutorial_rvm.ipynb)
+  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/rvm/fast_rvm.py), [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/ipython_notebooks_tutorials/rvm_ard/rvm_demo.ipynb)
 
   Relevance Vector Classifier (version 2.0)
-  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/rvm/fast_scikit_rvm.py), [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/rvm/tutorial_rvm.ipynb)
+  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/rvm/fast_rvm.py), [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/ipython_notebooks_tutorials/rvm_ard/rvm_demo.ipynb)
 
   Type II Maximum Likelihood Bayesian Linear Regression
-  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/bayes_linear/bayesian_regression.py),  [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/bayes_linear/bayesian_regression.py)
+  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/linear/bayesian_regression.py),  [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/ipython_notebooks_tutorials/type_II_regression/bayesian_regression_demo.ipynb)
 
   Type II Maximum Likelihood Bayesian Logistic Regression
-  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/bayes_logistic/bayesian_logistic_regression.py) [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/bayes_logistic/bayesian_logistic_demo.ipynb)
+  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/logistic/bayesian_logistic.py) [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/ipython_notebooks_tutorials/type_II_logistic/bayesian_logistic_demo.ipynb)
 
   Type II Maximum Likelihood ARD Linear Regression
-  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/rvm/fast_scikit_rvm.py), [tutorial]()
+  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/rvm/fast_rvm.py), [tutorial]()
 
   Type II Maximum Likelihood ARD Logistic Regression
-  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/rvm/fast_scikit_rvm.py),  [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/rvm/ard_classification_demo.ipynb)
+  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/rvm/fast_rvm.py),  [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/ipython_notebooks_tutorials/rvm_ard/ard_classification_demo.ipynb)
 
   Variational Linear Regression 
-  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/variational_linear/variational_lin_reg.py),  [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/variational_linear/variational_regression_notebook.ipynb)
+  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/linear/variational_regression.py),  [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/ipython_notebooks_tutorials/variational_regression/variational_regression_demo.ipynb)
 
   Variational Logistic Regression
-  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/variational_logistic/vblr.py), [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/variational_logistic/vblr_demo.ipynb)
+  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/logistic/variational_logistic.py), [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/ipython_notebooks_tutorials/variational_logistic/variational_logistic_demo.ipynb)
 
   Variational ARD Linear Regression
-  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/variational_rvr/vrvm.py), [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/variational_rvr/variational_rvm_notebook.ipynb)
-
-  Variational ARD Logistic Regression
-  [code](), [tutorial]()
+  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/vrvm/vrvm.py), [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/ipython_notebooks_tutorials/variational_rvm_ard/variational_rvm_demo.ipynb)
 
   Variational Relevance Vector Regression
-  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/variational_rvr/vrvm.py), [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/variational_rvr/variational_rvm_notebook.ipynb)
+  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/vrvm/vrvm.py), [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/ipython_notebooks_tutorials/variational_rvm_ard/variational_rvm_demo.ipynb)
 
 
 
