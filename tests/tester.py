@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import unittest
 import numpy as np
-import warnings
 
 from sklearn.utils.estimator_checks import check_estimator
 from sklearn_bayes.rvm.fast_rvm import RegressionARD,ClassificationARD,RVR,RVC
