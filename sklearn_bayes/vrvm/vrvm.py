@@ -174,10 +174,11 @@ class VariationalRegressionARD(LinearModel,RegressorMixin):
         if np.sum(self.active_) == 0:
             warnings.warn(("Warning!!! All vectors were pruned, choose smaller "
                            "value for parameter prune_thresh, by default this implementation "
-                           "will use single rv with  largest posterior mean"))
+                           "will use two rvs with largest posterior means"))
             # choose rv with largest posterior mean
-            largest = np.argmax(Mw)
-            self.active_[largest] = True
+            sorted_Mw = np.argsort(abs(Mw))
+            self.active_[sorted_Mw[-1]] = True
+            self.active_[sorted_Mw[-2]] = True
         self.coef_[~self.active_] = 0 
         self.sigma_ = self.sigma_[self.active_,:][:,self.active_]
         self._set_intercept(X_mean,y_mean,X_std)
@@ -346,8 +347,8 @@ class VRVR(VariationalRegressionARD):
                            and Logistic Regression
     '''
     
-    def __init__(self,  n_iter = 100, tol = 1e-3, prune_thresh = 1e-3, 
-                 fit_intercept = True, copy_X = True,verbose = False, kernel = 'rbf',
+    def __init__(self,  n_iter = 100, tol = 1e-3, prune_thresh = 1e-10, 
+                 fit_intercept = True, copy_X = True,verbose = False, kernel = 'poly',
                  degree = 2, gamma  = 1, coef0  = 1, kernel_params = None,
                  a = 1e-6, b = 1e-6, c = 1e-6, d = 1e-6):
         super(VRVR,self).__init__(n_iter, tol, prune_thresh, fit_intercept,
@@ -443,3 +444,4 @@ class VRVR(VariationalRegressionARD):
                       "coef0": self.coef0  }
         return pairwise_kernels(X, Y, metric=self.kernel, filter_params=True,
                                 **params)
+
