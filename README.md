@@ -3,6 +3,9 @@
 ## Bayesian Machine Learning Algorithms with scikit-learn api
 
 
+## Installing package
+   pip install https://github.com/AmazaspShumik/sklearn_bayes/archive/master.zip
+
 ### Implemented Algorithms
 
   Relevance Vector Regression (version 2.0)
