@@ -4,7 +4,7 @@
 
 
 ## Installing package
-   pip install https://github.com/AmazaspShumik/sklearn_bayes/archive/master.zip
+    pip install https://github.com/AmazaspShumik/sklearn_bayes/archive/master.zip
 
 ### Implemented Algorithms
 
