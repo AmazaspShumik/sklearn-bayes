@@ -3,8 +3,10 @@
 ## Bayesian Machine Learning Algorithms with scikit-learn api
 
 
-## Installing package
+## Installing & Upgrading package
+
     pip install https://github.com/AmazaspShumik/sklearn_bayes/archive/master.zip
+    pip install --upgrade https://github.com/AmazaspShumik/sklearn_bayes/archive/master.zip
 
 ### Implemented Algorithms
 
