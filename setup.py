@@ -14,7 +14,7 @@ setup(
        install_requires=[
         'numpy>=1.9.2',
         'scipy>=0.15.1',
-        'scikit-learn>=0.16.1'],
+        'scikit-learn>=0.17'],
        test_suite='tests',
        tests_require=[
             'coverage>=3.7.1',
