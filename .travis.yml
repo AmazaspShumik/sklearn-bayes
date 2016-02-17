@@ -4,8 +4,8 @@ python:
 virtualenv:
   system_site_packages: true
 install:
-  - sudo apt-get install -qq python-numpy python-scipy python-sklearn
-  - pip install -r requirements.txt
+  - sudo pip install numpy scipy sklearn
+  - sudo pip install -r requirements.txt
   - "sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm"
 # command to run tests
 script: nosetests
