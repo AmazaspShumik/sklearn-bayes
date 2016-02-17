@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/AmazaspShumik/sklearn_bayes.svg?branch=master)](https://travis-ci.org/AmazaspShumik/sklearn_bayes)
-
 ## Bayesian Machine Learning Algorithms with scikit-learn api
 
 
