@@ -1,10 +1,10 @@
-sudo: required
 language: python
 python:
   - "2.7"
-# command to install dependencies
+virtualenv:
+  system_site_packages: true
 install:
-  - sudo apt-get install -qq python-numpy python-scipy python-pandas python-sklearn
+  - sudo apt-get install -qq python-numpy python-scipy python-sklearn
   - pip install -r requirements.txt
   - "sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm"
 # command to run tests
