@@ -1,2 +1,4 @@
 # packages required for running sklearn_bayes
-scikit-learn>=0.16.1
+numpy
+scipy
+scikit-learn
