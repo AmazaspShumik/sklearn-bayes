@@ -9,3 +9,6 @@ Variational Relevance Vector Machine & ARD ( Tipping (2001) )
     Variational Regression ARD              : VariationalRegressionARD
 """
 
+from .vrvm import VRVR,VariationalRegressionARD
+
+__all__=['VRVR','VariationalRegressionARD']
