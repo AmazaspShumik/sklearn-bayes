@@ -38,5 +38,5 @@ Bayesian machine learning models with sklearn api
 
 __all__ = ['rvm','linear','logistic','vrvm','mixture']
 
-__version__ = '0.1.0a2'
+__version__ = '0.1.0a1'
 
