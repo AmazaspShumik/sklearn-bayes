@@ -19,6 +19,11 @@ Bayesian machine learning models with sklearn api
           - Variational Logistic Regression (Local Variational Approximation)
           - Type II ML ARD Classification
           
+       ** Mixture Models
+          - Variational Bayesian Bernoulli Mixture Model (VBBMM)
+          - Variational Bayesian Multinomial Mixture Model (VBMMM)
+          - Variational Bayesian Gaussian Mixture with Automatic Relevance Determination
+          
           
     PACKAGE CONTENTS:
     -----------------
@@ -31,7 +36,7 @@ Bayesian machine learning models with sklearn api
 
 '''
 
-__all__ = ['rvm','linear','logistic','vrvm']
+__all__ = ['rvm','linear','logistic','vrvm','mixture']
 
-__version__ = '0.1.0a1'
+__version__ = '0.1.0a2'
 

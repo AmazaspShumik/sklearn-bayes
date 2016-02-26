@@ -155,6 +155,27 @@ class GeneralMixtureModelExponential(BaseEstimator):
         C : array, shape = (n_samples,) component memberships
         '''
         return np.argmax(self.predict_proba(X),1)
+        
+    
+    
+    def score(self,X):
+        '''
+        Computes the log probability under the model
+        
+        Parameters
+        ----------
+        X : array_like, shape (n_samples, n_features)
+            List of n_features-dimensional data points.  Each row
+            corresponds to a single data point
+            
+        Returns
+        -------
+        logprob: array with shape [n_samples,]
+            Log probabilities of each data point in X
+        '''
+        probs = self.predict_proba(X)
+        return np.log(np.dot(probs,self.weights_))
+        
   
 
 #==================================================================================#
@@ -401,29 +422,27 @@ class VBBMM(GeneralMixtureModelExponential):
         X = self._check_X_test(X)
         probs = self._update_resps(X,self.alpha_,self.c_, self.d_)[0]
         return probs
-    
-    
-    def score(self,X):
-        '''
-        Computes the log probability under the model
-        
-        Parameters
-        ----------
-        X : array_like, shape (n_samples, n_features)
-            List of n_features-dimensional data points.  Each row
-            corresponds to a single data point
-            
-        Returns
-        -------
-        logprob: array with shape [n_samples,]
-            Log probabilities of each data point in X
-        '''
-        probs = self.predict_proba(X)
-        return np.log(np.dot(probs,self.weights_))
         
         
     def cluster_prototype(self):
-        pass
+        '''
+        Computes most likely prototype for each cluster, i.e. vector that has
+        highest probability of being observed under learned distribution
+        parameters.
+        
+        Returns
+        -------
+        protoypes: numpy array of size (n_features,n_components)
+           Cluster prototype
+        '''
+        prototypes = np.asarray([self.classes_[1*(self.means_[:,i] >=0.5)] for i in 
+                      range(self.n_components)]).T
+        return prototypes
+
+            
+            
+        
+
 
 
 #==================================================================================#
@@ -682,26 +701,7 @@ class VBMMM(GeneralMixtureModelExponential):
         X = self._check_X_test(X)
         probs = self._update_resps(X,self.alpha_,self.beta_,n_samples)[0]
         return probs
-    
-    
-    def score(self,X):
-        '''
-        Computes the log probability under the model
-        
-        Parameters
-        ----------
-        X : array_like, shape (n_samples, n_features)
-            List of n_features-dimensional data points.  Each row
-            corresponds to a single data point
-            
-        Returns
-        -------
-        logprob: array with shape [n_samples,]
-            Log probabilities of each data point in X
-        '''
-        probs = self.predict_proba(X)
-        return np.log(np.dot(probs,self.weights_))
-        
+
         
     def cluster_prototype(self):
         '''
@@ -716,7 +716,6 @@ class VBMMM(GeneralMixtureModelExponential):
         for k in range(self.n_components):
             prototypes[k] = self.classes_[np.argmax(self.means_[k],1)]
         return prototypes
-        
         
         
 
@@ -772,7 +771,19 @@ class VBGMMARD(GeneralMixtureModelExponential):
 
     verbose: bool, optional (DEFAULT = False)
        Enables verbose output
+       
+       
+    Attributes
+    ----------
+    weights_ : numpy array of size (n_components,)
+        Mixing probabilities for each cluster
         
+    means_ : numpy array of size (n_features, n_components)
+        Mean success probabilities for each cluster
+        
+    scores_: list of unknown size (depends on number of iterations)
+        Log of lower bound
+
         
     References:
     -----------
@@ -994,177 +1005,21 @@ class VBGMMARD(GeneralMixtureModelExponential):
         
     def predict_proba(self,X):
         '''
-        Calculates 
+        Predicts probability of cluster for data in test set 
         
         Parameters
         ----------
+        X : array-like, shape = [n_samples, n_features]
+            Data Matrix for test data
         
-        '''
-        X = check_array(X)
-        
-        
-        
-    def score(self,X):
-        probs = self.pre
-
-
-
-
-if __name__ == "__main__":
-#    X = np.ones([300,3])
-#    X[0:100,0]   = 0
-#    X[100:200,1] = 0
-#    X[200:300,2] = 0
-#    
-#    bmm = VBBMM(n_components = 3, n_iter = 100, alpha0 = 10, n_init = 5,
-#                compute_score = True, c = 1, d = 1, verbose = False)
-#    bmm.fit(csr_matrix(X))
-#    cluster = bmm.predict(X)
-#    resps   = bmm.predict_proba(X)
-#    scores  = bmm.score(X)
-#    print cluster
-#    print "\n"
-    #print np.exp(scores)
-#    
-#    # -------  Example with kaggle digit dataset ----------
-#    import pandas as pd
-#    import time
-#    
-#    Data = pd.read_csv('train.csv')
-#    data = Data[Data['label']<=10]
-#    X    = np.array(data[data.columns[1:]])
-#    X[(X>0)*(X<50)] = 25
-#    X[(X >= 50)*(X < 150)] = 100
-#    X[(X >= 150)*(X < 250)] = 200
-#    X[(X >= 250)] = 255
-    
-#    t1 = time.time()
-#    x = csr_matrix(X)
-#    t2 = time.time()
-#    print t2-t1    
-#    X[X>0] = 10
-#    #x    = csr_matrix(X)
-#    x = csr_matrix(X)
-#    bmm = VBBMM(n_components = 10, n_iter = 100, alpha0 = 10, n_init = 2,
-#                compute_score = False, c = 1, d = 1, verbose = True)
-#    t1 = time.time()
-#    bmm.fit(x)
-#    t2 = time.time()
-#    print t2-t1
-#
-####################
-    
-#    X = np.array([ [1,2,3],
-#                   [1,2,3],
-#                   [1,2,3],
-#                   [3,2,1],
-#                   [3,2,1],
-#                   [3,2,1] ])
-##               
-#    mmm = VBMMM(n_components = 2, n_iter = 100, alpha0 = 100, compute_score = True,
-#                verbose = True, beta0 = 1)
-#    mmm.fit(X)
-#    
-#    def cluster_prototype(obj):
-#        prototypes = [0]*obj.n_components
-#        for k in range(obj.n_components):
-#            prototypes[k] = obj.classes_[np.argmax(obj.means_[k],1)]
-#        return prototypes
-# 
-    import matplotlib.pyplot as plt
-    from matplotlib.patches import Ellipse
-    
-    def plotter(X, max_k,title, rand_state = 1, prune_thresh = 0.02, mfa_max_iter = 10):
-        '''
-        Plotting function for VBGMMARD clustering
-        
-        Parameters:
-        -----------
-        X: numpy array of size [n_samples, n_features]
-           Data matrix
-           
-        max_k: int
-           Maximum number of components
-           
-        title: str
-           Title of the plot
-           
-        Returns:
-        --------
-        :instance of VBGMMARD class 
-        '''
-        # fit model & get parameters
-        gmm = VBGMMARD(n_iter = 150, n_components = max_k, n_mfa_iter = mfa_max_iter,
-                       prune_thresh = prune_thresh)
-        gmm.fit(X)
-        centers = gmm.means_
-        covars  = gmm.covars_
-        k_selected = centers.shape[0]
-        
-        # plot data
-        fig, ax = plt.subplots(figsize = (10,6))
-        ax.plot(X[:,0],X[:,1],'bo', label = 'data')
-        ax.plot(centers[:,0],centers[:,1],'rD', markersize = 8, label = 'means')
-        for i in range(k_selected):
-            plot_cov_ellipse(pos = centers[i,:], cov = covars[i], ax = ax)
-        
-        plt.xlabel('x1')
-        plt.ylabel('x2')
-        plt.legend(loc = 2)
-        plt.title((title + ', {0} initial clusters, {1} selected clusters').format(max_k,k_selected))
-        plt.show()
-        return gmm
-        
-        
-    # plot_cov_ellipse function is taken from  
-    # https://github.com/joferkington/oost_paper_code/blob/master/error_ellipse.py
-    
-    def plot_cov_ellipse(cov, pos, nstd=2, ax=None, **kwargs):
-        """
-        Plots an `nstd` sigma error ellipse based on the specified covariance
-        matrix (`cov`). Additional keyword arguments are passed on to the 
-        ellipse patch artist.
-    
-        Parameters
-        ----------
-            cov : The 2x2 covariance matrix to base the ellipse on
-            pos : The location of the center of the ellipse. Expects a 2-element
-                sequence of [x0, y0].
-            nstd : The radius of the ellipse in numbers of standard deviations.
-                Defaults to 2 standard deviations.
-            ax : The axis that the ellipse will be plotted on. Defaults to the 
-                current axis.
-            Additional keyword arguments are pass on to the ellipse patch.
-    
         Returns
         -------
-            A matplotlib ellipse artist
-        """
-        def eigsorted(cov):
-            vals, vecs = np.linalg.eigh(cov)
-            order = vals.argsort()[::-1]
-            return vals[order], vecs[:,order]
-    
-        if ax is None:
-            ax = plt.gca()
-    
-        vals, vecs = eigsorted(cov)
-        theta = np.degrees(np.arctan2(*vecs[:,0][::-1]))
-    
-        # Width and height are "full" widths, not radius
-        width, height = 2 * nstd * np.sqrt(vals)
-        ellip = Ellipse(xy=pos, width=width, height=height, angle=theta, fill = False,
-                        edgecolor = 'k',linewidth = 4,**kwargs)
-    
-        ax.add_artist(ellip)
-        return ellip
-    
-    
-    X = np.zeros([600,2])
-    X[0:200,:]   = np.random.multivariate_normal(mean = (0,7), cov = [[1,0],[0,1]], size = 200)
-    X[200:400,:] = np.random.multivariate_normal(mean = (0,0) , cov = [[1,0],[0,1]], size = 200)
-    X[400:600,:] = np.random.multivariate_normal(mean = (0,-7) , cov = [[1,0],[0,1]], size = 200)
-    
-    sy_gmm_1 = plotter(X,20,'Synthetic Example')
-    #gmm = VBGMMARD(n_components = 3, n_iter = 10, verbose = True)
-    #gmm.fit(X)
+        probs : array, shape = (n_samples,n_components) 
+            Probabilities of components membership
+        '''
+        X       = check_array(X)
+        pr      = [st.logpdf(X) + np.log(lw) for st,lw in zip(self.predictors_,self.weights_)]
+        log_probs   = np.asarray(pr).T 
+        log_probs  -= logsumexp(log_probs, axis = 1, keepdims = True)
+        return np.exp(log_probs)
+
