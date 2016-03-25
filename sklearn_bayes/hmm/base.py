@@ -2,12 +2,25 @@
 from sklearn.base import BaseEstimator
 import numpy as np
 
+
+
 def _normalise(M):
     ''' Make matrix or vector stochastic (i.e. normalise by row to 1)'''
     if len(M.shape) == 1:
         return M / np.sum(M)
     return M / np.sum(M, axis = 1)
     
+    
+def get_chain(X,index):
+    ''' Generates separate chains'''
+    from_idx = 0
+    for idx in index:
+        yield X[from_idx:idx,:]
+        from_idx = idx
+    if from_idx != X.shape[0]-1:
+        yield X[from_idx:(X.shape[0]-1),:]
+        
+        
 
 class VBHMM(BaseEstimator):
     '''
@@ -36,20 +49,35 @@ class VBHMM(BaseEstimator):
         '''
         Fits Hidden Markov Model
         '''
+        n_samples = X.shape[0]
+        
+        # initialise parameters
+        pr_trans_prior, pr_start_prior, emission_params = self._init_params()
+        alpha = np.zeros(n_samples, self.n_hidden)        
+        
         for i in range(self.n_iter):
             
-            for X in X_chains:
+            pr_trans_post = np.copy(pr_trans_prior)
+            pr_start_post = np.copy(pr_start_prior)
+            sf_stats_post = self._init_suff_stats()
+            
+            for X in get_chain(X,chain_indices):
+                
                 alpha = self._forward_single_chain( pr_start, pr_trans, pr_x, alpha)
                 trans, start, sf_stats = self._vbe_step_single_chain(X,alpha,pr_trans,
                                                                      suff_stats)
-                        self._vbm_step_update()
-                                                                     
+                pr_trans_post += trans
+                pr_start_post += start
+                sf_stats_post  = self._suff_stats_update_new_chain(sf_stats)
                 
-            
+            pr_start, pr_trans, pr_x = self._vbm_step(pr_trans_post, pr_start_post,
+                                                      sf_stats_post)
+                                                      
+            if self._check_convergence():
+                break
+                
         
-        
-    def _vbm_step_update(self, pr_trans_prior, pr_start_prior, pr_trans_post,
-                               pr_start_post):
+    def _vbm_step(self, pr_trans_post, pr_start_post, sf_stats_post):
         '''
         Computes approximating distribution for posterior of parameters
         '''
@@ -87,7 +115,7 @@ class VBHMM(BaseEstimator):
                 
             
             # iterative update of sufficient statistics for emission probs
-            suff_stats     = self._update_suff_stats(suff_stats,X,marginal)
+            suff_stats     = self.suff_stats_update(suff_stats,X,marginal)
             beta_before    = beta_after
         
         return pr_trans_post, pr_start_post, suff_stats
@@ -105,4 +133,17 @@ class VBHMM(BaseEstimator):
         for i in range(1,n_samples):
             alpha[i,:] = _normalise( np.dot(pr_trans.T,alpha[i-1,:]) * pr_x[i,:])
         return alpha
+        
+        
+        
+        
+class VBBernoulliHMM(VBHMM):
+    '''
+    Bayesian Hidden Markov Models with Bernoulli Emission probabilities
+    '''
+    
+    def __init__(self):
+        pass
+    
+    
         
