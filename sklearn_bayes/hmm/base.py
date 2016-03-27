@@ -32,19 +32,38 @@ class VBHMM(BaseEstimator):
     '''
     
     def __init__(self, n_hidden = 2, n_iter = 100, init_params = None, tol = 1e-3,
-                 verbose = False):
+                 alpha_start = 1, alpha_trans = 1, verbose = False):
         self.n_hidden    = n_hidden
         self.n_iter      = n_iter
         self.init_params = init_params
         self.tol         = tol
         self.verbose     = verbose
+        self.alpha_start = alpha_start
+        self.alpha_trans = alpha_trans
+        
         
     
     def _init_params(self):
-        ''' Initialise parameters'''
-        pass
-    
-    
+        ''' 
+        Reads user defined parameters, or in case they are not defined randomly
+        initialise
+        '''
+        # initial distribution
+        if 'initial' in self.init_params:
+            pr_start = self.init_params['initial']
+        else:
+            pr_start = np.random.random(self.n_hidden) * self.alpha_start
+            
+        # matrix of transition probabilities
+        if 'transition' in self.init_params:
+            pr_trans = self.init_params['transition']
+        else:
+            pr_trans = np.random.random( [self.n_hidden, self.n_hidden] ) * self.alpha_trans
+            
+        return pr_start, pr_trans
+        
+            
+                    
     def _fit(self, X, chain_indices):
         '''
         Fits Hidden Markov Model
@@ -91,13 +110,15 @@ class VBHMM(BaseEstimator):
         Performs backward pass, at the same time computes marginal & joint marginal
         and updates sufficient statistics for VBM step
         '''
-        beta_before   = np.ones(self.n_hidden_states)
+        beta_before   = np.ones(self.n_hidden) / self.n_hidden
         n_samples     = X.shape[0]
         pr_trans_post = np.zeros(self.n_hidden, self.n_hidden)
         pr_start_post = np.zeros(self.n_hidden)
            
         # backward pass, single & joint marginal calculation, sufficient stats
         for i in np.linspace(n_samples-1,0,n_samples):
+            
+            # ???? normalise
             beta_after     = np.dot(pr_trans,beta_before*pr_x[i,:])
             
             # marginal distribution of latent variable, given observed variables
@@ -115,8 +136,8 @@ class VBHMM(BaseEstimator):
                 
             
             # iterative update of sufficient statistics for emission probs
-            suff_stats     = self.suff_stats_update(suff_stats,X,marginal)
-            beta_before    = beta_after
+            suff_stats     = self._suff_stats_update(suff_stats,X,marginal)
+            beta_before    = _normalise(beta_after)
         
         return pr_trans_post, pr_start_post, suff_stats
          
@@ -142,8 +163,44 @@ class VBBernoulliHMM(VBHMM):
     Bayesian Hidden Markov Models with Bernoulli Emission probabilities
     '''
     
-    def __init__(self):
-        pass
+    def __init__(self, n_hidden = 2, n_iter = 100, init_params = {}, tol = 1e-3,
+                 alpha_start = 1, alpha_trans = 1 , alpha_succes = 1, verbose = False):
+        super(VBBernoulliHMM,self).__init__(n_hidden, n_iter, init_params, tol,
+                                            alpha_start, alpha_trans, verbose)
+        self.alpha_succes = alpha_succes
+         
+    
+    def _init_params(self,*args):
+        ''' 
+        Initialise parameters of Bayesian Bernoulli HMM
+        '''
+        n_features         = args[0]
+        pr_start, pr_trans = super(VBBernoulliHMM,self)._init_params()
+        pr_succes = np.random.random([self.n_hidden, n_features])* self.alpha_succes
+        return pr_start, pr_succes, pr_trans
+        
+    
+    def _fit(self,X):
+        '''
+        Fits Bayesian Hidden Markov Model
+        '''
+        
+        super(VBBernoulliHMM,self)._fit(X)
+        
+        
+        
+    def _init_suff_stats(self,n_samples):
+        ''' 
+        Initialise sufficient statistics for Bayesian Bernoulli HMM
+        '''
+        return np.zeros( [self.n_hidden, n_samples] )
+        
+        
+if __name__ == "__main__":
+    bhmm = VBBernoulliHMM()
+
+    
+        
     
     
         
