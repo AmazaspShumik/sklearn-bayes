@@ -1,5 +1,8 @@
-
+from scipy.special import psi,gammaln
+from scipy.misc import logsumexp
+from sklearn.utils.extmath import safe_sparse_dot
 from sklearn.base import BaseEstimator
+from sklearn.utils.validation import check_is_fitted
 import numpy as np
 
 
@@ -11,7 +14,7 @@ def _normalise(M):
     return M / np.sum(M, axis = 1)
     
     
-def get_chain(X,index):
+def _get_chain(X,index):
     ''' Generates separate chains'''
     from_idx = 0
     for idx in index:
@@ -19,7 +22,11 @@ def get_chain(X,index):
         from_idx = idx
     if from_idx != X.shape[0]-1:
         yield X[from_idx:(X.shape[0]-1),:]
-        
+
+
+
+
+
         
 
 class VBHMM(BaseEstimator):
@@ -62,36 +69,50 @@ class VBHMM(BaseEstimator):
             
         return pr_start, pr_trans
         
-            
+    
+    def _probs_params(self, start_params, trans_params, emission_params, X):
+        '''
+        Calculate probabilities : emission, initial, transition using parameters
+        '''
+        log_pr_start = psi(start_params) - psi(np.sum(start_params))
+        log_pr_start-= logsumexp(log_pr_start)
+        log_pr_trans = psi(trans_params) - psi(np.sum(trans_params,1))
+        log_pr_trans-= logsumexp(log_pr_trans)
+        log_pr_x     = self._emission_probs_params(emission_params,X)
+        return np.exp(log_pr_start), np.exp(log_pr_trans), np.exp(log_pr_x)
+        
                     
     def _fit(self, X, chain_indices):
         '''
         Fits Hidden Markov Model
         '''
         n_samples = X.shape[0]
-        
-        # initialise parameters
-        pr_trans_prior, pr_start_prior, emission_params = self._init_params()
-        alpha = np.zeros(n_samples, self.n_hidden)        
+        alpha = np.zeros(n_samples, self.n_hidden)       
+
+        # initialise parameters (log-scale!!!)
+        trans_params, start_params, emission_params = self._init_params()
         
         for i in range(self.n_iter):
-            
             pr_trans_post = np.copy(pr_trans_prior)
             pr_start_post = np.copy(pr_start_prior)
             sf_stats_post = self._init_suff_stats()
             
-            for X in get_chain(X,chain_indices):
+            # probabilies for initialised parameters
+            pr_start, pr_trans, pr_x = self._probs_params(start_params, trans_params,
+                                                          emission_params, X)
+            for X in _get_chain(X,chain_indices):
                 
                 alpha = self._forward_single_chain( pr_start, pr_trans, pr_x, alpha)
                 trans, start, sf_stats = self._vbe_step_single_chain(X,alpha,pr_trans,
                                                                      suff_stats)
                 pr_trans_post += trans
                 pr_start_post += start
-                sf_stats_post  = self._suff_stats_update_new_chain(sf_stats)
+                sf_stats_post  = self._suff_stats_update_new_chain(sf_stats,X,)
                 
-            pr_start, pr_trans, pr_x = self._vbm_step(pr_trans_post, pr_start_post,
-                                                      sf_stats_post)
-                                                      
+            # log parameters of posterior distributions of parameters
+            trans_params, start_params, emission_params = self._vbm_step(pr_trans_post, 
+                                                           pr_start_post, sf_stats_post)
+            
             if self._check_convergence():
                 break
                 
@@ -100,9 +121,7 @@ class VBHMM(BaseEstimator):
         '''
         Computes approximating distribution for posterior of parameters
         '''
-        pass
-        
-        
+        pass 
         
 
     def _vbe_step_single_chain(self, X, alpha, pr_trans, pr_x, suff_stats):
@@ -161,6 +180,13 @@ class VBHMM(BaseEstimator):
 class VBBernoulliHMM(VBHMM):
     '''
     Bayesian Hidden Markov Models with Bernoulli Emission probabilities
+    
+    Parameters
+    ----------
+    n_hidden: int , optional (DEFAULT = 2)
+       Number of hidden states
+       
+    n_iter: 
     '''
     
     def __init__(self, n_hidden = 2, n_iter = 100, init_params = {}, tol = 1e-3,
@@ -168,6 +194,7 @@ class VBBernoulliHMM(VBHMM):
         super(VBBernoulliHMM,self).__init__(n_hidden, n_iter, init_params, tol,
                                             alpha_start, alpha_trans, verbose)
         self.alpha_succes = alpha_succes
+        self.alpha_fail   = alpha_fail
          
     
     def _init_params(self,*args):
@@ -177,14 +204,23 @@ class VBBernoulliHMM(VBHMM):
         n_features         = args[0]
         pr_start, pr_trans = super(VBBernoulliHMM,self)._init_params()
         pr_succes = np.random.random([self.n_hidden, n_features])* self.alpha_succes
-        return pr_start, pr_succes, pr_trans
+        pr_fail   = np.random.random([self.n_hidden, n_features])* self.alpha_fail
+        return pr_start, pr_succes, {'success_prob': pr_succes, 'fail_prob': pr_fail}
+        
+    
+    def _emission_probs_params(self, emission_params, X):
+        success = emission_params['success_prob']
+        fail    = emission_params['fail_prob']
+        log_total = psi(success + fail)
+        log_pr_success = psi(success) -  log_total
+        log_pr_fail    = psi(fail)    -  log_total
+        
         
     
     def _fit(self,X):
         '''
         Fits Bayesian Hidden Markov Model
         '''
-        
         super(VBBernoulliHMM,self)._fit(X)
         
         
@@ -193,7 +229,20 @@ class VBBernoulliHMM(VBHMM):
         ''' 
         Initialise sufficient statistics for Bayesian Bernoulli HMM
         '''
-        return np.zeros( [self.n_hidden, n_samples] )
+        return [ np.zeros( [self.n_hidden, n_samples] ), 
+                 np.zeros( self.n_hidden ) ]
+                 
+    
+    def _suff_stats_update(self):
+        '''
+        Updates sufficient statistics within backward pass in HMM
+        '''
+                 
+    
+    def _suff_stats_update_new_chain(self):
+        '''
+        Updates sufficient statistics after observing new HMM
+        '''
         
         
 if __name__ == "__main__":
