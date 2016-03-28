@@ -209,11 +209,16 @@ class VBBernoulliHMM(VBHMM):
         
     
     def _emission_probs_params(self, emission_params, X):
+        '''
+        C
+        '''
         success = emission_params['success_prob']
         fail    = emission_params['fail_prob']
         log_total = psi(success + fail)
         log_pr_success = psi(success) -  log_total
         log_pr_fail    = psi(fail)    -  log_total
+        pr_succes = np.exp(log_pr_success - np.logaddexp(log_pr_success, log_pr_fail))
+        return safe_sparse_dot(X,pr_succes)
         
         
     
