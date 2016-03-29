@@ -15,7 +15,7 @@ def _normalise(M):
     return M / np.sum(M, axis = 1)
     
     
-def _get_chain(X,index):
+def _get_chain(X,index = []):
     ''' Generates separate chains'''
     from_idx = 0
     for idx in index:
@@ -79,15 +79,14 @@ class VBHMM(BaseEstimator):
         return np.exp(log_pr_start), np.exp(log_pr_trans), pr_x
         
                     
-    def _fit(self, X, chain_indices):
+    def _fit(self, X, chain_indices = []):
         '''
         Fits Hidden Markov Model
         '''
         n_samples, n_features = X.shape
-        alpha = np.zeros(n_samples, self.n_hidden)       
 
         # initialise parameters (log-scale!!!)
-        trans_params, start_params, emission_params = self._init_params()
+        start_params, trans_params, emission_params = self._init_params(n_features)
         trans_params_prior = np.copy(trans_params)
         start_params_prior = np.copy(start_params)
         emission_params_prior = deepcopy(emission_params)
@@ -99,26 +98,28 @@ class VBHMM(BaseEstimator):
             trans = np.zeros([self.n_hidden, self.n_hidden])
             start = np.zeros(self.n_hidden)
             
-            # probabilies for initialised parameters
+            # probabilies for initialised parameters           
             pr_start, pr_trans, pr_x = self._probs_params(start_params, trans_params,
                                                           emission_params, X)
                                                           
-            for X in _get_chain(X,chain_indices):
+            for zx in _get_chain(X,chain_indices):
                 
-                alpha = self._forward_single_chain( pr_start, pr_trans, pr_x, alpha)
-                trans, start, sf_stats = self._vbe_step_single_chain(X,alpha,pr_trans,
+                print zx.shape
+                alpha = self._forward_single_chain( pr_start, pr_trans, pr_x)
+                trans, start, sf_stats = self._vbe_step_single_chain(zx,alpha,pr_trans,
                                                           pr_x,sf_stats, trans, start)
                 
             # log parameters of posterior distributions of parameters
             trans_params, start_params, emission_params = self._vbm_step(trans,start,
-                                                          sf_stats, trans_params_prior,
+                                                          sf_stats, emission_params,
+                                                          trans_params_prior,
                                                           emission_params_prior,
                                                           start_params_prior) 
-            
+            print "Iteration {0}".format(i)
             if self._check_convergence():
                 break
                 
-        return trans_params, start_params, emission_params
+        return start_params, trans_params, emission_params
                 
                 
         
@@ -169,11 +170,12 @@ class VBHMM(BaseEstimator):
          
    
         
-    def _forward_single_chain(self, pr_start, pr_trans, pr_x, alpha):
+    def _forward_single_chain(self, pr_start, pr_trans, pr_x):
         '''
         Performs forward pass ('filter') on single Hidden Markov Model chain
         '''
-        n_samples = len(alpha)
+        n_samples = pr_x.shape[0]
+        alpha = np.zeros(pr_x.shape)
         
         # forward pass
         alpha[0,:] = _normalise(pr_x[0,:] * pr_start)
@@ -209,7 +211,7 @@ class VBBernoulliHMM(VBHMM):
        If True prints intermediate results and progress report at each iteration
     ''' 
     def __init__(self, n_hidden = 2, n_iter = 100, init_params = {}, tol = 1e-3,
-                 alpha_start = 10, alpha_trans = 10 , alpha_succes = 10, alpha_fail = 10,
+                 alpha_start = 1, alpha_trans = 5 , alpha_succes = 1, alpha_fail = 1,
                  verbose = False):
         super(VBBernoulliHMM,self).__init__(n_hidden, n_iter, init_params, tol,
                                             alpha_start, alpha_trans, verbose)
@@ -226,7 +228,7 @@ class VBBernoulliHMM(VBHMM):
         pr_start, pr_trans = super(VBBernoulliHMM,self)._init_params()
         pr_succes = np.random.random([self.n_hidden, n_features])* self.alpha_succes
         pr_fail   = np.random.random([self.n_hidden, n_features])* self.alpha_fail
-        return pr_start, pr_succes, {'success_prob': pr_succes, 'fail_prob': pr_fail}
+        return pr_start, pr_trans , {'success_prob': pr_succes, 'fail_prob': pr_fail}
         
     
     
@@ -251,14 +253,14 @@ class VBBernoulliHMM(VBHMM):
         '''
         Peerforms vbm step for parameters of emission probabilities
         '''
-        emission_params['success_prob'] = emission_params_prior['succes_prob'] + sf_stats[0]
+        emission_params['success_prob'] = emission_params_prior['success_prob'] + sf_stats[0]
         fail_delta = (sf_stats[1]  - sf_stats[0].T).T
         emission_params['fail_prob'] = emission_params_prior['fail_prob'] + fail_delta
         return emission_params
                       
         
     
-    def fit(self,X):
+    def fit(self,X,chain_index):
         '''
         Fits Bayesian Hidden Markov Model
         
@@ -272,7 +274,21 @@ class VBBernoulliHMM(VBHMM):
         object: self
           self
         '''
-        super(VBBernoulliHMM,self)._fit(X)
+        trans_params, start_params, emission_params = super(VBBernoulliHMM,self)._fit(X)
+        
+        
+        
+    def filter(self,X):
+        '''
+        Performs filtering on matrix of observations
+        
+        Parameters
+        ----------
+        X: array-like or csr_matrix of size (n_samples, n_features)
+           Data Matrix
+
+        '''
+        pass
         
         
         
@@ -291,21 +307,23 @@ class VBBernoulliHMM(VBHMM):
         sf_stats[0] += np.outer(marginal,x)
         sf_stats[1] += marginal
         return sf_stats
+        
+    
+    def _check_convergence(self):
+        return False
 
 
         
 if __name__ == "__main__":
     X = np.array([[0,0],[0,0],[0,0],[1,1],[1,1],[1,1],[0,0],[0,0],[0,0],[1,1],
                   [1,1],[1,1],[0,0],[0,0],[0,0],[1,1],[1,1]])
-    X1 = np.array([[0,0],[1,1],[1,1],[1,1],[0,0],[0,0],[0,0],[1,1],
-                  [1,1],[1,1],[0,0],[0,0]])
-    bhmm = VBBernoulliHMM()
-    start_params, trans_params, emission_params = bhmm._init_params(2)
-    pr_start, pr_trans, pr_x = bhmm._probs_params(start_params, trans_params,
-                                                          emission_params, X)
-    alpha = np.zeros([X.shape[0],2]) 
-    alpha = bhmm._forward_single_chain(pr_start, pr_trans, pr_x, alpha)
-    sf_stats = bhmm._init_suff_stats(X.shape[1])
+    X1 = np.array([[0,0],[0,0],[0,0],[1,1],[1,1],[1,1],[0,0],[0,0],[0,0],[1,1],
+                  [1,1],[1,1],[0,0],[0,0],[0,0],[1,1],[1,1]])
+                  
+    bhmm = VBBernoulliHMM(n_iter = 200)
+    start_params, trans_params, emission_params = bhmm._fit(X)
+    pr_start, pr_trans, pr_x = bhmm._probs_params(start_params,trans_params,emission_params,X)
+    alpha = bhmm._forward_single_chain(pr_start, pr_trans, pr_x)
            
 
     
