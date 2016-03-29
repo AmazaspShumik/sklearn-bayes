@@ -24,10 +24,6 @@ def _get_chain(X,index):
     if from_idx != X.shape[0]-1:
         yield X[from_idx:(X.shape[0]-1),:]
 
-
-
-
-
         
 
 class VBHMM(BaseEstimator):
@@ -124,12 +120,18 @@ class VBHMM(BaseEstimator):
                 
         return trans_params, start_params, emission_params
                 
+                
         
-    def _vbm_step(self, trans, start_post, sf_stats_post, trans_params_prior,
+    def _vbm_step(self, trans, start, sf_stats, emission_params, trans_params_prior,
                   emission_params_prior, start_params_prior):
         '''
         Computes approximating distribution for posterior of parameters
         '''
+        trans += trans_params_prior
+        start += start_params_prior
+        emission_params = self._vbm_emission_params(emission_params_prior, emission_params,
+                                                    sf_stats)
+        return trans, start, emission_params
         
         
 
@@ -242,6 +244,17 @@ class VBBernoulliHMM(VBHMM):
         log_pr_fail   = log_fail    - log_normaliser
         return np.exp(safe_sparse_dot(X,log_pr_succes) + 
                       safe_sparse_dot(np.ones(X.shape) - X, log_pr_fail))
+        
+        
+                                    
+    def _vbm_emission_params(self,emission_params_prior, emission_params, sf_stats):
+        '''
+        Peerforms vbm step for parameters of emission probabilities
+        '''
+        emission_params['success_prob'] = emission_params_prior['succes_prob'] + sf_stats[0]
+        fail_delta = (sf_stats[1]  - sf_stats[0].T).T
+        emission_params['fail_prob'] = emission_params_prior['fail_prob'] + fail_delta
+        return emission_params
                       
         
     
@@ -278,17 +291,14 @@ class VBBernoulliHMM(VBHMM):
         sf_stats[0] += np.outer(marginal,x)
         sf_stats[1] += marginal
         return sf_stats
-                 
-    
-    def _suff_stats_update_new_chain(self):
-        '''
-        Updates sufficient statistics after observing new HMM
-        '''
-        
+
+
         
 if __name__ == "__main__":
     X = np.array([[0,0],[0,0],[0,0],[1,1],[1,1],[1,1],[0,0],[0,0],[0,0],[1,1],
                   [1,1],[1,1],[0,0],[0,0],[0,0],[1,1],[1,1]])
+    X1 = np.array([[0,0],[1,1],[1,1],[1,1],[0,0],[0,0],[0,0],[1,1],
+                  [1,1],[1,1],[0,0],[0,0]])
     bhmm = VBBernoulliHMM()
     start_params, trans_params, emission_params = bhmm._init_params(2)
     pr_start, pr_trans, pr_x = bhmm._probs_params(start_params, trans_params,
@@ -296,8 +306,6 @@ if __name__ == "__main__":
     alpha = np.zeros([X.shape[0],2]) 
     alpha = bhmm._forward_single_chain(pr_start, pr_trans, pr_x, alpha)
     sf_stats = bhmm._init_suff_stats(X.shape[1])
-    trans, start,sf_stats = bhmm._vbe_step_single_chain( X, alpha, pr_trans, pr_x,
-                                                         sf_stats )
            
 
     
