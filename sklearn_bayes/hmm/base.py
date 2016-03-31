@@ -52,23 +52,43 @@ class VBHMM(BaseEstimator):
     
     def _init_params(self):
         ''' 
-        Reads user defined parameters, or in case they are not defined randomly
-        initialise
+        Reads user defined parameters and checks their validity. In case parameters 
+        are not defined they are randomly initialised
         '''
         # initial distribution
-        if 'initial' in self.init_params:
+        if 'start' in self.init_params:
             pr_start = self.init_params['initial']
+            
+            # check shape of prior
+            if pr_start.shape != (self.n_hidden,):
+                raise ValueError(('Parameters of distribution of initial state '
+                                  'should have shape {0}, oberved shape is '
+                                  '{1}').format((self.n_hidden,),pr_start.shape[0]))
+            # check nonnegativity
+            if np.sum( pr_start < 0) > 0:
+                raise ValueError(('Parameters of Dirichlet Distribution can not be '
+                                  'negative'))
         else:
             pr_start = np.random.random(self.n_hidden) * self.alpha_start
             
         # matrix of transition probabilities
         if 'transition' in self.init_params:
             pr_trans = self.init_params['transition']
+
+            # check shape of prior for transition matrix
+            if pr_trans.shape != [self.n_hidden, self.n_hidden]:
+                raise ValueError(('Parameters for transition probability distribution '
+                                  'should have shape {0}, observed shape is '
+                                  '{1}').format([self.n_hidden,self.n_hidden],pr_trans.shape))
+            # check nonnegativity
+            if np.sum( pr_trans < 0) > 0:
+                raise ValueError(('Parameters of Dirichlet Distribution can not be '
+                                  'negative'))
         else:
             pr_trans = np.random.random( [self.n_hidden, self.n_hidden] ) * self.alpha_trans
             
         return pr_start, pr_trans
-        
+
     
     def _probs_params(self, start_params, trans_params, emission_params, X):
         '''
@@ -363,6 +383,8 @@ class VBMultinoulliHMM(VBHMM):
         pr_start, pr_trans = super(VBBernoulliHMM,self)._init_params()
         pr_emission = np.random.random([self.n_hidden, n_features])* self.alpha_succes
         return pr_start, pr_trans , {'success_prob': pr_succes, 'fail_prob': pr_fail}  
+        
+        
         
         
 if __name__ == "__main__":
