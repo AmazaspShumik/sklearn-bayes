@@ -130,7 +130,6 @@ class VBHMM(BaseEstimator):
                 alpha = self._forward_single_chain( pr_start, pr_trans, pr_x)
                 trans, start, sf_stats = self._vbe_step_single_chain(zx,alpha,pr_trans,
                                                           pr_x,sf_stats, trans, start)
-                print alpha
                 
             # log parameters of posterior distributions of parameters
             trans_params, start_params, emission_params = self._vbm_step(trans,start,
@@ -141,9 +140,9 @@ class VBHMM(BaseEstimator):
             if self._check_convergence():
                 break
                 
-        self.start_params    = start_params
-        self.trans_params    = trans_params
-        self.emission_params = emission_params 
+        self.start_params_    = start_params
+        self.trans_params_    = trans_params
+        self.emission_params_ = emission_params 
                 
         
     def _vbm_step(self, trans, start, sf_stats, emission_params, trans_params_prior,
@@ -192,6 +191,28 @@ class VBHMM(BaseEstimator):
             beta_before    = beta_after
         
         return trans, start, suff_stats
+        
+        
+    
+    def _viterbi_forward(self, log_pr_x, log_pr_trans, log_pr_start, X):
+        '''
+        Computes most probable sequence of states using viterbi algorithm
+        '''
+        n_samples     = pr_x.shape[0]
+        max_prob      = np.zeros([n_samples,self.n_hidden])
+        argmax_state  = np.zeros([n_samples,self.n_hidden])
+        max_prob[0,:] = log_pr_x[0,:] + log_pr_start
+        for t in xrange(1,n_samples):
+            # precompute some values
+            delta = max_prob[t-1,:] + log_pr_trans
+            
+            # compute log probs (not normalised) for sequence of states
+            max_prob[t,:] = log_pr_x[t,:] + np.max(delta,1)
+            
+            # most likely previous state on the most probable path
+            argmax_state[t,:] = log_pr_x[t,:] + delta
+        
+         
          
         
     def _forward_single_chain(self, pr_start, pr_trans, pr_x):
@@ -207,9 +228,10 @@ class VBHMM(BaseEstimator):
         
         
         
-    def filter(self,X):
+    def predict_proba(self,X):
         '''
         Performs filtering on matrix of observations
+        
         
         Parameters
         ----------
@@ -244,6 +266,14 @@ class VBBernoulliHMM(VBHMM):
     tol: float, optional (DEFAULT = 1e-3)
        Convergence threshold
        
+    init_params: dictionary, optional (DEFAULT = {} )
+       
+       'start': numpy array of size (n_hidden,)
+             Parameters of prior of initial state distribution
+        
+       'transition': numpy array of size (n_hidden,n_hidden)
+             Parameters of prior of transition matrix distribution
+                    
     alpha_start: float, optional (DEFAULT = 1.0)
        Concentration parameter for distibution of starting point of HMM
        
@@ -332,6 +362,9 @@ class VBBernoulliHMM(VBHMM):
         '''
         super(VBBernoulliHMM,self)._fit(X)
         return self
+        
+        
+    def _viterbi(self,)
 
     
     def _check_convergence(self):
