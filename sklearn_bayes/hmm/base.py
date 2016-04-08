@@ -90,16 +90,27 @@ class VBHMM(BaseEstimator):
         return pr_start, pr_trans
 
     
-    def _probs_params(self, start_params, trans_params, emission_params, X):
+    def _log_probs_params(self, start_params, trans_params, emission_params, X):
         '''
-        Calculate probabilities : emission, initial, transition using parameters
+        Compute log probabilities : emission, initial, transition using parameters
         '''
         log_pr_start = psi(start_params) - psi(np.sum(start_params))
         log_pr_start-= logsumexp(log_pr_start)
         log_pr_trans = psi(trans_params) - psi(np.sum(trans_params,1))
         log_pr_trans-= logsumexp(log_pr_trans,1,keepdims = True)
-        pr_x         = self._emission_probs_params(emission_params,X)
-        return np.exp(log_pr_start), np.exp(log_pr_trans), pr_x
+        log_pr_x     = self._emission_log_probs_params(emission_params,X)
+        return np.exp(log_pr_start), np.exp(log_pr_trans), log_pr_x
+       
+
+
+    def _probs_params(self, start_params, trans_params, emission_params, X):
+        '''
+        Compute probabilities: emission, initial, transition using parameters
+        '''
+        log_pr_start, log_pr_trans, log_pr_x = self._log_probs_params( start_params, 
+                                                      trans_params, emission_params, X)
+        return np.exp(log_pr_start), np.exp(log_pr_trans), np.exp(log_pr_x)
+    
         
                     
     def _fit(self, X, chain_indices = []):
@@ -192,28 +203,7 @@ class VBHMM(BaseEstimator):
         
         return trans, start, suff_stats
         
-        
-    
-    def _viterbi_forward(self, log_pr_x, log_pr_trans, log_pr_start, X):
-        '''
-        Computes most probable sequence of states using viterbi algorithm
-        '''
-        n_samples     = pr_x.shape[0]
-        max_prob      = np.zeros([n_samples,self.n_hidden])
-        argmax_state  = np.zeros([n_samples,self.n_hidden])
-        max_prob[0,:] = log_pr_x[0,:] + log_pr_start
-        for t in xrange(1,n_samples):
-            # precompute some values
-            delta = max_prob[t-1,:] + log_pr_trans
-            
-            # compute log probs (not normalised) for sequence of states
-            max_prob[t,:] = log_pr_x[t,:] + np.max(delta,1)
-            
-            # most likely previous state on the most probable path
-            argmax_state[t,:] = log_pr_x[t,:] + delta
-        
-         
-         
+          
         
     def _forward_single_chain(self, pr_start, pr_trans, pr_x):
         '''
@@ -228,10 +218,41 @@ class VBHMM(BaseEstimator):
         
         
         
+    def _viterbi(self, log_pr_x, log_pr_trans, log_pr_start, X):
+        '''
+        Computes most probable sequence of states using viterbi algorithm
+        '''
+        n_samples     = pr_x.shape[0]
+        best_states   = np.zeros(n_samples)
+        max_prob      = np.zeros([n_samples,self.n_hidden])
+        argmax_state  = np.zeros([n_samples,self.n_hidden])
+        max_prob[0,:] = log_pr_x[0,:] + log_pr_start
+        
+        # forward pass of viterbi algorithm
+        for t in xrange(1,n_samples):
+            
+            # precompute some values
+            delta = max_prob[t-1,:] + log_pr_trans
+            
+            # compute log probs (not normalised) for sequence of states
+            max_prob[t,:] = log_pr_x[t,:] + np.max(delta,1)
+            
+            # most likely previous state on the most probable path
+            argmax_state[t,:] = np.argmax((log_pr_x[t,:] + delta.T).T,0)
+            
+        # backtrack
+        best_states[n_samples-1] = np.argmax(max_prob[n_samples-1,:])
+        for j in xrange(1,n_samples):
+            t = n_samples - j - 1
+            best_states[t] = argmax_state[t,best_states[t+1]]
+
+        return best_states
+
+        
+        
     def predict_proba(self,X):
         '''
         Performs filtering on matrix of observations
-        
         
         Parameters
         ----------
@@ -243,13 +264,36 @@ class VBHMM(BaseEstimator):
         alpha: numpy array of size (n_samples, n_hidden)
            Belief states for each observation in X matrix
         '''
-        pr_start, pr_trans, pr_x = self._probs_params(self.start_params, 
-                                                      self.trans_params, 
-                                                      self.emission_params, X)
+        check_is_fitted(self,'start_params_')
+        pr_start, pr_trans, pr_x = self._probs_params(self.start_params_, 
+                                                      self.trans_params_, 
+                                                      self.emission_params_, X)
         alpha = self._forward_single_chain( pr_start, pr_trans, pr_x)
         return alpha
         
         
+        
+    def predict(self,X):
+        '''
+        Predicts cluster for test data
+        
+        Parameters
+        ----------
+        X: array-like or csr_matrix of size (n_samples, n_features)
+           Data Matrix
+           
+        Returns
+        -------
+        C: numpy array of size (n_samples,)
+           Hidden state index
+        '''
+        check_is_fitted(self,'start_params_')
+        log_pr_start, log_pr_trans, log_pr_x = self._log_probs_params(self.start_params_,
+                                                                      self.trans_params_,
+                                                                      self.emission_params_,X)
+        return self._viterbi(log_pr_x, log_pr_trans, log_pr_start, X)
+        
+               
         
 class VBBernoulliHMM(VBHMM):
     '''
@@ -303,7 +347,7 @@ class VBBernoulliHMM(VBHMM):
         return pr_start, pr_trans , {'success_prob': pr_succes, 'fail_prob': pr_fail}    
     
     
-    def _emission_probs_params(self, emission_params, X):
+    def _emission_log_probs_params(self, emission_params, X):
         '''
         Compute emission probabilities
         '''
@@ -315,8 +359,7 @@ class VBBernoulliHMM(VBHMM):
         log_normaliser = np.logaddexp(log_success, log_fail)
         log_pr_succes = log_success - log_normaliser
         log_pr_fail   = log_fail    - log_normaliser
-        return np.exp(safe_sparse_dot(X,log_pr_succes.T) + 
-                      safe_sparse_dot(np.ones(X.shape) - X, log_pr_fail.T))
+        return safe_sparse_dot(X,log_pr_succes.T) + safe_sparse_dot(np.ones(X.shape) - X, log_pr_fail.T)
         
                                   
     def _vbm_emission_params(self,emission_params_prior, emission_params, sf_stats):
@@ -346,7 +389,7 @@ class VBBernoulliHMM(VBHMM):
         return sf_stats
                       
     
-    def fit(self,X,chain_index):
+    def fit(self,X,chain_index = []):
         '''
         Fits Bayesian Hidden Markov Model
         
@@ -360,13 +403,11 @@ class VBBernoulliHMM(VBHMM):
         object: self
           self
         '''
-        super(VBBernoulliHMM,self)._fit(X)
+        super(VBBernoulliHMM,self)._fit(X, chain_index)
         return self
-        
-        
-    def _viterbi(self,)
 
-    
+
+
     def _check_convergence(self):
         return False
         
@@ -428,9 +469,21 @@ if __name__ == "__main__":
                   [1,1],[1,1],[0,0],[0,0],[0,0],[1,1],[1,1]])
                   
     bhmm = VBBernoulliHMM(n_iter = 200)
-    start_params, trans_params, emission_params = bhmm._fit(X)
-    pr_start, pr_trans, pr_x = bhmm._probs_params(start_params,trans_params,emission_params,X)
+    bhmm.fit(X)
+    pr_start, pr_trans, pr_x = bhmm._probs_params(bhmm.start_params_,bhmm.trans_params_,
+                                                  bhmm.emission_params_,X)
+    
+    # test filtering 
     alpha = bhmm._forward_single_chain(pr_start, pr_trans, pr_x)
+    
+    # test viterbi    
+    log_pr_start, log_pr_trans, log_pr_x = bhmm._log_probs_params(bhmm.start_params_,bhmm.trans_params_,
+                                                  bhmm.emission_params_,X)
+    
+    best_states = bhmm.predict(X)
+    
+    
+    
            
 
     
