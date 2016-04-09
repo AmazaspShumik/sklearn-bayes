@@ -149,10 +149,12 @@ class GeneralMixtureModelExponential(BaseEstimator):
         Parameters
         ----------
         X : array-like, shape = [n_samples, n_features]
+           Data Matrix
         
         Returns
         -------
-        C : array, shape = (n_samples,) component memberships
+        : array, shape = (n_samples,) component memberships
+           Cluster index
         '''
         return np.argmax(self.predict_proba(X),1)
         
@@ -815,7 +817,7 @@ class VBGMMARD(GeneralMixtureModelExponential):
             
         if 'covar' in self.init_params:
             scale_inv0 = self.init_params['covar']
-            scale0     = pinvh
+            scale0     = pinvh(scale_inv0)
         else:
             # heuristics to define broad prior over precision matrix
             diag_els   = np.abs(np.max(X,0) - np.min(X,0))
