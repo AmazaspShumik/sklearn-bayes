@@ -755,7 +755,7 @@ class VBGMMARD(GeneralMixtureModelExponential):
        smaller than threshold it is removed.
      
     init_params: dict, optional (DEFAULT = {})
-       Initial parameters for model (keys = ['dof','covar','weights'])
+       Initial parameters for model (keys = ['dof','covar','weights','beta','means'])
            'dof'    : int  
                  Degrees of freedom for prior distribution
                  
@@ -769,7 +769,7 @@ class VBGMMARD(GeneralMixtureModelExponential):
                   Scaling constant for precision of mean's prior 
                   
            'means'  : array of size (n_components, n_features) 
-                  Mean
+                  Means of clusters
 
     verbose: bool, optional (DEFAULT = False)
        Enables verbose output
@@ -820,8 +820,8 @@ class VBGMMARD(GeneralMixtureModelExponential):
             scale0     = pinvh(scale_inv0)
         else:
             # heuristics to define broad prior over precision matrix
-            diag_els   = np.abs(np.max(X,0) - np.min(X,0))
-            scale_inv0 = np.diag( diag_els/2  )
+            diag_els   = np.abs(np.max(X,0) - np.min(X,0))/2
+            scale_inv0 = np.diag( diag_els  )
             scale0     = np.diag( 1./ diag_els )
             
         if 'weights' in self.init_params:
