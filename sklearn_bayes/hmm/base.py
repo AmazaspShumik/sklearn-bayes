@@ -4,6 +4,7 @@ from scipy.linalg import pinvh
 from sklearn.utils.extmath import safe_sparse_dot
 from sklearn.base import BaseEstimator
 from sklearn.utils.validation import check_is_fitted
+from sklearn.utils import check_array
 from sklearn.mixture import VBGMM
 from sklearn.cluster import KMeans
 from scipy.stats import multivariate_normal as mvn
@@ -94,17 +95,35 @@ class VBHMM(BaseEstimator):
         else:
             pr_trans = np.random.random( [self.n_hidden, self.n_hidden] ) * self.alpha_trans
         return pr_start, pr_trans
+        
+        
+        
+    def _log_probs_start(self, start_params):
+        '''
+        Computes log probabilities of initial state 
+        '''
+        log_pr_start = psi(start_params) - psi(np.sum(start_params))
+        log_pr_start-= logsumexp(log_pr_start)
+        return log_pr_start
+        
+        
+        
+    def _log_probs_trans(self,trans_params):
+        '''
+        Computes log probabilities of transitions
+        '''
+        log_pr_trans = psi(trans_params) - psi(np.sum(trans_params,1))
+        log_pr_trans-= logsumexp(log_pr_trans,1,keepdims = True)
+        return log_pr_trans
 
 
-    
+
     def _log_probs_params(self, start_params, trans_params, emission_params, X):
         '''
         Compute log probabilities : emission, initial, transition using parameters
         '''
-        log_pr_start = psi(start_params) - psi(np.sum(start_params))
-        log_pr_start-= logsumexp(log_pr_start)
-        log_pr_trans = psi(trans_params) - psi(np.sum(trans_params,1))
-        log_pr_trans-= logsumexp(log_pr_trans,1,keepdims = True)
+        log_pr_start = self._log_probs_start(start_params)
+        log_pr_trans = self._log_probs_trans(trans_params)
         log_pr_x     = self._emission_log_probs_params(emission_params,X)
         return log_pr_start, log_pr_trans, log_pr_x
        
@@ -112,12 +131,11 @@ class VBHMM(BaseEstimator):
 
     def _probs_params(self, start_params, trans_params, emission_params, X):
         '''
-        Compute probabilities: emission, initial, transition using parameters
+        Compute probs & logprobs: emission, initial, transition using parameters
         '''
         log_pr_start, log_pr_trans, log_pr_x = self._log_probs_params( start_params, 
                                                       trans_params, emission_params, X)
-        print np.argmax(log_pr_x,1)
-        return np.exp(log_pr_start), np.exp(log_pr_trans),  log_pr_trans, log_pr_x
+        return log_pr_start, np.exp(log_pr_trans),  log_pr_trans, log_pr_x
     
         
                     
@@ -164,6 +182,8 @@ class VBHMM(BaseEstimator):
         self._start_params_    = start_params
         self._trans_params_    = trans_params
         self._emission_params_ = emission_params
+        self.log_pr_start = self._log_probs_start(start_params)
+        self.log_pr_trans = self._log_probs_trans(trans_params)
                 
                 
         
@@ -195,27 +215,22 @@ class VBHMM(BaseEstimator):
             beta_after     = np.log(np.dot(pr_trans,beta_before)) + log_pr_x[i,:]
             
             # marginal distribution of latent variable, given observed variables
-            #marginal       = _normalise(alpha[i,:]*beta_before)  
-            marginal = alpha[i,:] *beta_before                    
+            # !!!!!!!!!!!!!!!!
+            marginal = alpha[i,:] * beta_before
+            print marginal              
             
             if i > 0:
                 # joint marginal of two latent variables, given observed ones
                 delta = np.log(np.outer(alpha[i-1,:], beta_before)) + log_pr_x[i,:]
                 joint_marginal = log_pr_trans + delta
-                joint_marginal = np.exp(joint_marginal) # - logsumexp(joint_marginal))                
+                joint_marginal = np.exp(joint_marginal)              
 
                 # iterative update of posterior for transitional probability
                 trans += joint_marginal
             else:
                 # update for posterior of intial latent variable
                 start += marginal
-            
-            #print "ALPHA & BETA"
-            #print alpha[i,:]
-            #print beta_after
-            #print "Marginals"
-            #print marginal
-            
+
             # iterative update of sufficient statistics for emission probs
             suff_stats     = self._suff_stats_update(suff_stats,X[i,:],marginal)
             beta_before    = np.exp(beta_after - scaler[i])
@@ -228,12 +243,12 @@ class VBHMM(BaseEstimator):
         '''
         Performs forward pass ('filter') on single Hidden Markov Model chain
         '''
-        n_samples = log_pr_x.shape[0] 
-        alpha     = np.zeros(log_pr_x.shape)
-        alpha[0,:] = log_pr_x[0,:] + log_pr_start
-        alpha[0,:] -= logsumexp(alpha[0,:])
-        alpha[0,:] = np.exp(alpha[0,:])
+        n_samples  = log_pr_x.shape[0] 
         scaler     = np.zeros(n_samples)
+        alpha      = np.zeros([n_samples, self.n_hidden])
+        alpha[0,:] = log_pr_x[0,:] + log_pr_start
+        scaler[0]  = logsumexp(alpha[0,:])
+        alpha[0,:] = np.exp( alpha[0,:] - scaler[0] )
         for i in range(1,n_samples):
             alpha[i,:] = np.dot(pr_trans.T,alpha[i-1,:]) 
             alpha[i,:] = np.log(alpha[i,:]) + log_pr_x[i,:] 
@@ -270,17 +285,15 @@ class VBHMM(BaseEstimator):
         for j in xrange(1,n_samples):
             t = n_samples - j - 1
             best_states[t] = argmax_state[t,best_states[t+1]]
-
-        print 'argmax state'
-        print argmax_state
-        print max_prob
+            
         return best_states
 
         
         
-    def predict_proba(self,X):
+    def filter(self,X):
         '''
-        Performs filtering on matrix of observations
+        Computes probability that observation is generated by particular hidden
+        state after observing observations till current one (i.e. future)Performs filtering on matrix of observations
         
         Parameters
         ----------
@@ -290,14 +303,60 @@ class VBHMM(BaseEstimator):
         Returns
         -------
         alpha: numpy array of size (n_samples, n_hidden)
-           Belief states for each observation in X matrix
+           Belief state for observation in X matrix after observing data
+           till that observation i.e. p(z_t | x_{1:t}). 
         '''
         check_is_fitted(self,'_start_params_')
-        log_pr_start,pr_trans,log_pr_trans,log_pr_x = self._probs_params(self._start_params_, 
-                                                      self._trans_params_, 
-                                                      self._emission_params_, X)
-        alpha = self._forward_single_chain( log_pr_start, pr_trans, log_pr_x)
+        X = check_array(X)
+        log_pr_x     = self._emission_log_probs_params(self._emission_params_, X)
+        alpha,scaler = self._forward_single_chain( self.log_pr_start, np.exp(self.log_pr_trans),
+                                                   log_pr_x)
         return alpha
+        
+     
+    def predict_proba(self,X):
+        '''
+        Computes probability that observation is generated by particular hidden
+        state after observing all data. In hmm literature it is known as
+        smoothing.
+        
+        Parameters
+        ----------
+        X: array-like of size (n_samples, n_features)
+           Data Matrix
+           
+        Returns
+        -------
+        marginal : numpy array of size (n_samples,n_hidden)
+           Belief state for observation in X matrix after observing all data points
+           i.e. p(z_t | x_{1:T}). 
+           
+        ''' 
+        X = check_array(X)
+        n_samples     = X.shape[0]
+
+        
+        # forward pass
+        log_pr_x = self._emission_log_probs_params(self._emission_params_, X)
+        pr_trans = np.exp(self.log_pr_trans)
+        alpha, scaler = self._forward_single_chain( self.log_pr_start, np.exp(self.log_pr_trans),
+                                                    log_pr_x) 
+                                                    
+        # backward pass (combined with calculation of marginal distribution) 
+        beta_before   = np.ones(self.n_hidden)
+        marginal      = np.zeros([n_samples,self.n_hidden])
+           
+        # backward pass, single & joint marginal calculation, sufficient stats
+        for i in np.linspace(n_samples-1,0,n_samples):
+            
+            # recursively compute beta (start from the end of sequence, where beta = 1)
+            beta_after     = np.log(np.dot(pr_trans,beta_before)) + log_pr_x[i,:]
+            
+            # marginal distribution of latent variable, given observed variables
+            marginal[i,:]  = _normalise(alpha[i,:] * beta_before)
+            beta_before    = np.exp(beta_after - scaler[i])
+        
+        return marginal
         
         
         
@@ -316,10 +375,9 @@ class VBHMM(BaseEstimator):
            Hidden state index
         '''
         check_is_fitted(self,'_start_params_')
-        log_pr_start, log_pr_trans, log_pr_x = self._log_probs_params(self._start_params_,
-                                                                      self._trans_params_,
-                                                                      self._emission_params_,X)
-        return self._viterbi(log_pr_x, log_pr_trans, log_pr_start, X)
+        X = check_array(X)
+        log_pr_x     = self._emission_log_probs_params(self._emission_params_, X)
+        return self._viterbi(log_pr_x, self.log_pr_trans, self.log_pr_start, X)
         
                
         
@@ -367,7 +425,7 @@ class VBBernoulliHMM(VBHMM):
     ----------
     
     ''' 
-    def __init__(self, n_hidden = 2, n_iter = 100, init_params = {}, tol = 1e-3,
+    def __init__(self, n_hidden = 2, n_iter = 100, tol = 1e-3, init_params = {}, 
                  alpha_start = 10, alpha_trans = 10 , alpha_succes = 5, alpha_fail = 5,
                  verbose = False):
         super(VBBernoulliHMM,self).__init__(n_hidden, n_iter, init_params, tol,
@@ -416,14 +474,10 @@ class VBBernoulliHMM(VBHMM):
         log_total   = psi(success + fail)
         log_success = psi(success) -  log_total
         log_fail    = psi(fail)    -  log_total
-        
-        # normalisation is not neccesary here
-        #log_normaliser = np.logaddexp(log_success, log_fail)
-        #log_pr_success = log_success - log_normaliser
-        #log_pr_fail   = log_fail    - log_normaliser
-        #return safe_sparse_dot(X,log_pr_success.T) + safe_sparse_dot(np.ones(X.shape) - X, log_pr_fail.T)
         return safe_sparse_dot(X,log_success.T) + safe_sparse_dot(np.ones(X.shape) - X, log_fail.T)
+          
                                   
+                                                                                  
     def _vbm_emission_params(self,emission_params_prior, emission_params, sf_stats):
         '''
         Performs vbm step for parameters of emission probabilities
@@ -432,6 +486,7 @@ class VBBernoulliHMM(VBHMM):
         fail_delta = (sf_stats[1]  - sf_stats[0].T).T
         emission_params['fail_prob'] = emission_params_prior['fail_prob'] + fail_delta
         return emission_params
+
 
         
     def _init_suff_stats(self,n_features):
@@ -442,6 +497,7 @@ class VBBernoulliHMM(VBHMM):
                  np.zeros( self.n_hidden ) ]
                  
     
+    
     def _suff_stats_update(self,sf_stats, x, marginal):
         '''
         Updates sufficient statistics within backward pass in HMM
@@ -449,7 +505,8 @@ class VBBernoulliHMM(VBHMM):
         sf_stats[0] += np.outer(marginal,x)
         sf_stats[1] += marginal
         return sf_stats
-                      
+              
+                              
     
     def fit(self,X,chain_index = []):
         '''
@@ -465,7 +522,9 @@ class VBBernoulliHMM(VBHMM):
         object: self
           self
         '''
+        X = check_array(X, accept_sparse = 'csr')
         super(VBBernoulliHMM,self)._fit(X, chain_index)
+        self.means_ = self._emission_params_['success_prob']
         return self
 
 
@@ -491,6 +550,21 @@ class VBGaussianHMM(VBHMM):
     tol: float, optional (DEFAULT = 1e-3)
        Convergence threshold
        
+    init_params: dict, optional (DEFAULT = {})
+       Initial parameters for model (keys = ['dof','covar','weights'])
+       
+           'dof'    : int  
+                 Degrees of freedom for prior distribution
+                 
+           'covar'  : array of size (n_features, n_features)
+                  Inverse of scaling matrix for prior wishart distribution
+
+           'beta'   : float
+                  Scaling constant for precision of mean's prior 
+                  
+           'means'  : array of size (n_components, n_features) 
+                  Means of hidden states
+                  
     alpha_start: float, optional (DEFAULT = 2.0)
        Concentration parameter for distibution of starting point of HMM
        
@@ -499,8 +573,15 @@ class VBGaussianHMM(VBHMM):
               
     verbose: bool, optional (DEFAULT = False)
        If True prints intermediate results and progress report at each iteration
+       
+    
+    Attributes
+    ----------
+    means
+    dof
+    covars
     '''
-    def __init__(self, n_hidden = 2, n_iter = 100, init_params = {}, tol = 1e-3,
+    def __init__(self, n_hidden = 2, n_iter = 100, tol = 1e-3, init_params = {}, 
                  alpha_start = 2, alpha_trans = 2 , verbose = False):
         super(VBGaussianHMM,self).__init__(n_hidden, n_iter, init_params, tol,
                                            alpha_start, alpha_trans, verbose)
@@ -516,7 +597,7 @@ class VBGaussianHMM(VBHMM):
 
         # initialise prior on means & precision matrices
         if 'means' in self.init_params:
-            means0   = self.init_params['means']
+            means0   = check_array(self.init_params['means'])
         else:
             kms = KMeans(n_init = 2, n_clusters = self.n_hidden)
             means0 = kms.fit(X).cluster_centers_
@@ -598,10 +679,7 @@ class VBGaussianHMM(VBHMM):
             emission_params['scale'][k] = pinvh( scale_inv0 + (beta0*Sk[k] + Nk[k]*Sk[k] - 
                                        np.outer(Xk[k],Xk[k]) - 
                                        beta0*np.outer(means0[k] - Xk[k],means0[k])) /
-                                       (beta0 + Nk[k]) )
-            print 'after M-step'
-            print emission_params['scale']
-            
+                                       (beta0 + Nk[k]) )            
         return emission_params        
             
         
@@ -621,8 +699,6 @@ class VBGaussianHMM(VBHMM):
         for k in range(self.n_hidden):
             
             # calculate expectation of logdet of precision matrix
-            print 'Scaling matrix'
-            print scale[k]
             scale_logdet   = np.linalg.slogdet(scale[k])[1]
             e_logdet_prec  = sum([psi(0.5*(dof[k]+1-i)) for i in range(1,d+1)])
             e_logdet_prec += scale_logdet + d*np.log(2)
@@ -634,7 +710,7 @@ class VBGaussianHMM(VBHMM):
             e_quad_form   += d / beta[k] 
             log_probs[:,k] = 0.5*(e_logdet_prec - e_quad_form)
         
-        return log_probs - logsumexp(log_probs)
+        return log_probs
         
         
     def _check_convergence(self):
@@ -644,7 +720,7 @@ class VBGaussianHMM(VBHMM):
         
     def fit(self,X,chain_index = []):
         '''
-        Fits Bayesian Hidden Markov Model
+        Fits Bayesian Hidden Markov Model with Gaussian emission probabilities
         
         Parameters
         ----------
@@ -656,7 +732,9 @@ class VBGaussianHMM(VBHMM):
         object: self
           self
         '''
+        X = check_array(X)
         super(VBGaussianHMM,self)._fit(X, chain_index)
+        self.means_ = self._emission_params_['means']
         return self
         
         
@@ -679,10 +757,10 @@ if __name__ == "__main__":
     #
     ## test filtering 
     #alpha = bhmm.predict(X)
-    #probs = bhmm.predict_proba(X)
+    #probs = bhmm.filter(X)
     #
     #
-    
+    #
 
     ## test viterbi    
     #log_pr_start, log_pr_trans, log_pr_x = bhmm._log_probs_params(bhmm._start_params_,bhmm._trans_params_,
@@ -693,13 +771,14 @@ if __name__ == "__main__":
     #
     #testing Gaussian HMM
     X = np.random.random([200,2])
-    X[0:100,:] += 2
+    X[0:100,:] += 10
     plt.plot(X[:,0],X[:,1],'r+')
     plt.show()
     
     ghmm = VBGaussianHMM(n_iter = 10)
     ghmm.fit(X)
     alpha = ghmm.predict(X)
+    probs = ghmm.predict_proba(X)
     
     
     
