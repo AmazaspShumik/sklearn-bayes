@@ -7,12 +7,12 @@ from sklearn.utils.validation import check_is_fitted
 from sklearn.utils import check_array
 from sklearn.mixture import VBGMM
 from sklearn.cluster import KMeans
-from scipy.stats import multivariate_normal as mvn
+from scipy.sparse import csr_matrix,isspmatrix
 from copy import deepcopy
 import numpy as np
 
 
-#------------------------ Helper Methods ----------------------------------------
+#----------------------------- Helper Methods ----------------------------------------
 
 
 def _logdot(a, b):
@@ -63,8 +63,24 @@ def _check_shape_sign(x,shape,shape_message, sign_message):
         raise ValueError(shape_message)
     if np.sum( x < 0 ) > 0:
         raise ValueError(sign_message)
+        
+        
+        
+def _get_classes(X):
+    '''Finds number of unique elements in matrix'''
+    if isspmatrix(X):
+        v = X.data
+        if len(v) < X.shape[0]*X.shape[1]:
+            v = np.hstack((v,np.zeros(1)))
+        V     = np.unique(v)
+    else:
+        V     = np.unique(X)
+    return V
     
-                  
+    
+   
+#--------------------------------- Hidden Markov Models ------------------------------               
+
 
 
 class VBHMM(BaseEstimator):
@@ -323,7 +339,7 @@ class VBHMM(BaseEstimator):
            till that observation i.e. p(z_t | x_{1:t}). 
         '''
         check_is_fitted(self,'_start_params_')
-        X = check_array(X)
+        X = self._check_X_test(X)
         log_pr_x     = self._emission_log_probs_params(self._emission_params_, X)
         alpha,scaler = self._forward_single_chain( self._log_pr_start_, self._log_pr_trans_,
                                                    log_pr_x)
@@ -348,7 +364,8 @@ class VBHMM(BaseEstimator):
            i.e. p(z_t | x_{1:T}). 
            
         ''' 
-        X = check_array(X)
+        check_is_fitted(self,"_start_params_")
+        X = self._check_X_test(X)
         n_samples     = X.shape[0]
 
         
@@ -390,7 +407,7 @@ class VBHMM(BaseEstimator):
            Hidden state index
         '''
         check_is_fitted(self,'_start_params_')
-        X = check_array(X)
+        X = self._check_X_test(X)
         log_pr_x     = self._emission_log_probs_params(self._emission_params_, X)
         return self._viterbi(log_pr_x, self._log_pr_trans_, self._log_pr_start_, X)
         
@@ -456,6 +473,7 @@ class VBBernoulliHMM(VBHMM):
         self.alpha_succes = alpha_succes
         self.alpha_fail   = alpha_fail
          
+         
     
     def _init_params(self,*args):
         ''' 
@@ -484,10 +502,42 @@ class VBBernoulliHMM(VBHMM):
         else:
             pr_fail   = np.random.random([self.n_hidden, n_features])* self.alpha_fail
             
-        return pr_start, pr_trans , {'success_prob': pr_succes, 'fail_prob': pr_fail}    
+        return pr_start, pr_trans , {'success_prob': pr_succes, 'fail_prob': pr_fail} 
+        
+        
     
-    
-    
+    def _check_X_train(self,X):
+        ''' Preprocesses & check validity of training data'''
+        X = check_array(X, accept_sparse = 'csr')
+        self.classes_     = _get_classes(X)
+        n                 = len(self.classes_)
+        # check that there are only two categories in data
+        if n != 2:
+            raise ValueError(('There are {0} categorical values in data, '
+                               'model accepts data with only 2'.format(n)))
+        return 1*(X==self.classes_[1])
+        
+        
+        
+    def _check_X_test(self,X):
+        ''' Preprocesses & check validity of test data'''
+        X = check_array(X, accept_sparse = ['csr'])
+        classes_   = _get_classes(X)
+        n          = len(classes_)
+        # check number of classes 
+        if n != 2:
+            raise ValueError(('There are {0} categorical values in data, '
+                               'model accepts data with only 2'.format(n))) 
+        # check whether these are the same classes as in training
+        if classes_[0]==self.classes_[0] and classes_[1] == self.classes_[1]:
+            return 1*(X==self.classes_[1])
+        else:
+            raise ValueError(('Classes in training and test set are different, '
+                              '{0} in training, {1} in test'.format(self.classes_,
+                              classes_)))
+                         
+                                   
+                              
     def _emission_log_probs_params(self, emission_params, X):
         '''
         Computes log of emission probabilities
@@ -529,27 +579,6 @@ class VBBernoulliHMM(VBHMM):
         sf_stats[1] += marginal
         return sf_stats
               
-                              
-    
-    def fit(self,X,chain_index = []):
-        '''
-        Fits Bayesian Hidden Markov Model
-        
-        Parameters
-        ----------
-        X: array-like or csr_matrix of size (n_samples, n_features)
-           Data Matrix
-           
-        Returns
-        -------
-        object: self
-          self
-        '''
-        X = check_array(X, accept_sparse = 'csr')
-        super(VBBernoulliHMM,self)._fit(X, chain_index)
-        self.means_ = self._emission_params_['success_prob']
-        return self
-
 
 
     def _check_convergence(self,params,iteration):
@@ -573,6 +602,27 @@ class VBBernoulliHMM(VBHMM):
                 self.means_old = np.copy(params['success_prob'])
                 return False
              
+                 
+    
+    def fit(self,X,chain_index = []):
+        '''
+        Fits Bayesian Hidden Markov Model
+        
+        Parameters
+        ----------
+        X: array-like or csr_matrix of size (n_samples, n_features)
+           Data Matrix
+           
+        Returns
+        -------
+        object: self
+          self
+        '''
+        X = self._check_X_train(X)
+        super(VBBernoulliHMM,self)._fit(X, chain_index)
+        self.means_ = self._emission_params_['success_prob']
+        return self
+
         
         
 
@@ -690,22 +740,28 @@ class VBGaussianHMM(VBHMM):
         return pr_start, pr_trans, {'means':means0,'scale':scale,'beta': beta,
                                     'dof':dof,'scale_inv0':scale_inv0}
         
+                
+    def _check_X_train(self,X):
+        ''' Preprocesses & check validity of training data'''
+        return check_array(X)
         
-        
+               
+    def _check_X_test(self,X):
+        ''' Preprocesses & check validity of test data'''
+        return check_array(X)
+                                                                
+                                                                                                                                            
     def _init_suff_stats(self,n_features):
         ''' 
         Initialise sufficient statistics for Bayesian Gaussian HMM
         (Similar to 10.51 in Bishop(2006) , but instead of weighted avergae we 
         use weighted sum to avoid underflow issue)
         '''
-        return [ 
-                 np.zeros(self.n_hidden),
+        return [ np.zeros(self.n_hidden),
                  np.zeros( [self.n_hidden, n_features] ),
-                 np.zeros( [self.n_hidden, n_features, n_features] )
-               ]
+                 np.zeros( [self.n_hidden, n_features, n_features] ) ]
                  
               
-                    
     def _suff_stats_update(self,sf_stats, x, marginal):
         '''
         Updates sufficient statistics within backward pass in HMM
@@ -766,6 +822,7 @@ class VBGaussianHMM(VBHMM):
         return log_probs
         
         
+        
     def _check_convergence(self, params, iteration):
         '''
         Checks convergence for Bayesian Gaussian HMM
@@ -803,8 +860,7 @@ class VBGaussianHMM(VBHMM):
           self
         '''
         # preprocess data, 
-        X = check_array(X)
-        
+        X = self._check_X_train(X)
         super(VBGaussianHMM,self)._fit(X, chain_index)
         self.means_ = self._emission_params_['means']
         scale, dof  = self._emission_params_['scale'], self._emission_params_['dof'] 
@@ -888,17 +944,68 @@ class VBMultinoulliHMM(VBHMM):
             
         return pr_start, pr_trans , {'success_prob': pr_succes, 'fail_prob': pr_fail} 
         
-         
+        
+        
+        
+    def _check_X_test(self,X):
+        ''' Preprocesses & check validity of test data'''
+        X = check_array(X, accept_sparse = ['csr'])
+        classes_   = _get_classes(X)
+        n          = len(classes_)
+        # check number of unique elements in training and test is the same
+        if n != len(self.classes_):
+            raise ValueError(('Number of unique elements in training  '
+                               'data is {0}, number unique elements in test '
+                               'set is {1}'.format(len(self.classes_),n))) 
+        # check whether these are the same unique elements as in test data
+        if np.prod(self.classes_==classes_)==1:
+            return self._precompute_X(X)
+        else:
+            raise ValueError(('Classes in training and test set are different, '
+                              '{0} in training, {1} in test'.format(self.classes_,
+                              classes_)))
+        
+    
+    
+    def _precompute_X(self,X):
+        '''Precomputes binary matrices '''
+        zero_class = csr_matrix(np.ones(X.shape))
+        precomputed_X = [0]*len(self.classes_) 
+        for i,class_ in enumerate(self.classes_[1:]):
+            if isspmatrix(X):
+                precomputed_X[i+1] = 1*(X==class_)
+            else:
+                precomputed_X[i+1] = csr_matrix(1*(X==class_))
+            zero_class -= precomputed_X[i+1]
+        precomputed_X[0] = zero_class
+        return precomputed_X
+
+
+
+    def _get_class(self,X):
+        '''Generator for binary matrix [True,False] for each class'''
+        # TODO: handle zero elements of sparse matrix more efficiently
+        for i,class_ in enumerate(self.classes_):
+            if self.precompute_X:
+                yield X[i]
+            else:
+                if isspmatrix(X):
+                   yield 1*(X==class_)
+                else:
+                   yield csr_matrix(1*(X==class_))         
+     
+     
      
     def _init_suff_stats(self,n_features):
          '''
          Initialise sufficient statistics for Bayesian Multionoulli HMM
          '''
-         return [ 
-                 np.zeros(self.n_hidden),
-                 np.zeros( [self.n_hidden, n_features] ),
-                 np.zeros( [self.n_hidden, n_features, n_features] )
-                ]
+         return [ np.zeros(self.n_hidden),
+                  np.zeros( [self.n_hidden, n_features]),
+                  np.zeros( [self.n_hidden, n_features, n_features]) ]
+                  
+                  
+    def 
                         
         
         
@@ -914,21 +1021,25 @@ if __name__ == "__main__":
     #import matplotlib.pyplot as plt
     ##
     ## testing Bernoulli HMM
-    #X = np.array([[0,0,0],[0,0,0],[0,0,0],[1,1,1],[1,1,1],[1,1,1],[0,0,0],[0,0,0],
-    #              [0,0,0],[1,1,1],[1,1,1],[1,1,1],[0,0,0],[0,0,0],[0,0,0],[1,1,1],
-    #              [1,1,1]])
-    #X1 = np.array([[0,0],[0,0],[0,0],[1,1],[1,1],[1,1],[0,0],[0,0],[0,0],[1,1],
-    #              [1,1],[1,1],[0,0],[0,0],[0,0],[1,1],[1,1]])
-    #              
-    #bhmm = VBBernoulliHMM(n_iter = 100, verbose = True)
-    #bhmm.fit(X)
-    ##start_params, trans_params, emission_params = bhmm._init_params(3,X)
-    #
-    ## test filtering 
-    #alpha = bhmm.predict(X)
-    #prob = bhmm.filter(X)
-    #probs = bhmm.predict_proba(X)
-    #
+    X = np.array([[0,0,0],[0,0,0],[0,0,0],[1,1,1],[1,1,1],[1,1,1],[0,0,0],[0,0,0],
+                  [0,0,0],[1,1,1],[1,1,1],[1,1,1],[0,0,0],[0,0,0],[0,0,0],[1,1,1],
+                  [1,1,1]])
+                  
+    Y = np.zeros(X.shape, dtype = "|S9")
+    Y[X==0]="a"
+    Y[X==1]="b"
+    X1 = np.array([[0,0],[0,0],[0,0],[1,1],[1,1],[1,1],[0,0],[0,0],[0,0],[1,1],
+                  [1,1],[1,1],[0,0],[0,0],[0,0],[1,1],[1,1]])
+                  
+    bhmm = VBBernoulliHMM(n_iter = 100, verbose = True)
+    bhmm.fit(Y)
+    #start_params, trans_params, emission_params = bhmm._init_params(3,X)
+    
+    # test filtering 
+    alpha = bhmm.predict(Y)
+    prob = bhmm.filter(Y)
+    probs = bhmm.predict_proba(Y)
+    
     #
     #
 
@@ -940,14 +1051,14 @@ if __name__ == "__main__":
     #print best_states
     #
     #testing Gaussian HMM
-    X = np.random.random([200,2])
-    X[0:100,:] += 1
-    
-    ghmm = VBGaussianHMM(n_iter = 100, verbose = True)
-    ghmm.fit(X)
-    alpha = ghmm.predict(X)
-    probs = ghmm.predict_proba(X)
-    filtered = ghmm.filter(X)
+    #X = np.random.random([200,2])
+    #X[0:100,:] += 1
+    #
+    #ghmm = VBGaussianHMM(n_iter = 100, verbose = True)
+    #ghmm.fit(X)
+    #alpha = ghmm.predict(X)
+    #probs = ghmm.predict_proba(X)
+    #filtered = ghmm.filter(X)
     
     
     
