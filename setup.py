@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
        name = 'sklearn_bayes',
-       version  = '0.1.0a1',
+       version  = '0.1.0a2',
        description = "bayesian machine learning algorithms with scikit-learn api",
        url         = 'https://github.com/AmazaspShumik/sklearn_bayes',
        author      = 'Amazasp Shaumyan',
