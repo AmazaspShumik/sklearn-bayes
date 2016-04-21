@@ -43,7 +43,9 @@
 ##TODO
 
   1) Lower bound for Variation Hidden Markov Models (Bernoulli, Multinoulli, Gaussian)
+  
   2) More efficient Multinoulli HMM
+  
   3) Lower bound for VBGMMARD
 
 
