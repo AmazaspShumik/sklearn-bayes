@@ -1139,5 +1139,6 @@ class VBMultinoulliHMM(VBHMM):
         if self.precompute_X:
            X  = self._precompute_X(X)
         super(VBMultinoulliHMM,self)._fit(X, chain_index)
-        
+        self.means_ = [c/np.sum(c,1, ) for c in self._emission_params_['concentration']]
+        return self
 
