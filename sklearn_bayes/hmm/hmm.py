@@ -44,6 +44,8 @@ def _logouter(a,b):
     return c
     
     
+# TODO: using types is not really good practice (advice from Stan and Jim)
+#       !!! Improve !!! Bad code.
 def _get_chain(X,index = []):
     ''' Generates separate chains'''
     from_idx = 0
@@ -54,10 +56,17 @@ def _get_chain(X,index = []):
            yield X[from_idx:,:]
     else:
         for idx in index:
-            yield X[from_idx:idx,:]
+            if type(X)==list:
+                yield [x[from_idx:idx,:] for x in X] # again for multinoulli distribution
+            else:
+                yield X[from_idx:idx,:]
             from_idx = idx
-        if from_idx != X.shape[0]-1:
-            yield X[from_idx:(X.shape[0]-1),:]
+        if type(X)==list:
+            if from_idx != X[0].shape[0]-1:
+                yield [x[from_idx:(X[0].shape[0]-1),:] for x in X]
+        else:
+            if from_idx != X.shape[0]-1:
+                yield X[from_idx:(X.shape[0]-1),:]
             
      
                    
@@ -207,7 +216,7 @@ class VBHMM(BaseEstimator):
                                                                     log_pr_trans, log_pr_x)
                 trans, start, sf_stats = self._vbe_step_single_chain(zx,log_alpha,log_scaler,
                                                           log_pr_trans,log_pr_x,sf_stats, 
-                                                          trans, start, n_samples)
+                                                          trans, start)
                 
             # log parameters of posterior distributions of parameters
             trans_params, start_params, emission_params = self._vbm_step(trans,start,
@@ -243,12 +252,16 @@ class VBHMM(BaseEstimator):
         
 
     def _vbe_step_single_chain(self, X, log_alpha, log_scaler,log_pr_trans, log_pr_x, 
-                               suff_stats, trans, start, n_samples):
+                               suff_stats, trans, start):
         '''
         Performs backward pass, at the same time computes marginal & joint marginal
         and updates sufficient statistics for VBM step
         '''
         beta_before   = np.zeros(self.n_hidden)
+        if type(X)==list:
+            n_samples = X[0].shape[0]
+        else:
+            n_samples = X.shape[0]
            
         # backward pass, single & joint marginal calculation, sufficient stats
         for i in np.linspace(n_samples-1,0,n_samples):
@@ -259,7 +272,7 @@ class VBHMM(BaseEstimator):
             # marginal distribution of latent variable, given observed variables
             marginal = log_alpha[i,:] + beta_before
             marginal = np.exp(marginal)
-            print "iteration {0}, {1},{2}".format(i,marginal,np.sum(marginal))              
+            #print "iteration {0}, {1},{2}".format(i,marginal,np.sum(marginal))              
             
             if i > 0:
                 # joint marginal of two latent variables, given observed ones
@@ -655,8 +668,14 @@ class VBGaussianHMM(VBHMM):
     init_params: dict, optional (DEFAULT = {})
        Initial parameters for model (keys = ['dof','covar','weights'])
        
+           'start': numpy array of size (n_hidden,)
+                  Parameters of prior of initial state distribution
+        
+           'transition': numpy array of size (n_hidden,n_hidden)
+                  Parameters of prior of transition matrix distribution
+       
            'dof'    : int  
-                 Degrees of freedom for prior distribution
+                  Degrees of freedom for prior distribution
                  
            'covar'  : array of size (n_features, n_features)
                   Inverse of scaling matrix for prior wishart distribution
@@ -899,9 +918,15 @@ class VBMultinoulliHMM(VBHMM):
     init_params: dict, optional (DEFAULT = {})
        Initial parameters for model (keys = ['concentration'])
        
-          'concentraton': concentration parameters for Dirichlet prior of Multinoulli
-                          List of length n_hidden, each element of list is numpy array 
-                          of size (n_features, number of classes) 
+           'start': numpy array of size (n_hidden,)
+                  Parameters of prior of initial state distribution
+        
+           'transition': numpy array of size (n_hidden,n_hidden)
+                  Parameters of prior of transition matrix distribution
+       
+           'concentraton': concentration parameters for Dirichlet prior of Multinoulli
+                  List of length n_hidden, each element of list is numpy array 
+                  of size (n_features, number of classes) 
                           
     precompute_X: bool, optional (DEFAULT = True)
        If True precomputes binary matrix for each class in Multinoulli distribution
@@ -929,7 +954,7 @@ class VBMultinoulliHMM(VBHMM):
        Transition probabilities matrix
 
     '''
-    def __init__(self, n_hidden = 2, n_iter = 100, tol = 1e-3, init_params = {}, 
+    def __init__(self, n_hidden = 2, n_iter = 100, tol = 1e-5, init_params = {}, 
                  precompute_X = True, alpha_start = 2, alpha_trans = 2 , alpha_emission = 20,
                  verbose = False):
         super(VBMultinoulliHMM,self).__init__(n_hidden, n_iter, init_params, tol,
@@ -995,7 +1020,7 @@ class VBMultinoulliHMM(VBHMM):
                               '{0} in training, {1} in test'.format(self.classes_,
                               classes_)))
         
-    
+        
     def _precompute_X(self,X):
         '''Precomputes binary matrices '''
         zero_class = csr_matrix(np.ones(X.shape))
@@ -1008,7 +1033,6 @@ class VBMultinoulliHMM(VBHMM):
             zero_class -= precomputed_X[i+1]
         precomputed_X[0] = zero_class
         return precomputed_X
-
 
 
     def _get_class(self,X,j = None):
@@ -1040,17 +1064,14 @@ class VBMultinoulliHMM(VBHMM):
          return np.zeros([self.n_hidden,n_features,len(self.classes_)])
  
  
- 
     def _suff_stats_update(self,sf_stats, X, i, marginal):
         '''
         Updates sufficient statistics within backward pass in HMM
         '''
-        
         for j,x_binarised in enumerate(self._get_class(X,i)):
             for k in range(self.n_hidden):
                 sf_stats[k][:,j] += x_binarised*marginal[k] 
         return sf_stats
-       
          
          
     def _vbm_emission_params(self,emission_params_prior, emission_params, sf_stats):
@@ -1062,7 +1083,6 @@ class VBMultinoulliHMM(VBHMM):
             emission_params['concentration'][k] = emission_params_prior['concentration'][k] + sf_stats[k]
         return emission_params        
             
-        
         
     def _emission_log_probs_params(self, emission_params, X):
         '''
@@ -1078,7 +1098,6 @@ class VBMultinoulliHMM(VBHMM):
         return log_probs
         
         
-        
     def _check_convergence(self, params, iteration):
         '''
         Checks convergence for Bayesian Gaussian HMM
@@ -1088,18 +1107,18 @@ class VBMultinoulliHMM(VBHMM):
         else:
             diff = np.array(self.means_old) - np.array(params['concentration'])
             if self.verbose:
-                n_params = self.means_old.shape[0] * self.means_old.shape[1]
+                n_params = self.means_old[0].shape[0] * self.means_old[0].shape[1] * self.n_hidden
                 print(("Iteration {0} completed, average change in means of hidden states "
                        "is {1}".format(iteration,np.sum(np.abs(diff))/n_params)))
             if np.sum(diff > self.tol) == 0:
+                print diff
                 if self.verbose:
                     print("Convergence achieved on {0} iteration".format(iteration))
                 return True
             else:
                 self.means_old = np.copy(params['concentration'])
                 return False
-             
-                          
+                           
                   
     def fit(self,X, chain_index = []):
         '''
@@ -1118,79 +1137,7 @@ class VBMultinoulliHMM(VBHMM):
         X = self._check_X_train(X)
         self.classes_  = _get_classes(X)
         if self.precompute_X:
-           X              = self._precompute_X(X)
-        print X
+           X  = self._precompute_X(X)
         super(VBMultinoulliHMM,self)._fit(X, chain_index)
         
 
-
-if __name__ == "__main__":
-    
-    ## imports used in testing
-    #import matplotlib.pyplot as plt
-    ##
-    ## testing Bernoulli HMM
-    #X = np.array([[0,0,0],[0,0,0],[0,0,0],[1,1,1],[1,1,1],[1,1,1],[0,0,0],[0,0,0],
-    #              [0,0,0],[1,1,1],[1,1,1],[1,1,1],[0,0,0],[0,0,0],[0,0,0],[1,1,1],
-    #              [1,1,1]])
-    #              
-    #Y = np.zeros(X.shape, dtype = "|S9")
-    #Y[X==0]="a"
-    #Y[X==1]="b"
-    #X1 = np.array([[0,0],[0,0],[0,0],[1,1],[1,1],[1,1],[0,0],[0,0],[0,0],[1,1],
-    #              [1,1],[1,1],[0,0],[0,0],[0,0],[1,1],[1,1]])
-    #              
-    #bhmm = VBBernoulliHMM(n_iter = 100, verbose = True)
-    #bhmm.fit(Y)
-    ##start_params, trans_params, emission_params = bhmm._init_params(3,X)
-    #
-    ## test filtering 
-    #alpha = bhmm.predict(Y)
-    #prob = bhmm.filter(Y)
-    #probs = bhmm.predict_proba(Y)
-    #
-    #
-    #
-
-    ## test viterbi    
-    #log_pr_start, log_pr_trans, log_pr_x = bhmm._log_probs_params(bhmm._start_params_,bhmm._trans_params_,
-    #                                              bhmm._emission_params_,X)
-    #
-    #best_states = bhmm.predict(X)
-    #print best_states
-    #
-    
-    
-    # testing Gaussian HMM
-    #X = np.random.random([200,2])
-    #X[0:100,:] += 1000
-    #
-    #ghmm = VBGaussianHMM(n_iter = 100, verbose = True)
-    #ghmm.fit(X)
-    #alpha = ghmm.predict(X)
-    #probs = ghmm.predict_proba(X)
-    #filtered = ghmm.filter(X)
-    
-    
-    # testing Multinoulli HMM
-    X = np.array([['a','b'],['b','a'],['b','a'],['a','b'],['b','a'],['b','a'],['a','b'],
-         ['b','a'],['b','a'],['a','b'],['b','a'],['b','a'],['a','b'],['b','a'],['b','a'],['a','b'],
-         ['b','a'],['b','a'],['a','b'],['b','a'],['b','a'],['a','b'],['b','a'],['b','a'],['a','b'],
-         ['b','a'],['b','a'],['a','b'],['b','a'],['b','a'],['a','b'],['b','a'],['b','a'],['a','b'],
-         ['b','a'],['b','a'],['a','b'],['b','a'],['b','a'],['a','b'],['b','a'],['b','a'],['a','b']])
-        
-    bmhmm = VBMultinoulliHMM(alpha_emission = 10)
-    bmhmm.fit(X)
-    alpha = bmhmm.filter(X)
-    clusters = bmhmm.predict(X)
-    probs = bmhmm.predict_proba(X)
-    
-    
-    
-           
-
-    
-        
-    
-    
-        
