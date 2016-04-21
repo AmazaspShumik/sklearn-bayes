@@ -38,6 +38,25 @@
   Variational Relevance Vector Regression
   [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/vrvm/vrvm.py), [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/ipython_notebooks_tutorials/variational_rvm_ard/variational_rvm_demo.ipynb)
   
+  Variational Bernoulli Mixture Model
+  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/mixture/mixture.py)
+  
+  Variational Multinoulli Mixture Model
+  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/mixture/mixture.py)
+  
+  Variational Gaussian Mixture Model with Automatic Relevance Determination
+  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/mixture/mixture.py)
+  
+  Variational Bernoulli Hidden Markov Model
+  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/hmm/hmm.py)
+  
+  Variational Multinoulli Hidden Markov Model
+  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/hmm/hmm.py)
+  
+  
+  Variational Gaussian Hidden Markov Model
+  [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/hmm/hmm.py)
+  
   
   
 ##TODO
