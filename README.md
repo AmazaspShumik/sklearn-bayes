@@ -37,6 +37,14 @@
 
   Variational Relevance Vector Regression
   [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/sklearn_bayes/vrvm/vrvm.py), [tutorial](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/ipython_notebooks_tutorials/variational_rvm_ard/variational_rvm_demo.ipynb)
+  
+  
+  
+##TODO
+
+  1) Lower bound for Variation Hidden Markov Models (Bernoulli, Multinoulli, Gaussian)
+  2) More efficient Multinoulli HMM
+  3) Lower bound for VBGMMARD
 
 
 
