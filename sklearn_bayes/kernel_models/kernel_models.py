@@ -1,11 +1,12 @@
 """
-Models implemented 
+Models implemented in this module use features transformed by kernel matrix and 
+include L1 regularisation (ElasticNet includes both L1 and L2, while Lasso only L1).
+
 
 """
 
-
-
 import numpy as np
+from sklearn.base import BaseEstimator
 from sklearn.linear_model import Lasso
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics.pairwise import pairwise_kernels
@@ -14,6 +15,7 @@ from sklearn.utils.validation import check_is_fitted
 from sklearn.linear_model.base import LinearModel, LinearClassifierMixin
 from sklearn.linear_model.coordinate_descent import ElasticNet
 from sklearn.utils.extmath import safe_sparse_dot
+from scipy.special import expit
 from sklearn.base import RegressorMixin
     
   
@@ -30,6 +32,8 @@ def get_kernel( X, Y, gamma, degree, coef0, kernel, kernel_params ):
     return pairwise_kernels(X, Y, metric=kernel,
                             filter_params=True, **params)
                            
+
+#------------------------------- Regression -----------------------------------------
                             
                               
 class KernelisedElasticNetRegression(LinearModel,RegressorMixin):
@@ -37,7 +41,7 @@ class KernelisedElasticNetRegression(LinearModel,RegressorMixin):
     as regularizer. 
     
     Using kernel matrix instead of raw features allows to fit more complex models.
-    At the same time 
+    In case of only L2 penalty 
 
 
     Parameters
@@ -105,7 +109,7 @@ class KernelisedElasticNetRegression(LinearModel,RegressorMixin):
     def __init__(self, alpha=1.0, l1_ratio=0.5, fit_intercept=True,
                  normalize=False, precompute=False, max_iter=1000,
                  copy_X=True, tol=1e-4, warm_start=False, positive=False,
-                 random_state=None, selection='cyclic',kernel = 'rbf',
+                 random_state=None, selection='cyclic',kernel = 'poly',
                  degree = 2, gamma = 1, coef0 = 1, kernel_params = None):
         self.alpha         = alpha
         self.l1_ratio      = l1_ratio
@@ -154,8 +158,8 @@ class KernelisedElasticNetRegression(LinearModel,RegressorMixin):
                            self.random_state, self.selection)
         self._model = model.fit(K,y)
         self.relevant_indices_ = np.where(self._model.coef_ != 0)[0]
-        #if self.relevant_indices_.shape[0]
         self.relevant_vectors_ = X[self.relevant_indices_,:]
+        return self
         
         
     def _decision_function(self, X):
@@ -164,13 +168,17 @@ class KernelisedElasticNetRegression(LinearModel,RegressorMixin):
         '''
         check_is_fitted(self, "_model")
         X = check_array(X, accept_sparse=['csr', 'csc', 'coo'])
-        K = get_kernel(X,self.relevant_vectors_,self.gamma, self.degree, 
-                       self.coef0, self.kernel, self.kernel_params)
-        return safe_sparse_dot(K, self._model.coef_.T[self._model.coef_ != 0],
-                               dense_output=True) + self._model.intercept_       
+        # take care of case with no relevant vectors
+        if self.relevant_indices_.shape[0]==0:
+            return self._model.intercept_ * np.ones(X.shape[0])
+        else: 
+            K = get_kernel(X,self.relevant_vectors_,self.gamma, self.degree, 
+                           self.coef0, self.kernel, self.kernel_params)
+            return safe_sparse_dot(K, self._model.coef_.T[self._model.coef_ != 0],
+                                   dense_output=True) + self._model.intercept_       
         
-           
-            
+
+
         
 class KernelisedLassoRegression(KernelisedElasticNetRegression):
     """Linear Model trained with L1 prior as regularizer (aka the Lasso)
@@ -232,7 +240,7 @@ class KernelisedLassoRegression(KernelisedElasticNetRegression):
     def __init__(self, alpha=1.0, fit_intercept=True, normalize=False,
                  precompute=False, copy_X=True, max_iter=1000,
                  tol=1e-4, warm_start=False, positive=False,
-                 random_state=None, selection='cyclic',kernel = 'rbf',
+                 random_state=None, selection='cyclic',kernel = 'poly',
                  degree = 2, gamma = 1, coef0 = 1, kernel_params = None):
         super(KernelisedLassoRegression, self).__init__(
               alpha=alpha, l1_ratio=1.0, fit_intercept=fit_intercept,
@@ -242,52 +250,77 @@ class KernelisedLassoRegression(KernelisedElasticNetRegression):
               kernel = kernel, degree = degree, gamma = gamma, coef0 = coef0,
               kernel_params = kernel_params)
      
-#--------------------------------------- L1VM ------------------------------------------------#
+
+        
+           
+#------------------------------- Classification --------------------------------------
+
+                                                                                                                       
                         
-                        
-class KernelisedLogisticRegression(LinearClassifierMixin):
+class KernelisedLogisticRegressionL1(BaseEstimator,LinearClassifierMixin):
     '''
-    Logistic Regression with kernelised features and with L1 or L2 regularization. 
+    Logistic Regression with kernelised features and with L1. 
     Instead of using Logistic Regression on raw features
     
     Parameters
     ----------
-    C: float
-        Regularisation parameter
+    C : float, default: 1.0
+        Inverse of regularization strength; must be a positive float.
+        Like in support vector machines, smaller values specify stronger
+        regularization.
         
-    dual: bool, optional (DEFAULT = False)
-      
-    kernel: str, optional (DEFAULT = 'poly')
-        Type of kernel to be used (all kernels: ['rbf' | 'poly' | 'sigmoid', 'linear']
-    
-    degree : int, (DEFAULT = 3)
-        Degree for poly kernels. Ignored by other kernels.
+    fit_intercept : bool, default: True
+        Specifies if a constant (a.k.a. bias or intercept) should be
+        added to the decision function.
         
-    gamma : float, optional (DEFAULT = 1/n_features)
-        Kernel coefficient for rbf and poly kernels, ignored by other kernels
+    intercept_scaling : float, default 1.
+        Useful only when the solver 'liblinear' is used
+        and self.fit_intercept is set to True. In this case, x becomes
+        [x, self.intercept_scaling],
+        i.e. a "synthetic" feature with constant value equal to
+        intercept_scaling is appended to the instance vector.
+        The intercept becomes ``intercept_scaling * synthetic_feature_weight``.
+        Note! the synthetic feature weight is subject to l1/l2 regularization
+        as all other features.
+        To lessen the effect of regularization on synthetic feature weight
+        (and therefore on the intercept) intercept_scaling has to be increased.
+
+    max_iter : int, default: 100
+        Useful only for the newton-cg, sag and lbfgs solvers.
+        Maximum number of iterations taken for the solvers to converge.
         
-    coef0 : float, optional (DEFAULT = 1)
-        Independent term in poly and sigmoid kernels, ignored by other kernels
-        
-    kernel_params : mapping of string to any, optional
-        Parameters (keyword arguments) and values for kernel passed as
-        callable object, ignored by other kernels
+    random_state : int seed, RandomState instance, default: None
+        The seed of the pseudo random number generator to use when
+        shuffling the data. Used only in solvers 'sag' and 'liblinear'.
+
+    tol : float, default: 1e-4
+        Tolerance for stopping criteria.
+
+    verbose : int, default: 0
+        For the liblinear and lbfgs solvers set verbose to any positive
+        number for verbosity.
+
+    n_jobs : int, default: 1
+        Number of CPU cores used during the cross-validation loop. If given
+        a value of -1, all cores are used.
     '''
     
-    def __init__(self, penalty = "L1", C = 1, fit_intercept = True, intercept_scaling = 1,
-                 tol = 1e-3, prune_tol = 1e-5, kernel = 'rbf', degree = 2, gamma = 1, coef0 = 1, 
-                 kernel_params = None):
-        self.penalty        = penalty
+    def __init__(self, C = 1, fit_intercept = True, intercept_scaling = 1, tol = 1e-3, 
+                 max_iter = 1000,kernel = 'poly', degree = 3, gamma = 1, coef0 = 0.1, 
+                 kernel_params = None, n_jobs = 1, verbose = False, random_state = None):
         self.C              = C
         self.fit_intercept  = fit_intercept
         self.intercept_scaling = intercept_scaling
-        self.prune_tol      = prune_tol
+        self.max_iter       = max_iter
         self.tol            = tol
         self.kernel         = kernel
         self.gamma          = gamma
         self.degree         = degree
         self.coef0          = coef0
         self.kernel_params  = kernel_params
+        self.n_jobs         = n_jobs
+        self.verbose        = verbose 
+        self.random_state   = random_state
         
         
         
@@ -311,43 +344,95 @@ class KernelisedLogisticRegression(LinearClassifierMixin):
         X,y = check_X_y(X,y, dtype = np.float64)
         K   = get_kernel(X, X, self.gamma, self.degree, self.coef0, self.kernel, 
                          self.kernel_params )
-        self._model = LogisticRegression( penalty = self.penalty, C = self.C, tol = self.tol, 
-                                    fit_inercept = self.fit_intercept,dual = self.dual,
-                                     intercept_scaling=self.intercept_scaling)
+        self._model = LogisticRegression( penalty = "l1", dual = False, C = self.C, 
+                                          tol = self.tol, fit_intercept = self.fit_intercept,
+                                          intercept_scaling=self.intercept_scaling,
+                                          n_jobs = self.n_jobs, solver = 'liblinear',
+                                          multi_class = 'ovr', max_iter = self.max_iter,
+                                          verbose = self.verbose, random_state = self.random_state)
         self._model = self._model.fit(K,y)
-        self.support_vecs_ = X[np.abs(self._model.coef_) > self.prune_tol]
+        self.relevant_indices_ = [np.where(coefs!=0)[0] for coefs in self._model.coef_] 
+        self.relevant_vectors_ = [X[rvi,:] for rvi in self.relevant_indices_]
+        self.classes_  = self._model.classes_
         return self
         
+     
+    def _decision_hyperplane(self, rvi, rvs, coef, c, X ):
+        '''
+        Computes separating hyperplane 
+        '''
+        if rvi.shape[0]==0:
+            return c * np.ones(X.shape[0])
+        else:
+            K = get_kernel(X,rvs,self.gamma, self.degree, self.coef0, self.kernel,
+                           self.kernel_params)
+            return np.dot(K,coef[rvi]) + c
         
+        
+              
     def decision_function(self,X):
         '''
         Computes decision function based on separating hyperplane
+        
+        Parameters
+        ----------
+        X: array-like of size [n_samples_test,n_features]
+           Matrix of explanatory variables (test set)
+           
         '''
         check_is_fitted(self,"_model")
         X = check_array(X,dtype = np.float64)
-        
-        
+        decision = np.asarray([ self._decision_hyperplane(rvi,rvs,coef,c,X) for rvi,rvs,coef,c in 
+                     zip(self.relevant_indices_,self.relevant_vectors_,self._model.coef_,
+                     self._model.intercept_) ]).T
+        if decision.shape[1] == 1:
+            return decision[:,0]
+        return decision
         
         
     def predict_proba(self,X):
-        pass
+        '''
+        Predicts probabilities of targets for test set
 
- 
-               
-
-
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    X = np.zeros([100,1])
-    X[:,0] = np.linspace(-2,2,100)
-    y = np.sinc(X[:,0])
-    plt.plot(X[:,0],y)
-    klr =KernelisedLassoRegression(kernel = 'rbf', degree =2, alpha = 0.005)
-    klr.fit(X,y)    
-    y_hat = klr.predict(X)
-    plt.plot(X[:,0],y_hat,'b+')
-    plt.plot(X[:,0],y_hat,'ro')
-    plt.show()
+        Parameters
+        ----------
+        X: array-like of size [n_samples_test,n_features]
+           Matrix of explanatory variables (test set)
+           
+        Returns
+        -------
+        probs: numpy array of size [n_samples_test]
+           Estimated probabilities of target classes
+        
+        '''
+        prob = expit(self.decision_function(X))
+        if prob.ndim == 1:
+            prob = np.vstack([1 - prob, prob]).T
+        prob = prob / np.reshape(np.sum(prob, axis = 1), (prob.shape[0],1))
+        return prob
         
         
+    def predict(self,X):
+        '''
+        Predict function
+        
+        Parameters
+        ----------
+        X: array-like of size [n_samples_test,n_features]
+           Matrix of explanatory variables (test set)
+           
+        Returns
+        -------
+        y_pred: numpy array of size [n_samples_test]
+           Estimated values of targets
+        '''
+        probs   = self.predict_proba(X)
+        indices = np.argmax(probs, axis = 1)
+        y_pred  = self.classes_[indices]
+        return y_pred
      
+
+
+
+            
+        
