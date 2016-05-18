@@ -12,4 +12,5 @@ Sparse kernel models
 from .kernel_models import (KernelisedElasticNetRegression, KernelisedLassoRegression,
                             KernelisedLogisticRegressionL1)
 
-__all__ = ['kernel_models']
+__all__ = ['KernelisedElasticNetRegression','KernelisedLassoRegression',
+           'KernelisedLogisticRegressionL1']

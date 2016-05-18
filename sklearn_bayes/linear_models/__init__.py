@@ -15,6 +15,6 @@ from .variational_logistic import VBLogisticRegression
 from .variational_regression import VBLinearRegression
 
 
-__all__ = ['bayesian_regression','variational_regression','bayesian_logistic',
-           'variational_logistic']
+__all__ = ['EBLogisticRegression','VBLogisticRegression','EBLinearRegression',
+           'VBLinearRegression']
 

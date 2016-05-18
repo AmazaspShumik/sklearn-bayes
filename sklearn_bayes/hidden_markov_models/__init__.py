@@ -9,4 +9,4 @@
 
 from .hmm import VBMultinoulliHMM ,VBGaussianHMM,VBBernoulliHMM
 
-__all__ = ['VBBernoulliHMM','VBGaussianHMM','VBMultinoulliHMM ']
+__all__ = ['VBBernoulliHMM','VBGaussianHMM','VBMultinoulliHMM']
