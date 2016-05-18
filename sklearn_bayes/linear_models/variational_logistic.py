@@ -18,7 +18,7 @@ def lam(eps):
 #---------------------------------------------------------------------------
 
 
-class VariationalLogisticRegression(LinearClassifierMixin, BaseEstimator):
+class VBLogisticRegression(LinearClassifierMixin, BaseEstimator):
     '''
     Variational Bayesian Logistic Regression 
     

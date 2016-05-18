@@ -13,7 +13,7 @@ from sklearn.linear_model.logistic import ( _logistic_loss_and_grad, _logistic_l
 
 
 
-class BayesianLogisticRegression(LinearClassifierMixin,BaseEstimator):
+class EBLogisticRegression(LinearClassifierMixin,BaseEstimator):
     '''
     Implements Bayesian Logistic Regression with type II maximum likelihood, uses
     Gaussian (Laplace) method for approximation of evidence function.

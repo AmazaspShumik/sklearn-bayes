@@ -11,7 +11,7 @@ from sklearn.utils import check_X_y
 
 
 
-class BayesianRegression(RegressorMixin,LinearModel):
+class EBLinearRegression(RegressorMixin,LinearModel):
     '''
     Bayesian Regression with type II maximum likelihood for determining point estimates
     for precision variables alpha and beta, where alpha is precision of prior of weights

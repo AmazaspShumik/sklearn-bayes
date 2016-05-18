@@ -6,9 +6,9 @@ from scipy.linalg import svd
 
 
 
-class VariationalLinearRegression(RegressorMixin,LinearModel):
+class VBLinearRegression(RegressorMixin,LinearModel):
     '''
-    Implements fully Bayesian Linear Regression using mean-field approximation 
+    Implements Bayesian Linear Regression using mean-field approximation 
     over latent variables. Assumes gamma prior on precision of coefficients 
     and noise.
 
