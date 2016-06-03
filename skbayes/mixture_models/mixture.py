@@ -788,9 +788,9 @@ class VBGMMARD(GeneralMixtureModelExponential):
 
         
     References:
-    -----------
-    1) Adrian Corduneanu and Chris Bishop, Variational Bayesian Model Selection for 
-       Mixture Distributions (2001)
+    ==========
+    1) Adrian Corduneanu and Chris Bishop, Variational Bayesian Model Selection 
+       for Mixture Distributions (2001)
     '''
     
     def __init__(self, n_components = 10, tol = 1e-3, n_iter = 100, n_mfa_iter = 1,
