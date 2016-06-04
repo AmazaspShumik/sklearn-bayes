@@ -1,4 +1,4 @@
-__all__ = ['load_olf_faithful','load_digits']
+__all__ = ['load_olf_faithful','load_digits','old_faithful.csv']
 
 import pandas as pd
 import numpy as np
