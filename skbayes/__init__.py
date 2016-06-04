@@ -46,7 +46,7 @@ Bayesian machine learning models with sklearn api
 '''
 
 __all__ = ['rvm_ard_models','linear_models','hidden_markov_models','mixture_models',
-           'kernel_models']
+           'kernel_models','datasets']
 
 __version__ = '0.1.0a1'
 
