@@ -17,7 +17,7 @@ def load_old_faithful():
     '''
     Load Old Faithful Geyser data
     '''
-    data = get_data('old_faithful.txt')
+    data = get_data('old_faithful.csv')
     return {'X': np.array(data[['eruptions','waiting']]),
             'columns': ['eruptions','waiting']}
                
