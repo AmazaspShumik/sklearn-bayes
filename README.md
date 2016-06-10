@@ -34,11 +34,10 @@ I am currently updating some algorithms (RVM,HMM) and writing new ipython notebo
   
 
 ### Contributions:
-
-There are several ways to contribute
- -- improve quality of existing code (find bugs, suggest optimization, etc.)
- -- implement machine learning algorithm (it should be bayesian; you should also provide examples & notebooks)
- -- implement new ipython notebooks with examples 
+There are several ways to contribute (and all are welcomed)
+     * improve quality of existing code (find bugs, suggest optimization, etc.)
+     * implement machine learning algorithm (it should be bayesian; you should also provide examples & notebooks)
+     * implement new ipython notebooks with examples 
 
 
 
