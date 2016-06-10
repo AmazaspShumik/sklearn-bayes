@@ -7,7 +7,7 @@
     pip install --upgrade https://github.com/AmazaspShumik/sklearn_bayes/archive/master.zip
 
 ### NOTE:
-I am currently updating some algorithms (RVM,HMM) and writing new ipython notebooks, updated version of package should be ready by end of June 2016. I will also add Latent Dirichlet Allocation and Ising Model to package.
+I am currently updating some algorithms (RVM,HMM) and writing new ipython notebooks, updated version of package should be ready by the end of June 2016. I will also add Latent Dirichlet Allocation and Ising Model to package.
    
 ### Algorithms
  
@@ -37,7 +37,9 @@ I am currently updating some algorithms (RVM,HMM) and writing new ipython notebo
 
 There are several ways to contribute (and all are welcomed)
      * improve quality of existing code (find bugs, suggest optimization, etc.)
+     
      * implement machine learning algorithm (it should be bayesian; you should also provide examples & notebooks)
+     
      * implement new ipython notebooks with examples 
 
 
