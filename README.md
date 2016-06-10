@@ -9,7 +9,8 @@
 ### NOTE:
 I am currently updating some algorithms (RVM,HMM) and writing new ipython notebooks, updated version of package should be ready by end of June 2016. I will also add Latent Dirichlet Allocation and Ising Model to package.
    
- ### Algorithms
+### Algorithms
+ 
      * [Linear Models](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/linear_models)
          * Type II Maximum Likelihood Bayesian Linear Regression [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/linear_models/bayesian_regression.py)
          * Type II Maximum Likelihood Bayesian Logistic Regression (uses Laplace Approximation)  [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/linear_models/bayesian_logistic.py)
