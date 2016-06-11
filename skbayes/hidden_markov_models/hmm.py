@@ -46,8 +46,10 @@ def _logouter(a,b):
     
 # TODO: using types is not really good practice (advice from Stan and Jim)
 #       !!! Improve !!! Bad code.
-def _get_chain(X,index = []):
+def _get_chain(X,index = None):
     ''' Generates separate chains'''
+    if index is None:
+        index = []
     from_idx = 0
     if len(index)==0:
         if type(X)==list:
@@ -180,10 +182,12 @@ class VBHMM(BaseEstimator):
 
 
                     
-    def _fit(self, X, chain_indices = []):
+    def _fit(self, X, chain_indices = None):
         '''
         Fits Hidden Markov Model with unspecified emission probability
         '''
+        if chain_indices is None:
+            chain_indices = []
         if type(X)==list:
             n_samples, n_features = X[0].shape
         else:
@@ -434,10 +438,29 @@ class VBHMM(BaseEstimator):
         X = self._check_X_test(X)
         log_pr_x     = self._emission_log_probs_params(self._emission_params_, X)
         return self._viterbi(log_pr_x, self._log_pr_trans_, self._log_pr_start_, X)
-        
-               
-        
-        
+
+    # Some abstract methods
+
+    def _check_X_test(self, X):
+        raise NotImplementedError
+
+    def _emission_log_probs_params(self, _emission_params_, X):
+        raise NotImplementedError
+
+    def _suff_stats_update(self, suff_stats, Xrow ,marginal):
+        raise NotImplementedError
+
+    def _vbm_emission_params(self, emission_params_prior, emission_params,
+                                                    sf_stats):
+        raise NotImplementedError
+
+    def _check_convergence(self, emission_params,i):
+        raise NotImplementedError
+
+    def _init_suff_stats(self, n_features):
+        raise NotImplementedError
+
+
 class VBBernoulliHMM(VBHMM):
     '''
     Bayesian Hidden Markov Models with Bernoulli Emission probabilities
@@ -489,9 +512,11 @@ class VBBernoulliHMM(VBHMM):
        Transition probabilities
 
     ''' 
-    def __init__(self, n_hidden = 2, n_iter = 100, tol = 1e-3, init_params = {}, 
+    def __init__(self, n_hidden = 2, n_iter = 100, tol = 1e-3, init_params = None,
                  alpha_start = 10, alpha_trans = 10 , alpha_succes = 5, alpha_fail = 5,
                  verbose = False):
+        if init_params is None:
+            init_params = {}
         super(VBBernoulliHMM,self).__init__(n_hidden, n_iter, init_params, tol,
                                             alpha_start, alpha_trans, verbose)
         self.alpha_succes = alpha_succes
@@ -517,7 +542,7 @@ class VBBernoulliHMM(VBHMM):
             pr_success = self.init_params['alpha']
             _check_shape_sign(pr_success,shape, shape_message, sign_message)            
         else:
-            pr_succes = np.random.random([self.n_hidden, n_features])* self.alpha_succes
+            pr_success = np.random.random([self.n_hidden, n_features])* self.alpha_succes
             
         # parameters for fail probs
         if 'beta' in self.init_params:
@@ -526,7 +551,7 @@ class VBBernoulliHMM(VBHMM):
         else:
             pr_fail   = np.random.random([self.n_hidden, n_features])* self.alpha_fail
             
-        return pr_start, pr_trans , {'success_prob': pr_succes, 'fail_prob': pr_fail} 
+        return pr_start, pr_trans , {'success_prob': pr_success, 'fail_prob': pr_fail}
         
         
     
@@ -628,7 +653,7 @@ class VBBernoulliHMM(VBHMM):
              
                  
     
-    def fit(self,X,chain_index = []):
+    def fit(self,X,chain_index = None):
         '''
         Fits Bayesian Hidden Markov Model with Bernoulli emission probabilities
         
@@ -642,6 +667,8 @@ class VBBernoulliHMM(VBHMM):
         object: self
           self
         '''
+        if chain_index is None:
+            chain_index = []
         X = self._check_X_train(X)
         super(VBBernoulliHMM,self)._fit(X, chain_index)
         self.means_ = self._emission_params_['success_prob']
@@ -711,8 +738,10 @@ class VBGaussianHMM(VBHMM):
        Transition probabilities matrix
 
     '''
-    def __init__(self, n_hidden = 2, n_iter = 100, tol = 1e-3, init_params = {}, 
+    def __init__(self, n_hidden = 2, n_iter = 100, tol = 1e-3, init_params = None,
                  alpha_start = 2, alpha_trans = 2 , verbose = False):
+        if init_params is None:
+            init_params = {}
         super(VBGaussianHMM,self).__init__(n_hidden, n_iter, init_params, tol,
                                            alpha_start, alpha_trans, verbose)
      
@@ -875,7 +904,7 @@ class VBGaussianHMM(VBHMM):
              
         
         
-    def fit(self,X,chain_index = []):
+    def fit(self,X,chain_index = None):
         '''
         Fits Bayesian Hidden Markov Model with Gaussian emission probabilities
         
@@ -889,6 +918,8 @@ class VBGaussianHMM(VBHMM):
         object: self
           self
         '''
+        if chain_index is None:
+            chain_index = []
         # preprocess data, 
         X = self._check_X_train(X)
         super(VBGaussianHMM,self)._fit(X, chain_index)
@@ -954,9 +985,11 @@ class VBMultinoulliHMM(VBHMM):
        Transition probabilities matrix
 
     '''
-    def __init__(self, n_hidden = 2, n_iter = 100, tol = 1e-5, init_params = {}, 
+    def __init__(self, n_hidden = 2, n_iter = 100, tol = 1e-5, init_params = None,
                  precompute_X = True, alpha_start = 2, alpha_trans = 2 , alpha_emission = 20,
                  verbose = False):
+        if init_params is None:
+            init_params = []
         super(VBMultinoulliHMM,self).__init__(n_hidden, n_iter, init_params, tol,
                                            alpha_start, alpha_trans, verbose)
         self.alpha_emission = alpha_emission
@@ -1120,7 +1153,7 @@ class VBMultinoulliHMM(VBHMM):
                 return False
                            
                   
-    def fit(self,X, chain_index = []):
+    def fit(self,X, chain_index = None):
         '''
         Fits Bayesian Hidden Markov Model with Multinoulli emission probabilities
         
@@ -1134,6 +1167,8 @@ class VBMultinoulliHMM(VBHMM):
         object: self
           self
         '''
+        if chain_index is None:
+            chain_index = []
         X = self._check_X_train(X)
         self.classes_  = _get_classes(X)
         if self.precompute_X:
