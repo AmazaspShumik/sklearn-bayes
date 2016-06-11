@@ -36,7 +36,6 @@ def word_doc_topic(np.ndarray[DTYPE_t, ndim=1] words, np.ndarray[DTYPE_t, ndim=1
     
 
 
-
 def vectorize(X):
     '''
     Vectorize document term matrix.
@@ -47,6 +46,7 @@ def vectorize(X):
         docs,words = np.where(X>0)
         tf  = X[docs,words]
     return docs,words,tf
+
 
         
 class GibbsLDA(BaseEstimator,TransformerMixin):
@@ -229,7 +229,7 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
                # retrieve doc, word and topic indices
                wi = words[i]
                di = docs[i]
-               ti = topic_assignment[i]
+               ti = topic_assignment[cum_i]
         
                # remove all 'influence' of i-th word in corpus
                word_topic[wi,ti] -= 1
@@ -251,7 +251,7 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
             
                # make sample from multinoulli distribution & update topic assignment
                ti = np.where(np.random.multinomial(1,p_z))[0][0]
-               topic_assignment[i] = ti
+               topic_assignment[cum_i] = ti
             
                # add 'influence' of i-th element in corpus back
                word_topic[wi,ti] += 1
@@ -262,7 +262,7 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         return word_topic, doc_topic, topic_assignment, topics
         
         
-    def _joint_loglike(self,n_d,n_vocab,n_docs,doc_topic,word_topic,topics):
+    def _joint_loglike(self,n_d,n_words,n_docs,doc_topic,word_topic,topics):
         '''
         Computes joint log likelihood of latent and observed variables
         '''
@@ -306,6 +306,9 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
                                                     self.components_.T, self.doctopic_,
                                                     self.topics_, n_d, self._n_words)
         return doc_topic
+
+        
+        
         
         
     
