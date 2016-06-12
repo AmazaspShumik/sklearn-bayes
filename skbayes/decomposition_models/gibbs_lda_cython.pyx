@@ -103,12 +103,12 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
     Griffiths and Steyers, Finding Scientific Topics (2004)
     K.Murphy, Machine Learning A Probabilistic Perspective (2012)
     '''
-    def __init__(self, n_topics, n_burnin = 30, n_thin = 3, init_params = {},
+    def __init__(self, n_topics, n_burnin = 30, n_thin = 3, init_params = None,
                  compute_score = False, verbose = False):
         self.n_topics      = n_topics
         self.n_burnin      = n_burnin
         self.n_thin        = n_thin
-        self.init_parms    = init_params
+        self.init_parms    = {} if init_params is None else init_params
         self.compute_score = compute_score
         self.scores_       = []
         self.verbose       = verbose
@@ -143,11 +143,13 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         Validate input matrix
         '''
         X = check_array(X, accept_sparse = ['csr'])
+        
         # check that document term matrix is non negative
         arr = X.data if issparse(X) else X
         if np.sum(arr<0) > 0:
             raise ValueError('Document term matrix should not contain negative values')
-        # if model was fitted before check
+        
+        # if model was fitted before check that vocabulary size is the same
         if '_n_words' in dir(self):
             assert(X.shape[1] == self._n_words,("vocabulary size should be the "
                                                 "same for train and test sets"))
@@ -217,7 +219,7 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         '''
         cdef double alpha = self.alpha
         cdef double gamma = self.gamma
-        cdef int wi,di,ti,i
+        cdef int wi,di,ti,i,j
         cdef int cum_i = 0
         cdef np.ndarray[np.double_t,ndim=1] logp_latent
         cdef np.ndarray[np.double_t,ndim=1] p_z
