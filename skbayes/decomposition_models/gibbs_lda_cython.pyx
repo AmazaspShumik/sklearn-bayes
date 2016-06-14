@@ -4,6 +4,7 @@ from sklearn.utils import check_array
 from scipy.sparse import csr_matrix,issparse,find
 from scipy.misc import logsumexp
 from scipy.special import gammaln
+from time import time
 import numpy as np
 cimport cython
 cimport numpy as np
@@ -80,6 +81,10 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
     compute_score: bool, optional (DEFAULT = False)
        If True computes joint log likelihood
        
+    log_scale: bool, optional (DEFAULT = False)
+       If True sampler will use log-scale (NOTE!!! This makes it longer to take sample,
+       but process is)
+       
        
     Attributes
     ----------
@@ -103,12 +108,12 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
     Griffiths and Steyers, Finding Scientific Topics (2004)
     K.Murphy, Machine Learning A Probabilistic Perspective (2012)
     '''
-    def __init__(self, n_topics, n_burnin = 30, n_thin = 3, init_params = None,
+    def __init__(self, n_topics, n_burnin = 30, n_thin = 3, init_params = {},
                  compute_score = False, verbose = False):
         self.n_topics      = n_topics
         self.n_burnin      = n_burnin
         self.n_thin        = n_thin
-        self.init_parms    = {} if init_params is None else init_params
+        self.init_parms    = {} if (init_params is None) else init_params
         self.compute_score = compute_score
         self.scores_       = []
         self.verbose       = verbose
@@ -132,7 +137,7 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
             if gamma <= 0:
                 raise ValueError(('gamma should be positive value, '
                                   'observed {0}').format(gamma))
-        n_d = X.sum(0)
+        n_d = X.sum(1)
         corpus_size = np.sum(n_d)
         topic_assignment = np.random.randint(0,self.n_topics,corpus_size,dtype=np.int)
         return alpha,gamma,topic_assignment,n_d
@@ -164,6 +169,7 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         ----------
         X: sparse matrix of size (n_docs,n_vocab)
            Document Word matrix
+           ( Note we assume that there are no empty documents! )
         
         Returns
         -------
@@ -184,26 +190,39 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         
         # compute initial word topic and document topic matrices
         word_topic,doc_topic,topics = word_doc_topic(words,docs,tf,topic_assignment,
-                                                    n_docs,n_words, self.n_topics) 
+                                                    n_docs,n_words, self.n_topics)                            
         # run burn-in samples
         for j in range(self.n_burnin):
             
+             t0 = time()
              # one iteration of collapsed Gibbs Sampler 
              word_topic,doc_topic,topic_assignment,topics = self._gibbs_sample_lda(words,docs,
                                                             topic_assignment,word_topic,
-                                                            doc_topic,topics,tf,n_d,n_words)
-             
-             # compute joint loh-likelihood if required
+                                                            doc_topic,topics,tf,n_d,n_words)             
+             # compute joint log-likelihood if required
              if self.compute_score:
                  self.scores_.append(self._joint_loglike(n_d,n_words,n_docs,doc_topic,
                                                         word_topic,topics))
+             # print info
+             if self.verbose:
+                 if not self.compute_score:
+                     print( ("collected {0} sample in burn-in stage, "
+                               "time spent on sample = {1}").format(j, time()-t0)) 
+                 else:
+                     print(("collected {0} sample in burn-in stage, "
+                            "time spent on sample = {1}, log-like = {2}").format(j, time()-t0,
+                             self.scores_[-1]))
 
-        # save parameters from last  sample                                                                       
-        self.components_ = word_topic.T
-        self.doctopic_  = doc_topic
-        self._topic_assignment = topic_assignment
+        # save parameters from last sample of burn-in stage                                                                      
+        self.word_topic_ = word_topic
+        self.doc_topic_  = doc_topic
         self.topics_ = topics
+        self._words  = words
+        self._docs = docs
+        self._tf = tf 
+        self._topic_assignment = topic_assignment
         self._n_words = n_words
+        self._n_d
         return self
     
 
@@ -219,15 +238,14 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         '''
         cdef double alpha = self.alpha
         cdef double gamma = self.gamma
-        cdef int wi,di,ti,i,j
+        cdef int wi,di,ti,i,k,j
         cdef int cum_i = 0
-        cdef np.ndarray[np.double_t,ndim=1] logp_latent
         cdef np.ndarray[np.double_t,ndim=1] p_z
         cdef int n_topics = self.n_topics
+        cdef double partial_sum
         
         for i in xrange(len(words)):
             for j in xrange(tf[i]):
-                
                # retrieve doc, word and topic indices
                wi = words[i]
                di = docs[i]
@@ -238,19 +256,23 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
                doc_topic[di,ti] -= 1
                topics[ti] -= 1
         
-               # compute log(p(z_{n,d} = k| Z_{-n,d})) (i.e. log probability of assigning
+               # compute p(z_{n,d} = k| Z_{-n,d}) (i.e. probability of assigning
                # topic k for word n in document d, given all other topic assignments)
-               logp_latent = np.log(doc_topic[di,:]+alpha) - np.log(alpha*n_topics + n_d[0,di]);
-        
-               # compute log(p(W|Z)) (i.e. log probability of observing corpus given all
-               # topic assignments) and by adding it to log(p(z_{n,d} = k| Z_{-n,d}))
+               p_z = (doc_topic[di] + alpha) / (alpha*n_topics + n_d[di,0] - 1)  
+                     
+               # compute p(W|Z) (i.e. probability of observing corpus given all
+               # topic assignments) and by multiplying it to p(z_{n,d} = k| Z_{-n,d})
                # obtain unnormalised p(z_{n,d}| DATA)
-               logp_latent += np.log(word_topic[wi,:] + gamma) - np.log(gamma*n_words + topics);
-            
-               # normalise move away from log scale
-               logp_latent -= logsumexp(logp_latent)
-               p_z = np.exp(logp_latent)
-            
+               p_z *= (word_topic[wi,:] + gamma) / (gamma*n_words + topics)
+               
+               # normalise & handle any conversion issues 
+               normalizer = np.sum(p_z)
+               partial_sum = 0.0
+               for k in xrange(self.n_topics-1):
+                   p_z[k] /= normalizer
+                   partial_sum += p_z[k]
+               p_z[n_topics-1] = 1.0 - partial_sum
+
                # make sample from multinoulli distribution & update topic assignment
                ti = np.where(np.random.multinomial(1,p_z))[0][0]
                topic_assignment[cum_i] = ti
@@ -272,21 +294,24 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         
         # log of normalization constant for prior of topic distrib
         ll += n_docs*(gammaln(self.n_topics*self.alpha) - self.n_topics*gammaln(self.alpha))
+        
+        # log of normalization constant for prior of word distribution
+        ll += self.n_topics*gammaln(n_words*self.gamma) - n_words*gammaln(self.gamma)
 
         # log of latent dist pdf without normalization constant (obtained after 
         # integrating out topic distribution)
-        ll += np.sum(gammaln(self.alpha + doc_topic))
-        ll -= np.sum(gammaln(self.n_topics*self.alpha + n_d))
-
-        # log of normalization constant for prior of word distribution
-        ll += self.n_topics*gammaln(n_vocab*self.gamma) - n_vocab*gammaln(self.gamma)
+        for di in xrange(n_docs):
+            ll += np.sum(gammaln(self.alpha + doc_topic[di,:]))
+            ll -= gammaln(self.n_topics*self.alpha + n_d[di,0])
 
         # log p( words | latent_var), obtained after integrating out word
         # distribution
-        ll += np.sum( gammaln(self.gamma + word_topic) )
-        ll -= np.sum( gammaln(n_vocab*self.gamma + topics) )
+        for ti in xrange(self.n_topics):
+           ll += np.sum( gammaln(self.gamma + word_topic[:,ti]) )
+           ll -= gammaln(n_words*self.gamma + topics[ti])
+           
         return ll
-        
+
         
     def transform(self,X):
         '''
@@ -304,19 +329,46 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         '''
         X = self._check_X(X)
         words,docs,n_d = vectorize(X)
-        wt,doc_topic,ta,ts = self._gibbs_sample_lda(words, docs, self._topic_assignment,
-                                                    self.components_.T, self.doctopic_,
-                                                    self.topics_, n_d, self._n_words)
-        return doc_topic
-
+        wt,dt,ta,ts = self._gibbs_sample_lda(self._words, self._docs, self._topic_assignment,
+                                             self.word_doc_, self.doc_topic_, self.topics_, 
+                                             self._tf, n_d, self._n_words)
+        return dt
         
         
         
+    def sample(self, n_samples = 5):
+        '''
+        Compute samples from posterior distribution
         
-    
+        Parameters
+        ----------
+        n_samples: int, optional (DEFAULT = 5)
+             Number of samples
         
-        
-    
+        Returns
+        -------
+        samples: list of dictionaries, length = n_samples
+            Each element of list is dictionary with following fields
             
+            - word_topic: numpy array of size [n_words, n_topics]
+                 word_topic[m,k] - number of times word m was assigned 
+                 to topic k
+                 
+            - doc_topic: numpy array of size [n_docs, n_topics]
+                 doc_topic[n,k] - number of words in document n, that are assigned 
+                 to to topic k
+                 
+            - topics: numpy array of size (n_topics,)
+                 topics[k] - number of words assigned to topic k 
+        '''
+        check_is_fitted(self,'_n_words')
+        samples = [0]*n_samples
+        for i in xrange((n_samples-1)*self.n_thin + 1):
+            wt,dt,ta,ts = self._gibbs_sample_lda(self._words, self._docs, self._topic_assignment,
+                                                 self.word_doc_, self.doc_topic_, self.topics_, 
+                                                 self._tf, self._n_d, self._n_words)
+            if i%n_samples==0:
+                samples.append({'word_topic':wt,'doc_topic':dt,'topics':ts})
+        return samples
         
     
