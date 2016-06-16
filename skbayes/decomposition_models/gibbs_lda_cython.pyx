@@ -181,9 +181,9 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         # run burn-in stage
         _ = self.fit(X)
         # make one more sample
-        wt,dt,ta,ts = self._gibbs_lda(self._words, self._docs, self._topic_assignment,
-                                      self.word_topic_, self.doc_topic_, self.topics_, 
-                                      self._tf, self._n_d, self._n_words) 
+        wt,dt,ta,ts = self._gibbs_sample_lda(self._words, self._docs, self._topic_assignment,
+                                             self.word_topic_, self.doc_topic_, self.topics_, 
+                                             self._tf, self._n_d, self._n_words) 
         empty_docs = self._n_d[:,0]==0
         dtd = np.array(dt,dtype = np.double)
         dtd[empty_docs,:] = 1.0 / self.n_topics
@@ -199,7 +199,6 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         ----------
         X: array-like or sparse matrix of size (n_docs,n_vocab)
            Document Word matrix
-           ( Note we assume that there are no empty documents! )
         
         Returns
         -------
@@ -288,7 +287,7 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         
                # compute p(z_{n,d} = k| Z_{-n,d}) (i.e. probability of assigning
                # topic k for word n in document d, given all other topic assignments)
-               p_z = (doc_topic[di] + alpha) / (alpha*n_topics + n_d[di,0] - 1)  
+               p_z = (doc_topic[di] + alpha) / (alpha*n_topics + max(n_d[di,0] - 1,0) )  
                      
                # compute p(W|Z) (i.e. probability of observing corpus given all
                # topic assignments) and by multiplying it to p(z_{n,d} = k| Z_{-n,d})
@@ -368,12 +367,12 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
                  topics[k] - number of words assigned to topic k 
         '''
         check_is_fitted(self,'_n_words')
-        samples = [0]*n_samples
+        samples = []
         for i in xrange((n_samples-1)*self.n_thin + 1):
             wt,dt,ta,ts = self._gibbs_sample_lda(self._words, self._docs, self._topic_assignment,
-                                                 self.word_doc_, self.doc_topic_, self.topics_, 
+                                                 self.word_topic_, self.doc_topic_, self.topics_, 
                                                  self._tf, self._n_d, self._n_words)
-            if i%n_samples==0:
+            if i%self.n_thin==0:
                 samples.append({'word_topic':wt,'doc_topic':dt,'topics':ts})
         return samples
 
@@ -390,7 +389,6 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         ----------
         X: array-like or sparse matrix of size (n_docs,n_vocab)
            Document Word matrix
-           ( Note we assume that there are no empty documents! )
            
         n_iter: int, optional (DEFAULT = 5)
            Number of gibbs sample iterations
