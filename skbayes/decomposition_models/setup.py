@@ -6,10 +6,7 @@ import numpy as np
 ext_modules=[ Extension("gibbs_lda_cython",["gibbs_lda_cython.pyx"])]
 
 
-setup(
-  name = 'gibbs_lda_cython',
-  cmdclass = {'build_ext': build_ext},
-  include_dirs = [np.get_include()],
-  ext_modules = ext_modules
-)
+if __name__=="__main__":
+   setup( name = 'gibbs_lda_cython', cmdclass = {'build_ext': build_ext},
+          include_dirs = [np.get_include()], ext_modules = ext_modules )
 
