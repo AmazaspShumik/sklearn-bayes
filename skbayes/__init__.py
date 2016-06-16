@@ -34,6 +34,9 @@ Bayesian machine learning models with sklearn api
           - Kernelised Lasso Regression (KernelisedLassoRegression)
           - Kernelised L1 Logistic Regression (KernelisedLogisticRegressionL1)
           
+       ** Decomposition Models
+          - Latent Dirichlet Allocation (collapsed Gibbs Sampler)
+          
           
     PACKAGE CONTENTS:
     -----------------
@@ -46,7 +49,7 @@ Bayesian machine learning models with sklearn api
 '''
 
 __all__ = ['rvm_ard_models','linear_models','hidden_markov_models','mixture_models',
-           'kernel_models','datasets']
+           'kernel_models','datasets','decomposition_models']
 
 __version__ = '0.1.0a1'
 
