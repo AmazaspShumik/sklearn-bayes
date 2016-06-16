@@ -8,6 +8,7 @@ from time import time
 import numpy as np
 cimport cython
 cimport numpy as np
+import warnings
 DTYPE = np.int
 ctypedef np.int_t DTYPE_t
 
@@ -88,11 +89,11 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
        
     Attributes
     ----------
-    components_: numpy array of size (n_topics,n_words)
+    word_topic_: numpy array of size (n_topics,n_words)
         Topic word distribution, self.components_[i,j] - number of times word j
         was assigned to topic i
          
-    doctopic_: numpy array of size (n_docs,n_topics) 
+    doc_topic_: numpy array of size (n_docs,n_topics) 
         Document topic distribution, self.doctopic_[i,j] - number of times topic
         j was observed in document i
         
@@ -137,7 +138,7 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
             if gamma <= 0:
                 raise ValueError(('gamma should be positive value, '
                                   'observed {0}').format(gamma))
-        n_d = X.sum(1)
+        n_d = np.array(X.sum(1), dtype = np.int)
         corpus_size = np.sum(n_d)
         topic_assignment = np.random.randint(0,self.n_topics,corpus_size,dtype=np.int)
         return alpha,gamma,topic_assignment,n_d
@@ -159,6 +160,35 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
             assert(X.shape[1] == self._n_words,("vocabulary size should be the "
                                                 "same for train and test sets"))
         return X
+        
+        
+        
+    def fit_transform(self,X):
+        '''
+        Fit model and transform 
+        
+        Parameters
+        ----------
+        X: array-like or sparse matrix of size (n_docs,n_vocab)
+           Document Word matrix
+           ( Note we assume that there are no empty documents! )
+           
+        Returns
+        -------
+        dt: numpy array of size (n_docs,n_topics)
+           Document topic matrix
+        '''
+        # run burn-in stage
+        _ = self.fit(X)
+        # make one more sample
+        wt,dt,ta,ts = self._gibbs_lda(self._words, self._docs, self._topic_assignment,
+                                      self.word_topic_, self.doc_topic_, self.topics_, 
+                                      self._tf, self._n_d, self._n_words) 
+        empty_docs = self._n_d[:,0]==0
+        dtd = np.array(dt,dtype = np.double)
+        dtd[empty_docs,:] = 1.0 / self.n_topics
+        dtd[~empty_docs,:] = dtd[~empty_docs,:] / self._n_d[~empty_docs,:]
+        return dtd
 
 
     def fit(self,X):
@@ -167,7 +197,7 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         
         Parameters
         ----------
-        X: sparse matrix of size (n_docs,n_vocab)
+        X: array-like or sparse matrix of size (n_docs,n_vocab)
            Document Word matrix
            ( Note we assume that there are no empty documents! )
         
@@ -222,7 +252,7 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         self._tf = tf 
         self._topic_assignment = topic_assignment
         self._n_words = n_words
-        self._n_d
+        self._n_d = n_d
         return self
     
 
@@ -282,7 +312,7 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
                doc_topic[di,ti] += 1
                topics[ti] += 1
                cum_i += 1
-            
+               
         return word_topic, doc_topic, topic_assignment, topics
         
         
@@ -300,41 +330,17 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
 
         # log of latent dist pdf without normalization constant (obtained after 
         # integrating out topic distribution)
-        for di in xrange(n_docs):
-            ll += np.sum(gammaln(self.alpha + doc_topic[di,:]))
-            ll -= gammaln(self.n_topics*self.alpha + n_d[di,0])
+        ll += np.sum(gammaln(self.alpha + doc_topic))
+        ll -= np.sum(gammaln(self.n_topics*self.alpha + n_d[:,0]))
 
         # log p( words | latent_var), obtained after integrating out word
         # distribution
-        for ti in xrange(self.n_topics):
-           ll += np.sum( gammaln(self.gamma + word_topic[:,ti]) )
-           ll -= gammaln(n_words*self.gamma + topics[ti])
+        ll += np.sum(gammaln(self.gamma + word_topic))
+        ll -= np.sum(gammaln(n_words*self.gamma + topics))
            
         return ll
-
         
-    def transform(self,X):
-        '''
-        Transforms data matrix X (finds lower dimensional representation)
-        
-        Parameters
-        ----------
-        X: sparse matrix of size (n_docs,n_vocab)
-           Document Word matrix
-        
-        Returns
-        -------
-        doc_topic: numpy array of size (n_docs,n_topics)
-           Matrix of document topics
-        '''
-        X = self._check_X(X)
-        words,docs,n_d = vectorize(X)
-        wt,dt,ta,ts = self._gibbs_sample_lda(self._words, self._docs, self._topic_assignment,
-                                             self.word_doc_, self.doc_topic_, self.topics_, 
-                                             self._tf, n_d, self._n_words)
-        return dt
-        
-        
+   
         
     def sample(self, n_samples = 5):
         '''
@@ -370,5 +376,58 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
             if i%n_samples==0:
                 samples.append({'word_topic':wt,'doc_topic':dt,'topics':ts})
         return samples
+
+
         
-    
+    def transform(self, X, n_iter = 5):
+        '''
+        Transforms data matrix X (finds lower dimensional representation)
+        Parameters obtained during burn-in are used as starting point for running
+        new chain in order to transform matrix X.
+        NOTE!!! It is highly advised to use fit_transform method on whole dataset !!!
+        
+        Parameters
+        ----------
+        X: array-like or sparse matrix of size (n_docs,n_vocab)
+           Document Word matrix
+           ( Note we assume that there are no empty documents! )
+           
+        n_iter: int, optional (DEFAULT = 5)
+           Number of gibbs sample iterations
+        
+        Returns
+        -------
+        doc_topic: numpy array of size (n_docs,n_topics)
+           Matrix of document topics
+        '''
+        X = self._check_X(X)
+        docs,words,tf = vectorize(X)
+        n_docs, n_words = X.shape
+        n_d = np.array(X.sum(1))
+        cdef np.ndarray[DTYPE_t, ndim=2] wt = np.zeros([n_words,self.n_topics],dtype = DTYPE)
+        cdef np.ndarray[DTYPE_t, ndim=2] dt = np.zeros([n_docs,self.n_topics], dtype = DTYPE)
+        cdef np.ndarray[DTYPE_t, ndim=1] ta = np.zeros(np.sum(n_d), dtype = np.int)
+        cdef int cumi = 0
+        cdef int i,wi,di,j,ti
+        for i in xrange(len(words)):
+            wi = words[i]
+            di = docs[i]
+            ti = np.argmax(self.word_topic_[wi,:])
+            for j in xrange(tf[i]):
+                ta[cumi] = ti
+                wt[wi,ti] += 1
+                dt[di,ti] += 1
+                cumi += 1
+        docs  = np.array(docs,dtype = np.int)
+        words = np.array(words,dtype = np.int)
+        tf    = np.array(tf,dtype = np.int)
+        for k in xrange(n_iter):
+            wt,dt,ta,ts = self._gibbs_sample_lda( words, docs, ta, wt, dt, self.topics_, 
+                                                  tf, n_d, n_words)
+        empty_docs = n_d[:,0]==0
+        dtd = np.array(dt,dtype = np.double)
+        dtd[empty_docs,:] = 1.0 / self.n_topics
+        dtd[~empty_docs,:] = dtd[~empty_docs,:] / n_d[~empty_docs,:]
+        return dtd
+
+
