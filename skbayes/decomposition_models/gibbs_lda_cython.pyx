@@ -109,12 +109,12 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
     Griffiths and Steyers, Finding Scientific Topics (2004)
     K.Murphy, Machine Learning A Probabilistic Perspective (2012)
     '''
-    def __init__(self, n_topics, n_burnin = 30, n_thin = 3, init_params = {},
+    def __init__(self, n_topics, n_burnin = 30, n_thin = 3, init_params = None,
                  compute_score = False, verbose = False):
         self.n_topics      = n_topics
         self.n_burnin      = n_burnin
         self.n_thin        = n_thin
-        self.init_parms    = {} if (init_params is None) else init_params
+        self.init_parms    = init_params
         self.compute_score = compute_score
         self.scores_       = []
         self.verbose       = verbose
@@ -128,6 +128,8 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         # parameters of Dirichlet priors for topic & word distribution
         alpha = 1; gamma = 1
         topic_assignment = 0
+        if self.init_params is None:
+            self.init_params = {}
         if 'alpha' in self.init_params:
             alpha = self.init_params['alpha']
             if alpha <= 0:
