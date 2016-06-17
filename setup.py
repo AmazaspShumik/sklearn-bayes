@@ -24,7 +24,7 @@ if __name__=='__main__':
        name = 'skbayes',
        version  = '0.1.0a1',
        description = "bayesian machine learning algorithms with scikit-learn api",
-       url         = 'https://github.com/AmazaspShumik/sklearn-bayes/skbayes',
+       url         = 'https://github.com/AmazaspShumik/sklearn-bayes',
        author      = 'Amazasp Shaumyan',
        author_email = 'amazasp.shaumyan@gmail.com',
        license      = 'MIT',
