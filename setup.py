@@ -7,22 +7,14 @@ import numpy as np
 
 ext_modules = [ Extension("skbayes.decomposition_models.gibbs_lda_cython",
                           ["skbayes/decomposition_models/gibbs_lda_cython.c"], 
-                          include_dirs = [np.get_include()]) ]
-                          
-PACKAGES = [
-           'linear_models',
-           'rvm_ard_models',
-           'decomposition_models',
-           'hidden_markov_models',
-           'mixture_models',
-           'kernel_models'
-           ]
+                          include_dirs = [np.get_include()],
+                          extra_compile_args=["-O3"])]
            
 setup(
        name = 'skbayes',
        version  = '0.1.0a1',
        description = "bayesian machine learning algorithms with scikit-learn api",
-       #url         = 'https://github.com/AmazaspShumik/sklearn-bayes',
+       url         = 'https://github.com/AmazaspShumik/sklearn-bayes',
        author      = 'Amazasp Shaumyan',
        author_email = 'amazasp.shaumyan@gmail.com',
        license      = 'MIT',
@@ -40,6 +32,6 @@ setup(
           'Development Status :: 3 - Alpha',
           'Operating System :: Mac OS X',
           'Programming Language :: Python :: 2.7'],
-       ext_modules = cythonize(ext_modules)
+       ext_modules = ext_modules
      )
 
