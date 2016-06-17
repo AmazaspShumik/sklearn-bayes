@@ -340,7 +340,8 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         return ll
         
    
-        
+    @cython.wraparound(False)
+    @cython.boundscheck(False)        
     def sample(self, n_samples = 5):
         '''
         Compute samples from posterior distribution
