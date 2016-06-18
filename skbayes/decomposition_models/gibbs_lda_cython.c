@@ -1000,14 +1000,14 @@ static CYTHON_INLINE int __Pyx_PyObject_SetAttrStr(PyObject* obj, PyObject* attr
 #define __Pyx_PyObject_SetAttrStr(o,n,v) PyObject_SetAttr(o,n,v)
 #endif
 
+/* RaiseException.proto */
+static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb, PyObject *cause);
+
 /* PySequenceContains.proto */
 static CYTHON_INLINE int __Pyx_PySequence_ContainsTF(PyObject* item, PyObject* seq, int eq) {
     int result = PySequence_Contains(seq, item);
     return unlikely(result < 0) ? result : (result == (eq == Py_EQ));
 }
-
-/* RaiseException.proto */
-static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb, PyObject *cause);
 
 /* GetItemInt.proto */
 #define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
@@ -1529,14 +1529,13 @@ static const char __pyx_k_vectorize[] = "vectorize";
 static const char __pyx_k_ValueError[] = "ValueError";
 static const char __pyx_k_csr_matrix[] = "csr_matrix";
 static const char __pyx_k_empty_docs[] = "empty_docs";
-static const char __pyx_k_init_parms[] = "init_parms";
 static const char __pyx_k_normalizer[] = "normalizer";
 static const char __pyx_k_scipy_misc[] = "scipy.misc";
 static const char __pyx_k_word_topic[] = "word_topic_";
 static const char __pyx_k_check_array[] = "check_array";
 static const char __pyx_k_corpus_size[] = "corpus_size";
 static const char __pyx_k_doc_topic_2[] = "doc_topic";
-static const char __pyx_k_init_params[] = "init_params";
+static const char __pyx_k_init_params[] = "_init_params";
 static const char __pyx_k_multinomial[] = "multinomial";
 static const char __pyx_k_partial_sum[] = "partial_sum";
 static const char __pyx_k_GibbsLDA_fit[] = "GibbsLDA.fit";
@@ -1548,7 +1547,6 @@ static const char __pyx_k_BaseEstimator[] = "BaseEstimator";
 static const char __pyx_k_accept_sparse[] = "accept_sparse";
 static const char __pyx_k_compute_score[] = "compute_score";
 static const char __pyx_k_fit_transform[] = "fit_transform";
-static const char __pyx_k_init_params_2[] = "_init_params";
 static const char __pyx_k_joint_loglike[] = "_joint_loglike";
 static const char __pyx_k_scipy_special[] = "scipy.special";
 static const char __pyx_k_sklearn_utils[] = "sklearn.utils";
@@ -1569,7 +1567,7 @@ static const char __pyx_k_GibbsLDA__joint_loglike[] = "GibbsLDA._joint_loglike";
 static const char __pyx_k_sklearn_utils_validation[] = "sklearn.utils.validation";
 static const char __pyx_k_GibbsLDA__gibbs_sample_lda[] = "GibbsLDA._gibbs_sample_lda";
 static const char __pyx_k_ndarray_is_not_C_contiguous[] = "ndarray is not C contiguous";
-static const char __pyx_k_Collapsed_Gibbs_Sampler_for_Lat[] = "\n    Collapsed Gibbs Sampler for Latent Dirichlet Allocation\n    \n    Parameters\n    ----------\n    n_topics: int\n        Number of topics in corpus\n\n    n_burnin: int, optional (DEFAULT = 30)\n        Number of samples to train model (it is expected that chain will\n        converge during burn-in stage)\n        \n    n_thin: int, optional (DEFAULT = 3)\n        Number of iterators between samples (to avoid autocorrelation between\n        consecutive samples), thining is implemented after burnin.\n        \n    init_params: dict, optional (DEFAULT = {})\n        Dictionary containing all relevant parameters\n        \n        - alpha: float, optional (DEFAULT = 1)\n                 concentration parameter for Dirichlet prior on topic distribution\n        \n        - gamma: float, optional (DEFAULT = 1)\n                 concentration parameter for Dirichlet prior on word distribution\n                 \n        - topic_assignment: \n            \n    compute_score: bool, optional (DEFAULT = False)\n       If True computes joint log likelihood\n       \n    log_scale: bool, optional (DEFAULT = False)\n       If True sampler will use log-scale (NOTE!!! This makes it longer to take sample,\n       but process is)\n       \n       \n    Attributes\n    ----------\n    word_topic_: numpy array of size (n_topics,n_words)\n        Topic word distribution, self.components_[i,j] - number of times word j\n        was assigned to topic i\n         \n    doc_topic_: numpy array of size (n_docs,n_topics) \n        Document topic distribution, self.doctopic_[i,j] - number of times topic\n        j was observed in document i\n        \n    topics_: numpy array of size (n_topics,)\n        Number of words assigned to each topic\n    \n    scores_: list of length n_burnin\n        Values of joint log likelihood\n    \n        \n    References\n    -----------\n    Griffiths and Steyers, Finding Scientific Topics (2004)\n    K.Murphy, Machine Learning A Probabilistic Pers""pective (2012)\n    ";
+static const char __pyx_k_Collapsed_Gibbs_Sampler_for_Lat[] = "\n    Collapsed Gibbs Sampler for Latent Dirichlet Allocation\n    \n    Parameters\n    ----------\n    n_topics: int\n        Number of topics in corpus\n\n    n_burnin: int, optional (DEFAULT = 30)\n        Number of samples to train model (it is expected that chain will\n        converge during burn-in stage)\n        \n    n_thin: int, optional (DEFAULT = 3)\n        Number of iterators between samples (to avoid autocorrelation between\n        consecutive samples), thining is implemented after burnin.\n\n    alpha: float, optional (DEFAULT = 1)\n        Concentration parameter for Dirichlet prior on topic distribution\n        \n    gamma: float, optional (DEFAULT = 1)\n        Concentration parameter for Dirichlet prior on word distribution\n                             \n    compute_score: bool, optional (DEFAULT = False)\n       If True computes joint log likelihood\n       \n    log_scale: bool, optional (DEFAULT = False)\n       If True sampler will use log-scale (NOTE!!! This makes it longer to take sample,\n       but process is)\n       \n       \n    Attributes\n    ----------\n    word_topic_: numpy array of size (n_topics,n_words)\n        Topic word distribution, self.components_[i,j] - number of times word j\n        was assigned to topic i\n         \n    doc_topic_: numpy array of size (n_docs,n_topics) \n        Document topic distribution, self.doctopic_[i,j] - number of times topic\n        j was observed in document i\n        \n    topics_: numpy array of size (n_topics,)\n        Number of words assigned to each topic\n    \n    scores_: list of length n_burnin\n        Values of joint log likelihood\n    \n        \n    References\n    -----------\n    Griffiths and Steyers, Finding Scientific Topics (2004)\n    K.Murphy, Machine Learning A Probabilistic Perspective (2012)\n    ";
 static const char __pyx_k_Document_term_matrix_should_not[] = "Document term matrix should not contain negative values";
 static const char __pyx_k_Users_amazaspshaumyan_Desktop_s[] = "/Users/amazaspshaumyan/Desktop/sklearn_bayes/skbayes/decomposition_models/gibbs_lda_cython.pyx";
 static const char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
@@ -1652,8 +1650,6 @@ static PyObject *__pyx_n_s_i;
 static PyObject *__pyx_n_s_import;
 static PyObject *__pyx_n_s_init;
 static PyObject *__pyx_n_s_init_params;
-static PyObject *__pyx_n_s_init_params_2;
-static PyObject *__pyx_n_s_init_parms;
 static PyObject *__pyx_n_s_int;
 static PyObject *__pyx_n_s_issparse;
 static PyObject *__pyx_n_s_j;
@@ -1732,7 +1728,7 @@ static PyObject *__pyx_n_s_xrange;
 static PyObject *__pyx_n_s_zeros;
 static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_word_doc_topic(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_words, PyArrayObject *__pyx_v_docs, PyArrayObject *__pyx_v_tf, PyArrayObject *__pyx_v_topic_assignment, int __pyx_v_n_docs, int __pyx_v_n_words, int __pyx_v_n_topics); /* proto */
 static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_2vectorize(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_X); /* proto */
-static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_n_topics, PyObject *__pyx_v_n_burnin, PyObject *__pyx_v_n_thin, PyObject *__pyx_v_init_params, PyObject *__pyx_v_compute_score, PyObject *__pyx_v_verbose); /* proto */
+static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_n_topics, PyObject *__pyx_v_n_burnin, PyObject *__pyx_v_n_thin, PyObject *__pyx_v_alpha, PyObject *__pyx_v_gamma, PyObject *__pyx_v_compute_score, PyObject *__pyx_v_verbose); /* proto */
 static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_2_init_params(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_X); /* proto */
 static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_4_check_X(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_X); /* proto */
 static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_6fit_transform(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_X); /* proto */
@@ -2733,11 +2729,11 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_2ve
   return __pyx_r;
 }
 
-/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":112
+/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":107
  *     K.Murphy, Machine Learning A Probabilistic Perspective (2012)
  *     '''
- *     def __init__(self, n_topics, n_burnin = 30, n_thin = 3, init_params = None,             # <<<<<<<<<<<<<<
- *                  compute_score = False, verbose = False):
+ *     def __init__(self, n_topics, n_burnin=30, n_thin=3, alpha=1, gamma=1,             # <<<<<<<<<<<<<<
+ *                  compute_score=False, verbose=False):
  *         self.n_topics      = n_topics
  */
 
@@ -2749,32 +2745,35 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   PyObject *__pyx_v_n_topics = 0;
   PyObject *__pyx_v_n_burnin = 0;
   PyObject *__pyx_v_n_thin = 0;
-  PyObject *__pyx_v_init_params = 0;
+  PyObject *__pyx_v_alpha = 0;
+  PyObject *__pyx_v_gamma = 0;
   PyObject *__pyx_v_compute_score = 0;
   PyObject *__pyx_v_verbose = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__init__ (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_self,&__pyx_n_s_n_topics,&__pyx_n_s_n_burnin,&__pyx_n_s_n_thin,&__pyx_n_s_init_params,&__pyx_n_s_compute_score,&__pyx_n_s_verbose,0};
-    PyObject* values[7] = {0,0,0,0,0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_self,&__pyx_n_s_n_topics,&__pyx_n_s_n_burnin,&__pyx_n_s_n_thin,&__pyx_n_s_alpha,&__pyx_n_s_gamma,&__pyx_n_s_compute_score,&__pyx_n_s_verbose,0};
+    PyObject* values[8] = {0,0,0,0,0,0,0,0};
     values[2] = ((PyObject *)((PyObject *)__pyx_int_30));
     values[3] = ((PyObject *)((PyObject *)__pyx_int_3));
-    values[4] = ((PyObject *)((PyObject *)Py_None));
+    values[4] = ((PyObject *)((PyObject *)__pyx_int_1));
+    values[5] = ((PyObject *)((PyObject *)__pyx_int_1));
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":113
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":108
  *     '''
- *     def __init__(self, n_topics, n_burnin = 30, n_thin = 3, init_params = None,
- *                  compute_score = False, verbose = False):             # <<<<<<<<<<<<<<
+ *     def __init__(self, n_topics, n_burnin=30, n_thin=3, alpha=1, gamma=1,
+ *                  compute_score=False, verbose=False):             # <<<<<<<<<<<<<<
  *         self.n_topics      = n_topics
  *         self.n_burnin      = n_burnin
  */
-    values[5] = ((PyObject *)((PyObject *)Py_False));
     values[6] = ((PyObject *)((PyObject *)Py_False));
+    values[7] = ((PyObject *)((PyObject *)Py_False));
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  8: values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
         case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
         case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
         case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
@@ -2793,7 +2792,7 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_n_topics)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 0, 2, 7, 1); __PYX_ERR(0, 112, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 0, 2, 8, 1); __PYX_ERR(0, 107, __pyx_L3_error)
         }
         case  2:
         if (kw_args > 0) {
@@ -2807,25 +2806,31 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         }
         case  4:
         if (kw_args > 0) {
-          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_init_params);
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_alpha);
           if (value) { values[4] = value; kw_args--; }
         }
         case  5:
         if (kw_args > 0) {
-          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_compute_score);
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_gamma);
           if (value) { values[5] = value; kw_args--; }
         }
         case  6:
         if (kw_args > 0) {
-          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_verbose);
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_compute_score);
           if (value) { values[6] = value; kw_args--; }
+        }
+        case  7:
+        if (kw_args > 0) {
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_verbose);
+          if (value) { values[7] = value; kw_args--; }
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 112, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 107, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  8: values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
         case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
         case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
         case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
@@ -2841,25 +2846,26 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __pyx_v_n_topics = values[1];
     __pyx_v_n_burnin = values[2];
     __pyx_v_n_thin = values[3];
-    __pyx_v_init_params = values[4];
-    __pyx_v_compute_score = values[5];
-    __pyx_v_verbose = values[6];
+    __pyx_v_alpha = values[4];
+    __pyx_v_gamma = values[5];
+    __pyx_v_compute_score = values[6];
+    __pyx_v_verbose = values[7];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 0, 2, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 112, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 0, 2, 8, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 107, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("skbayes.decomposition_models.gibbs_lda_cython.GibbsLDA.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA___init__(__pyx_self, __pyx_v_self, __pyx_v_n_topics, __pyx_v_n_burnin, __pyx_v_n_thin, __pyx_v_init_params, __pyx_v_compute_score, __pyx_v_verbose);
+  __pyx_r = __pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA___init__(__pyx_self, __pyx_v_self, __pyx_v_n_topics, __pyx_v_n_burnin, __pyx_v_n_thin, __pyx_v_alpha, __pyx_v_gamma, __pyx_v_compute_score, __pyx_v_verbose);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":112
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":107
  *     K.Murphy, Machine Learning A Probabilistic Perspective (2012)
  *     '''
- *     def __init__(self, n_topics, n_burnin = 30, n_thin = 3, init_params = None,             # <<<<<<<<<<<<<<
- *                  compute_score = False, verbose = False):
+ *     def __init__(self, n_topics, n_burnin=30, n_thin=3, alpha=1, gamma=1,             # <<<<<<<<<<<<<<
+ *                  compute_score=False, verbose=False):
  *         self.n_topics      = n_topics
  */
 
@@ -2868,92 +2874,92 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_n_topics, PyObject *__pyx_v_n_burnin, PyObject *__pyx_v_n_thin, PyObject *__pyx_v_init_params, PyObject *__pyx_v_compute_score, PyObject *__pyx_v_verbose) {
+static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_n_topics, PyObject *__pyx_v_n_burnin, PyObject *__pyx_v_n_thin, PyObject *__pyx_v_alpha, PyObject *__pyx_v_gamma, PyObject *__pyx_v_compute_score, PyObject *__pyx_v_verbose) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":114
- *     def __init__(self, n_topics, n_burnin = 30, n_thin = 3, init_params = None,
- *                  compute_score = False, verbose = False):
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":109
+ *     def __init__(self, n_topics, n_burnin=30, n_thin=3, alpha=1, gamma=1,
+ *                  compute_score=False, verbose=False):
  *         self.n_topics      = n_topics             # <<<<<<<<<<<<<<
  *         self.n_burnin      = n_burnin
  *         self.n_thin        = n_thin
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_n_topics, __pyx_v_n_topics) < 0) __PYX_ERR(0, 114, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_n_topics, __pyx_v_n_topics) < 0) __PYX_ERR(0, 109, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":115
- *                  compute_score = False, verbose = False):
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":110
+ *                  compute_score=False, verbose=False):
  *         self.n_topics      = n_topics
  *         self.n_burnin      = n_burnin             # <<<<<<<<<<<<<<
  *         self.n_thin        = n_thin
- *         self.init_parms    = init_params
+ *         self.alpha         = alpha
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_n_burnin, __pyx_v_n_burnin) < 0) __PYX_ERR(0, 115, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_n_burnin, __pyx_v_n_burnin) < 0) __PYX_ERR(0, 110, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":116
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":111
  *         self.n_topics      = n_topics
  *         self.n_burnin      = n_burnin
  *         self.n_thin        = n_thin             # <<<<<<<<<<<<<<
- *         self.init_parms    = init_params
- *         self.compute_score = compute_score
+ *         self.alpha         = alpha
+ *         self.gamma         = gamma
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_n_thin, __pyx_v_n_thin) < 0) __PYX_ERR(0, 116, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_n_thin, __pyx_v_n_thin) < 0) __PYX_ERR(0, 111, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":117
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":112
  *         self.n_burnin      = n_burnin
  *         self.n_thin        = n_thin
- *         self.init_parms    = init_params             # <<<<<<<<<<<<<<
+ *         self.alpha         = alpha             # <<<<<<<<<<<<<<
+ *         self.gamma         = gamma
+ *         self.compute_score = compute_score
+ */
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_alpha, __pyx_v_alpha) < 0) __PYX_ERR(0, 112, __pyx_L1_error)
+
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":113
+ *         self.n_thin        = n_thin
+ *         self.alpha         = alpha
+ *         self.gamma         = gamma             # <<<<<<<<<<<<<<
  *         self.compute_score = compute_score
  *         self.scores_       = []
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_init_parms, __pyx_v_init_params) < 0) __PYX_ERR(0, 117, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_gamma, __pyx_v_gamma) < 0) __PYX_ERR(0, 113, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":118
- *         self.n_thin        = n_thin
- *         self.init_parms    = init_params
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":114
+ *         self.alpha         = alpha
+ *         self.gamma         = gamma
  *         self.compute_score = compute_score             # <<<<<<<<<<<<<<
  *         self.scores_       = []
  *         self.verbose       = verbose
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_compute_score, __pyx_v_compute_score) < 0) __PYX_ERR(0, 118, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_compute_score, __pyx_v_compute_score) < 0) __PYX_ERR(0, 114, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":119
- *         self.init_parms    = init_params
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":115
+ *         self.gamma         = gamma
  *         self.compute_score = compute_score
  *         self.scores_       = []             # <<<<<<<<<<<<<<
  *         self.verbose       = verbose
- *         self.init_params   = init_params
+ * 
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 115, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_scores, __pyx_t_1) < 0) __PYX_ERR(0, 119, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_scores, __pyx_t_1) < 0) __PYX_ERR(0, 115, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":120
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":116
  *         self.compute_score = compute_score
  *         self.scores_       = []
  *         self.verbose       = verbose             # <<<<<<<<<<<<<<
- *         self.init_params   = init_params
- * 
- */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_verbose, __pyx_v_verbose) < 0) __PYX_ERR(0, 120, __pyx_L1_error)
-
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":121
- *         self.scores_       = []
- *         self.verbose       = verbose
- *         self.init_params   = init_params             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_init_params, __pyx_v_init_params) < 0) __PYX_ERR(0, 121, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_verbose, __pyx_v_verbose) < 0) __PYX_ERR(0, 116, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":112
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":107
  *     K.Murphy, Machine Learning A Probabilistic Perspective (2012)
  *     '''
- *     def __init__(self, n_topics, n_burnin = 30, n_thin = 3, init_params = None,             # <<<<<<<<<<<<<<
- *                  compute_score = False, verbose = False):
+ *     def __init__(self, n_topics, n_burnin=30, n_thin=3, alpha=1, gamma=1,             # <<<<<<<<<<<<<<
+ *                  compute_score=False, verbose=False):
  *         self.n_topics      = n_topics
  */
 
@@ -2970,7 +2976,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   return __pyx_r;
 }
 
-/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":124
+/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":119
  * 
  * 
  *     def _init_params(self,X):             # <<<<<<<<<<<<<<
@@ -3008,11 +3014,11 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_X)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_init_params", 1, 2, 2, 1); __PYX_ERR(0, 124, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_init_params", 1, 2, 2, 1); __PYX_ERR(0, 119, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_init_params") < 0)) __PYX_ERR(0, 124, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_init_params") < 0)) __PYX_ERR(0, 119, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -3025,7 +3031,7 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_init_params", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 124, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("_init_params", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 119, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("skbayes.decomposition_models.gibbs_lda_cython.GibbsLDA._init_params", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3039,354 +3045,240 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
 }
 
 static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_2_init_params(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_X) {
-  PyObject *__pyx_v_alpha = NULL;
-  PyObject *__pyx_v_gamma = NULL;
   PyObject *__pyx_v_topic_assignment = NULL;
   PyObject *__pyx_v_n_d = NULL;
   PyObject *__pyx_v_corpus_size = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  int __pyx_t_2;
+  PyObject *__pyx_t_2 = NULL;
   int __pyx_t_3;
   PyObject *__pyx_t_4 = NULL;
   PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
-  PyObject *__pyx_t_7 = NULL;
   __Pyx_RefNannySetupContext("_init_params", 0);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":129
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":124
  *         '''
  *         # parameters of Dirichlet priors for topic & word distribution
- *         alpha = 1; gamma = 1             # <<<<<<<<<<<<<<
- *         topic_assignment = 0
- *         if self.init_params is None:
- */
-  __Pyx_INCREF(__pyx_int_1);
-  __pyx_v_alpha = __pyx_int_1;
-  __Pyx_INCREF(__pyx_int_1);
-  __pyx_v_gamma = __pyx_int_1;
-
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":130
- *         # parameters of Dirichlet priors for topic & word distribution
- *         alpha = 1; gamma = 1
  *         topic_assignment = 0             # <<<<<<<<<<<<<<
- *         if self.init_params is None:
- *             self.init_params = {}
+ *         if self.alpha <= 0:
+ *             raise ValueError(('alpha should be positive value, '
  */
   __Pyx_INCREF(__pyx_int_0);
   __pyx_v_topic_assignment = __pyx_int_0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":131
- *         alpha = 1; gamma = 1
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":125
+ *         # parameters of Dirichlet priors for topic & word distribution
  *         topic_assignment = 0
- *         if self.init_params is None:             # <<<<<<<<<<<<<<
- *             self.init_params = {}
- *         if 'alpha' in self.init_params:
+ *         if self.alpha <= 0:             # <<<<<<<<<<<<<<
+ *             raise ValueError(('alpha should be positive value, '
+ *                               'observed {0}').format(self.alpha))
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_init_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_alpha); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = (__pyx_t_1 == Py_None);
+  __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_int_0, Py_LE); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_3 = (__pyx_t_2 != 0);
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 125, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (__pyx_t_3) {
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":132
- *         topic_assignment = 0
- *         if self.init_params is None:
- *             self.init_params = {}             # <<<<<<<<<<<<<<
- *         if 'alpha' in self.init_params:
- *             alpha = self.init_params['alpha']
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":127
+ *         if self.alpha <= 0:
+ *             raise ValueError(('alpha should be positive value, '
+ *                               'observed {0}').format(self.alpha))             # <<<<<<<<<<<<<<
+ *         if self.gamma <= 0:
+ *             raise ValueError(('gamma should be positive value, '
  */
-    __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 132, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_alpha_should_be_positive_value_o, __pyx_n_s_format); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 127, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_init_params, __pyx_t_1) < 0) __PYX_ERR(0, 132, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":131
- *         alpha = 1; gamma = 1
- *         topic_assignment = 0
- *         if self.init_params is None:             # <<<<<<<<<<<<<<
- *             self.init_params = {}
- *         if 'alpha' in self.init_params:
- */
-  }
-
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":133
- *         if self.init_params is None:
- *             self.init_params = {}
- *         if 'alpha' in self.init_params:             # <<<<<<<<<<<<<<
- *             alpha = self.init_params['alpha']
- *             if alpha <= 0:
- */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_init_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 133, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_alpha, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 133, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_2 = (__pyx_t_3 != 0);
-  if (__pyx_t_2) {
-
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":134
- *             self.init_params = {}
- *         if 'alpha' in self.init_params:
- *             alpha = self.init_params['alpha']             # <<<<<<<<<<<<<<
- *             if alpha <= 0:
- *                 raise ValueError(('alpha should be positive value, '
- */
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_init_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 134, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_4 = PyObject_GetItem(__pyx_t_1, __pyx_n_s_alpha); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 134, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_alpha); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 127, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_DECREF_SET(__pyx_v_alpha, __pyx_t_4);
-    __pyx_t_4 = 0;
-
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":135
- *         if 'alpha' in self.init_params:
- *             alpha = self.init_params['alpha']
- *             if alpha <= 0:             # <<<<<<<<<<<<<<
- *                 raise ValueError(('alpha should be positive value, '
- *                                   'observed {0}').format(alpha))
- */
-    __pyx_t_4 = PyObject_RichCompare(__pyx_v_alpha, __pyx_int_0, Py_LE); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 135, __pyx_L1_error)
-    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 135, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (__pyx_t_2) {
-
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":137
- *             if alpha <= 0:
- *                 raise ValueError(('alpha should be positive value, '
- *                                   'observed {0}').format(alpha))             # <<<<<<<<<<<<<<
- *         if 'gamma' in self.init_params:
- *             gamma = self.init_params['gamma']
- */
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_alpha_should_be_positive_value_o, __pyx_n_s_format); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 137, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_5 = NULL;
-      if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_1))) {
-        __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_1);
-        if (likely(__pyx_t_5)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-          __Pyx_INCREF(__pyx_t_5);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_1, function);
-        }
+    __pyx_t_5 = NULL;
+    if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_1))) {
+      __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_1);
+      if (likely(__pyx_t_5)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+        __Pyx_INCREF(__pyx_t_5);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_1, function);
       }
-      if (!__pyx_t_5) {
-        __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_alpha); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 137, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-      } else {
-        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 137, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_6);
-        __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
-        __Pyx_INCREF(__pyx_v_alpha);
-        __Pyx_GIVEREF(__pyx_v_alpha);
-        PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_v_alpha);
-        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_6, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 137, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      }
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":136
- *             alpha = self.init_params['alpha']
- *             if alpha <= 0:
- *                 raise ValueError(('alpha should be positive value, '             # <<<<<<<<<<<<<<
- *                                   'observed {0}').format(alpha))
- *         if 'gamma' in self.init_params:
- */
-      __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 136, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_GIVEREF(__pyx_t_4);
-      PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_4);
-      __pyx_t_4 = 0;
-      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_t_1, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 136, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __Pyx_Raise(__pyx_t_4, 0, 0, 0);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __PYX_ERR(0, 136, __pyx_L1_error)
-
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":135
- *         if 'alpha' in self.init_params:
- *             alpha = self.init_params['alpha']
- *             if alpha <= 0:             # <<<<<<<<<<<<<<
- *                 raise ValueError(('alpha should be positive value, '
- *                                   'observed {0}').format(alpha))
- */
     }
+    if (!__pyx_t_5) {
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 127, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_GOTREF(__pyx_t_2);
+    } else {
+      __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 127, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_6);
+      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
+      __Pyx_GIVEREF(__pyx_t_4);
+      PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_t_4);
+      __pyx_t_4 = 0;
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 127, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    }
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":133
- *         if self.init_params is None:
- *             self.init_params = {}
- *         if 'alpha' in self.init_params:             # <<<<<<<<<<<<<<
- *             alpha = self.init_params['alpha']
- *             if alpha <= 0:
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":126
+ *         topic_assignment = 0
+ *         if self.alpha <= 0:
+ *             raise ValueError(('alpha should be positive value, '             # <<<<<<<<<<<<<<
+ *                               'observed {0}').format(self.alpha))
+ *         if self.gamma <= 0:
+ */
+    __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 126, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_GIVEREF(__pyx_t_2);
+    PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
+    __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 126, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 126, __pyx_L1_error)
+
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":125
+ *         # parameters of Dirichlet priors for topic & word distribution
+ *         topic_assignment = 0
+ *         if self.alpha <= 0:             # <<<<<<<<<<<<<<
+ *             raise ValueError(('alpha should be positive value, '
+ *                               'observed {0}').format(self.alpha))
  */
   }
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":138
- *                 raise ValueError(('alpha should be positive value, '
- *                                   'observed {0}').format(alpha))
- *         if 'gamma' in self.init_params:             # <<<<<<<<<<<<<<
- *             gamma = self.init_params['gamma']
- *             if gamma <= 0:
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":128
+ *             raise ValueError(('alpha should be positive value, '
+ *                               'observed {0}').format(self.alpha))
+ *         if self.gamma <= 0:             # <<<<<<<<<<<<<<
+ *             raise ValueError(('gamma should be positive value, '
+ *                               'observed {0}').format(self.gamma))
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_init_params); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 138, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_gamma, __pyx_t_4, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 138, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_3 = (__pyx_t_2 != 0);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gamma); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_1 = PyObject_RichCompare(__pyx_t_2, __pyx_int_0, Py_LE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_3) {
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":139
- *                                   'observed {0}').format(alpha))
- *         if 'gamma' in self.init_params:
- *             gamma = self.init_params['gamma']             # <<<<<<<<<<<<<<
- *             if gamma <= 0:
- *                 raise ValueError(('gamma should be positive value, '
- */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_init_params); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 139, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_1 = PyObject_GetItem(__pyx_t_4, __pyx_n_s_gamma); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 139, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_DECREF_SET(__pyx_v_gamma, __pyx_t_1);
-    __pyx_t_1 = 0;
-
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":140
- *         if 'gamma' in self.init_params:
- *             gamma = self.init_params['gamma']
- *             if gamma <= 0:             # <<<<<<<<<<<<<<
- *                 raise ValueError(('gamma should be positive value, '
- *                                   'observed {0}').format(gamma))
- */
-    __pyx_t_1 = PyObject_RichCompare(__pyx_v_gamma, __pyx_int_0, Py_LE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 140, __pyx_L1_error)
-    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 140, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    if (__pyx_t_3) {
-
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":142
- *             if gamma <= 0:
- *                 raise ValueError(('gamma should be positive value, '
- *                                   'observed {0}').format(gamma))             # <<<<<<<<<<<<<<
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":130
+ *         if self.gamma <= 0:
+ *             raise ValueError(('gamma should be positive value, '
+ *                               'observed {0}').format(self.gamma))             # <<<<<<<<<<<<<<
  *         n_d = np.array(X.sum(1), dtype = np.int)
  *         corpus_size = np.sum(n_d)
  */
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_gamma_should_be_positive_value_o, __pyx_n_s_format); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 142, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_6 = NULL;
-      if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
-        __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_4);
-        if (likely(__pyx_t_6)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-          __Pyx_INCREF(__pyx_t_6);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_4, function);
-        }
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_gamma_should_be_positive_value_o, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 130, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gamma); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 130, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __pyx_t_4 = NULL;
+    if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
+      __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_2);
+      if (likely(__pyx_t_4)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+        __Pyx_INCREF(__pyx_t_4);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_2, function);
       }
-      if (!__pyx_t_6) {
-        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_gamma); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 142, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_1);
-      } else {
-        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 142, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_5);
-        __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_6); __pyx_t_6 = NULL;
-        __Pyx_INCREF(__pyx_v_gamma);
-        __Pyx_GIVEREF(__pyx_v_gamma);
-        PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_gamma);
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 142, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      }
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    }
+    if (!__pyx_t_4) {
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 130, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __Pyx_GOTREF(__pyx_t_1);
+    } else {
+      __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 130, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __pyx_t_4 = NULL;
+      __Pyx_GIVEREF(__pyx_t_6);
+      PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_6);
+      __pyx_t_6 = 0;
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 130, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    }
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":141
- *             gamma = self.init_params['gamma']
- *             if gamma <= 0:
- *                 raise ValueError(('gamma should be positive value, '             # <<<<<<<<<<<<<<
- *                                   'observed {0}').format(gamma))
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":129
+ *                               'observed {0}').format(self.alpha))
+ *         if self.gamma <= 0:
+ *             raise ValueError(('gamma should be positive value, '             # <<<<<<<<<<<<<<
+ *                               'observed {0}').format(self.gamma))
  *         n_d = np.array(X.sum(1), dtype = np.int)
  */
-      __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 141, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_1);
-      PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
-      __pyx_t_1 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 141, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_Raise(__pyx_t_1, 0, 0, 0);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __PYX_ERR(0, 141, __pyx_L1_error)
+    __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 129, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_GIVEREF(__pyx_t_1);
+    PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
+    __pyx_t_1 = 0;
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 129, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __PYX_ERR(0, 129, __pyx_L1_error)
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":140
- *         if 'gamma' in self.init_params:
- *             gamma = self.init_params['gamma']
- *             if gamma <= 0:             # <<<<<<<<<<<<<<
- *                 raise ValueError(('gamma should be positive value, '
- *                                   'observed {0}').format(gamma))
- */
-    }
-
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":138
- *                 raise ValueError(('alpha should be positive value, '
- *                                   'observed {0}').format(alpha))
- *         if 'gamma' in self.init_params:             # <<<<<<<<<<<<<<
- *             gamma = self.init_params['gamma']
- *             if gamma <= 0:
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":128
+ *             raise ValueError(('alpha should be positive value, '
+ *                               'observed {0}').format(self.alpha))
+ *         if self.gamma <= 0:             # <<<<<<<<<<<<<<
+ *             raise ValueError(('gamma should be positive value, '
+ *                               'observed {0}').format(self.gamma))
  */
   }
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":143
- *                 raise ValueError(('gamma should be positive value, '
- *                                   'observed {0}').format(gamma))
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":131
+ *             raise ValueError(('gamma should be positive value, '
+ *                               'observed {0}').format(self.gamma))
  *         n_d = np.array(X.sum(1), dtype = np.int)             # <<<<<<<<<<<<<<
  *         corpus_size = np.sum(n_d)
  *         topic_assignment = np.random.randint(0,self.n_topics,corpus_size,dtype=np.int)
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 131, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 143, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_X, __pyx_n_s_sum); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_X, __pyx_n_s_sum); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 131, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 131, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 131, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_5);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_5);
   __pyx_t_5 = 0;
-  __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 131, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 131, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_int); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 143, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_7);
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_int); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_7) < 0) __PYX_ERR(0, 143, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 143, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_7);
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 131, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_v_n_d = __pyx_t_7;
-  __pyx_t_7 = 0;
+  __pyx_v_n_d = __pyx_t_4;
+  __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":144
- *                                   'observed {0}').format(gamma))
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":132
+ *                               'observed {0}').format(self.gamma))
  *         n_d = np.array(X.sum(1), dtype = np.int)
  *         corpus_size = np.sum(n_d)             # <<<<<<<<<<<<<<
  *         topic_assignment = np.random.randint(0,self.n_topics,corpus_size,dtype=np.int)
- *         return alpha,gamma,topic_assignment,n_d
+ *         return topic_assignment,n_d
  */
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 144, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 132, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_sum); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 144, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_sum); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 132, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_5 = NULL;
@@ -3400,95 +3292,89 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_5) {
-    __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_n_d); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 144, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-  } else {
-    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 144, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_n_d); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 132, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5); __pyx_t_5 = NULL;
+  } else {
+    __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 132, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_5); __pyx_t_5 = NULL;
     __Pyx_INCREF(__pyx_v_n_d);
     __Pyx_GIVEREF(__pyx_v_n_d);
-    PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_n_d);
-    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 144, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    PyTuple_SET_ITEM(__pyx_t_2, 0+1, __pyx_v_n_d);
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 132, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_corpus_size = __pyx_t_7;
-  __pyx_t_7 = 0;
+  __pyx_v_corpus_size = __pyx_t_4;
+  __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":145
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":133
  *         n_d = np.array(X.sum(1), dtype = np.int)
  *         corpus_size = np.sum(n_d)
  *         topic_assignment = np.random.randint(0,self.n_topics,corpus_size,dtype=np.int)             # <<<<<<<<<<<<<<
- *         return alpha,gamma,topic_assignment,n_d
+ *         return topic_assignment,n_d
  * 
  */
-  __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 145, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_random); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 145, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_randint); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 145, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_7);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 145, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 145, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 133, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_random); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 133, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_randint); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 133, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 133, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 133, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_int_0);
   __Pyx_GIVEREF(__pyx_int_0);
-  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_int_0);
+  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_int_0);
   __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_1);
+  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
   __Pyx_INCREF(__pyx_v_corpus_size);
   __Pyx_GIVEREF(__pyx_v_corpus_size);
-  PyTuple_SET_ITEM(__pyx_t_4, 2, __pyx_v_corpus_size);
+  PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_v_corpus_size);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 145, __pyx_L1_error)
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 133, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 145, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 133, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_int); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 145, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_int); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 133, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 145, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 133, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 145, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 133, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF_SET(__pyx_v_topic_assignment, __pyx_t_6);
   __pyx_t_6 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":146
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":134
  *         corpus_size = np.sum(n_d)
  *         topic_assignment = np.random.randint(0,self.n_topics,corpus_size,dtype=np.int)
- *         return alpha,gamma,topic_assignment,n_d             # <<<<<<<<<<<<<<
+ *         return topic_assignment,n_d             # <<<<<<<<<<<<<<
  * 
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_6 = PyTuple_New(4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 146, __pyx_L1_error)
+  __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 134, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_INCREF(__pyx_v_alpha);
-  __Pyx_GIVEREF(__pyx_v_alpha);
-  PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_v_alpha);
-  __Pyx_INCREF(__pyx_v_gamma);
-  __Pyx_GIVEREF(__pyx_v_gamma);
-  PyTuple_SET_ITEM(__pyx_t_6, 1, __pyx_v_gamma);
   __Pyx_INCREF(__pyx_v_topic_assignment);
   __Pyx_GIVEREF(__pyx_v_topic_assignment);
-  PyTuple_SET_ITEM(__pyx_t_6, 2, __pyx_v_topic_assignment);
+  PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_v_topic_assignment);
   __Pyx_INCREF(__pyx_v_n_d);
   __Pyx_GIVEREF(__pyx_v_n_d);
-  PyTuple_SET_ITEM(__pyx_t_6, 3, __pyx_v_n_d);
+  PyTuple_SET_ITEM(__pyx_t_6, 1, __pyx_v_n_d);
   __pyx_r = __pyx_t_6;
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":124
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":119
  * 
  * 
  *     def _init_params(self,X):             # <<<<<<<<<<<<<<
@@ -3499,15 +3385,13 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_XDECREF(__pyx_t_7);
   __Pyx_AddTraceback("skbayes.decomposition_models.gibbs_lda_cython.GibbsLDA._init_params", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_alpha);
-  __Pyx_XDECREF(__pyx_v_gamma);
   __Pyx_XDECREF(__pyx_v_topic_assignment);
   __Pyx_XDECREF(__pyx_v_n_d);
   __Pyx_XDECREF(__pyx_v_corpus_size);
@@ -3516,7 +3400,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   return __pyx_r;
 }
 
-/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":149
+/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":137
  * 
  * 
  *     def _check_X(self,X):             # <<<<<<<<<<<<<<
@@ -3554,11 +3438,11 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_X)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_check_X", 1, 2, 2, 1); __PYX_ERR(0, 149, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_check_X", 1, 2, 2, 1); __PYX_ERR(0, 137, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_check_X") < 0)) __PYX_ERR(0, 149, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_check_X") < 0)) __PYX_ERR(0, 137, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -3571,7 +3455,7 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_check_X", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 149, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("_check_X", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 137, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("skbayes.decomposition_models.gibbs_lda_cython.GibbsLDA._check_X", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3598,30 +3482,30 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_RefNannySetupContext("_check_X", 0);
   __Pyx_INCREF(__pyx_v_X);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":153
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":141
  *         Validate input matrix
  *         '''
  *         X = check_array(X, accept_sparse = ['csr'])             # <<<<<<<<<<<<<<
  * 
  *         # check that document term matrix is non negative
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 153, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 141, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 153, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 141, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_v_X);
   __Pyx_GIVEREF(__pyx_v_X);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_X);
-  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 153, __pyx_L1_error)
+  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 141, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyList_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 153, __pyx_L1_error)
+  __pyx_t_4 = PyList_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 141, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_INCREF(__pyx_n_s_csr);
   __Pyx_GIVEREF(__pyx_n_s_csr);
   PyList_SET_ITEM(__pyx_t_4, 0, __pyx_n_s_csr);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_accept_sparse, __pyx_t_4) < 0) __PYX_ERR(0, 153, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_accept_sparse, __pyx_t_4) < 0) __PYX_ERR(0, 141, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 153, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 141, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -3629,14 +3513,14 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_DECREF_SET(__pyx_v_X, __pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":156
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":144
  * 
  *         # check that document term matrix is non negative
  *         arr = X.data if issparse(X) else X             # <<<<<<<<<<<<<<
  *         if np.sum(arr<0) > 0:
  *             raise ValueError('Document term matrix should not contain negative values')
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_issparse); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 156, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_issparse); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 144, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_1 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -3649,24 +3533,24 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_1) {
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_X); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 156, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_X); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 144, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
   } else {
-    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 156, __pyx_L1_error)
+    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 144, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1); __pyx_t_1 = NULL;
     __Pyx_INCREF(__pyx_v_X);
     __Pyx_GIVEREF(__pyx_v_X);
     PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_X);
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 156, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 144, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 156, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 144, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_6) {
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_X, __pyx_n_s_data); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 156, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_X, __pyx_n_s_data); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 144, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_4 = __pyx_t_3;
     __pyx_t_3 = 0;
@@ -3677,19 +3561,19 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_v_arr = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":157
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":145
  *         # check that document term matrix is non negative
  *         arr = X.data if issparse(X) else X
  *         if np.sum(arr<0) > 0:             # <<<<<<<<<<<<<<
  *             raise ValueError('Document term matrix should not contain negative values')
  * 
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 145, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_sum); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_sum); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 145, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyObject_RichCompare(__pyx_v_arr, __pyx_int_0, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_v_arr, __pyx_int_0, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 145, __pyx_L1_error)
   __pyx_t_5 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
     __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_2);
@@ -3701,41 +3585,41 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_5) {
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 157, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 145, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_4);
   } else {
-    __pyx_t_1 = PyTuple_New(1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 157, __pyx_L1_error)
+    __pyx_t_1 = PyTuple_New(1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 145, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_5); __pyx_t_5 = NULL;
     __Pyx_GIVEREF(__pyx_t_3);
     PyTuple_SET_ITEM(__pyx_t_1, 0+1, __pyx_t_3);
     __pyx_t_3 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 157, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 145, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyObject_RichCompare(__pyx_t_4, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_2 = PyObject_RichCompare(__pyx_t_4, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 145, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 145, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (__pyx_t_6) {
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":158
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":146
  *         arr = X.data if issparse(X) else X
  *         if np.sum(arr<0) > 0:
  *             raise ValueError('Document term matrix should not contain negative values')             # <<<<<<<<<<<<<<
  * 
  *         # if model was fitted before check that vocabulary size is the same
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 158, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 146, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 158, __pyx_L1_error)
+    __PYX_ERR(0, 146, __pyx_L1_error)
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":157
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":145
  *         # check that document term matrix is non negative
  *         arr = X.data if issparse(X) else X
  *         if np.sum(arr<0) > 0:             # <<<<<<<<<<<<<<
@@ -3744,21 +3628,21 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
  */
   }
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":161
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":149
  * 
  *         # if model was fitted before check that vocabulary size is the same
  *         if '_n_words' in dir(self):             # <<<<<<<<<<<<<<
  *             assert(X.shape[1] == self._n_words,("vocabulary size should be the "
  *                                                 "same for train and test sets"))
  */
-  __pyx_t_2 = PyObject_Dir(__pyx_v_self); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 161, __pyx_L1_error)
+  __pyx_t_2 = PyObject_Dir(__pyx_v_self); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 149, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_6 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_n_words_2, __pyx_t_2, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 161, __pyx_L1_error)
+  __pyx_t_6 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_n_words_2, __pyx_t_2, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 149, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_7 = (__pyx_t_6 != 0);
   if (__pyx_t_7) {
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":162
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":150
  *         # if model was fitted before check that vocabulary size is the same
  *         if '_n_words' in dir(self):
  *             assert(X.shape[1] == self._n_words,("vocabulary size should be the "             # <<<<<<<<<<<<<<
@@ -3767,17 +3651,17 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
  */
     #ifndef CYTHON_WITHOUT_ASSERTIONS
     if (unlikely(!Py_OptimizeFlag)) {
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_X, __pyx_n_s_shape); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 162, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_X, __pyx_n_s_shape); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 150, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_2, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 162, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_2, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 150, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_words_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 162, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_words_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 150, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_1 = PyObject_RichCompare(__pyx_t_4, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 162, __pyx_L1_error)
+      __pyx_t_1 = PyObject_RichCompare(__pyx_t_4, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 150, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 162, __pyx_L1_error)
+      __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 150, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_GIVEREF(__pyx_t_1);
       PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
@@ -3789,12 +3673,12 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       if (unlikely(!__pyx_t_7)) {
         PyErr_SetNone(PyExc_AssertionError);
-        __PYX_ERR(0, 162, __pyx_L1_error)
+        __PYX_ERR(0, 150, __pyx_L1_error)
       }
     }
     #endif
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":161
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":149
  * 
  *         # if model was fitted before check that vocabulary size is the same
  *         if '_n_words' in dir(self):             # <<<<<<<<<<<<<<
@@ -3803,7 +3687,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
  */
   }
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":164
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":152
  *             assert(X.shape[1] == self._n_words,("vocabulary size should be the "
  *                                                 "same for train and test sets"))
  *         return X             # <<<<<<<<<<<<<<
@@ -3815,7 +3699,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_r = __pyx_v_X;
   goto __pyx_L0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":149
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":137
  * 
  * 
  *     def _check_X(self,X):             # <<<<<<<<<<<<<<
@@ -3840,7 +3724,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   return __pyx_r;
 }
 
-/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":168
+/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":156
  * 
  * 
  *     def fit_transform(self,X):             # <<<<<<<<<<<<<<
@@ -3878,11 +3762,11 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_X)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fit_transform", 1, 2, 2, 1); __PYX_ERR(0, 168, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fit_transform", 1, 2, 2, 1); __PYX_ERR(0, 156, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fit_transform") < 0)) __PYX_ERR(0, 168, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fit_transform") < 0)) __PYX_ERR(0, 156, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -3895,7 +3779,7 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("fit_transform", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 168, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("fit_transform", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 156, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("skbayes.decomposition_models.gibbs_lda_cython.GibbsLDA.fit_transform", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3935,14 +3819,14 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   PyObject *(*__pyx_t_15)(PyObject *);
   __Pyx_RefNannySetupContext("fit_transform", 0);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":184
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":172
  *         '''
  *         # run burn-in stage
  *         _ = self.fit(X)             # <<<<<<<<<<<<<<
  *         # make one more sample
  *         wt,dt,ta,ts = self._gibbs_sample_lda(self._words, self._docs, self._topic_assignment,
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_fit); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 184, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_fit); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 172, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -3955,16 +3839,16 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_X); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 184, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_X); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 172, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 184, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 172, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
     __Pyx_INCREF(__pyx_v_X);
     __Pyx_GIVEREF(__pyx_v_X);
     PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_X);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 184, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 172, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
@@ -3972,48 +3856,48 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_v__ = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":186
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":174
  *         _ = self.fit(X)
  *         # make one more sample
  *         wt,dt,ta,ts = self._gibbs_sample_lda(self._words, self._docs, self._topic_assignment,             # <<<<<<<<<<<<<<
  *                                              self.word_topic_, self.doc_topic_, self.topics_,
  *                                              self._tf, self._n_d, self._n_words)
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gibbs_sample_lda); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gibbs_sample_lda); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 174, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_words_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_words_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 174, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_docs_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_docs_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 174, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_topic_assignment_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_topic_assignment_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 174, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":187
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":175
  *         # make one more sample
  *         wt,dt,ta,ts = self._gibbs_sample_lda(self._words, self._docs, self._topic_assignment,
  *                                              self.word_topic_, self.doc_topic_, self.topics_,             # <<<<<<<<<<<<<<
  *                                              self._tf, self._n_d, self._n_words)
  *         empty_docs = self._n_d[:,0]==0
  */
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_word_topic); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 187, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_word_topic); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 175, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_doc_topic); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 187, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_doc_topic); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 175, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_topics); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 187, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_topics); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 175, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":188
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":176
  *         wt,dt,ta,ts = self._gibbs_sample_lda(self._words, self._docs, self._topic_assignment,
  *                                              self.word_topic_, self.doc_topic_, self.topics_,
  *                                              self._tf, self._n_d, self._n_words)             # <<<<<<<<<<<<<<
  *         empty_docs = self._n_d[:,0]==0
  *         dtd = np.array(dt,dtype = np.double)
  */
-  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_tf_2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 188, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_tf_2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 176, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_d); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 188, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_d); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 176, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_words_2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 188, __pyx_L1_error)
+  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_words_2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 176, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_11);
   __pyx_t_12 = NULL;
   __pyx_t_13 = 0;
@@ -4027,7 +3911,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __pyx_t_13 = 1;
     }
   }
-  __pyx_t_14 = PyTuple_New(9+__pyx_t_13); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_14 = PyTuple_New(9+__pyx_t_13); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 174, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_14);
   if (__pyx_t_12) {
     __Pyx_GIVEREF(__pyx_t_12); PyTuple_SET_ITEM(__pyx_t_14, 0, __pyx_t_12); __pyx_t_12 = NULL;
@@ -4059,7 +3943,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_t_9 = 0;
   __pyx_t_10 = 0;
   __pyx_t_11 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_14, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_14, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 174, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -4073,7 +3957,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     if (unlikely(size != 4)) {
       if (size > 4) __Pyx_RaiseTooManyValuesError(4);
       else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      __PYX_ERR(0, 186, __pyx_L1_error)
+      __PYX_ERR(0, 174, __pyx_L1_error)
     }
     #if CYTHON_COMPILING_IN_CPYTHON
     if (likely(PyTuple_CheckExact(sequence))) {
@@ -4096,7 +3980,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       Py_ssize_t i;
       PyObject** temps[4] = {&__pyx_t_2,&__pyx_t_14,&__pyx_t_11,&__pyx_t_10};
       for (i=0; i < 4; i++) {
-        PyObject* item = PySequence_ITEM(sequence, i); if (unlikely(!item)) __PYX_ERR(0, 186, __pyx_L1_error)
+        PyObject* item = PySequence_ITEM(sequence, i); if (unlikely(!item)) __PYX_ERR(0, 174, __pyx_L1_error)
         __Pyx_GOTREF(item);
         *(temps[i]) = item;
       }
@@ -4106,7 +3990,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   } else {
     Py_ssize_t index = -1;
     PyObject** temps[4] = {&__pyx_t_2,&__pyx_t_14,&__pyx_t_11,&__pyx_t_10};
-    __pyx_t_9 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 186, __pyx_L1_error)
+    __pyx_t_9 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 174, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_15 = Py_TYPE(__pyx_t_9)->tp_iternext;
@@ -4115,7 +3999,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __Pyx_GOTREF(item);
       *(temps[index]) = item;
     }
-    if (__Pyx_IternextUnpackEndCheck(__pyx_t_15(__pyx_t_9), 4) < 0) __PYX_ERR(0, 186, __pyx_L1_error)
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_15(__pyx_t_9), 4) < 0) __PYX_ERR(0, 174, __pyx_L1_error)
     __pyx_t_15 = NULL;
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     goto __pyx_L4_unpacking_done;
@@ -4123,11 +4007,11 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __pyx_t_15 = NULL;
     if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-    __PYX_ERR(0, 186, __pyx_L1_error)
+    __PYX_ERR(0, 174, __pyx_L1_error)
     __pyx_L4_unpacking_done:;
   }
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":186
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":174
  *         _ = self.fit(X)
  *         # make one more sample
  *         wt,dt,ta,ts = self._gibbs_sample_lda(self._words, self._docs, self._topic_assignment,             # <<<<<<<<<<<<<<
@@ -4143,51 +4027,51 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_v_ts = __pyx_t_10;
   __pyx_t_10 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":189
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":177
  *                                              self.word_topic_, self.doc_topic_, self.topics_,
  *                                              self._tf, self._n_d, self._n_words)
  *         empty_docs = self._n_d[:,0]==0             # <<<<<<<<<<<<<<
  *         dtd = np.array(dt,dtype = np.double)
  *         dtd[empty_docs,:] = 1.0 / self.n_topics
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_d); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 189, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_d); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 177, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_10 = PyObject_GetItem(__pyx_t_1, __pyx_tuple__4); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 189, __pyx_L1_error)
+  __pyx_t_10 = PyObject_GetItem(__pyx_t_1, __pyx_tuple__4); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 177, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_EqObjC(__pyx_t_10, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 189, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_EqObjC(__pyx_t_10, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 177, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
   __pyx_v_empty_docs = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":190
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":178
  *                                              self._tf, self._n_d, self._n_words)
  *         empty_docs = self._n_d[:,0]==0
  *         dtd = np.array(dt,dtype = np.double)             # <<<<<<<<<<<<<<
  *         dtd[empty_docs,:] = 1.0 / self.n_topics
  *         dtd[~empty_docs,:] = dtd[~empty_docs,:] / self._n_d[~empty_docs,:]
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 190, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 178, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 190, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 178, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 190, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 178, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_dt);
   __Pyx_GIVEREF(__pyx_v_dt);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_dt);
-  __pyx_t_11 = PyDict_New(); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 190, __pyx_L1_error)
+  __pyx_t_11 = PyDict_New(); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 178, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_14 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 190, __pyx_L1_error)
+  __pyx_t_14 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 178, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_14);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_14, __pyx_n_s_double); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 190, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_14, __pyx_n_s_double); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 178, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
-  if (PyDict_SetItem(__pyx_t_11, __pyx_n_s_dtype, __pyx_t_2) < 0) __PYX_ERR(0, 190, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_11, __pyx_n_s_dtype, __pyx_t_2) < 0) __PYX_ERR(0, 178, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_1, __pyx_t_11); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 190, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_1, __pyx_t_11); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 178, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -4195,19 +4079,19 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_v_dtd = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":191
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":179
  *         empty_docs = self._n_d[:,0]==0
  *         dtd = np.array(dt,dtype = np.double)
  *         dtd[empty_docs,:] = 1.0 / self.n_topics             # <<<<<<<<<<<<<<
  *         dtd[~empty_docs,:] = dtd[~empty_docs,:] / self._n_d[~empty_docs,:]
  *         return dtd
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 191, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 179, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_11 = __Pyx_PyFloat_DivideCObj(__pyx_float_1_0, __pyx_t_2, 1.0, 0); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 191, __pyx_L1_error)
+  __pyx_t_11 = __Pyx_PyFloat_DivideCObj(__pyx_float_1_0, __pyx_t_2, 1.0, 0); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 179, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_11);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 191, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 179, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_v_empty_docs);
   __Pyx_GIVEREF(__pyx_v_empty_docs);
@@ -4215,20 +4099,20 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_INCREF(__pyx_slice__5);
   __Pyx_GIVEREF(__pyx_slice__5);
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_slice__5);
-  if (unlikely(PyObject_SetItem(__pyx_v_dtd, __pyx_t_2, __pyx_t_11) < 0)) __PYX_ERR(0, 191, __pyx_L1_error)
+  if (unlikely(PyObject_SetItem(__pyx_v_dtd, __pyx_t_2, __pyx_t_11) < 0)) __PYX_ERR(0, 179, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":192
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":180
  *         dtd = np.array(dt,dtype = np.double)
  *         dtd[empty_docs,:] = 1.0 / self.n_topics
  *         dtd[~empty_docs,:] = dtd[~empty_docs,:] / self._n_d[~empty_docs,:]             # <<<<<<<<<<<<<<
  *         return dtd
  * 
  */
-  __pyx_t_11 = PyNumber_Invert(__pyx_v_empty_docs); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 192, __pyx_L1_error)
+  __pyx_t_11 = PyNumber_Invert(__pyx_v_empty_docs); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 192, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_11);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_11);
@@ -4236,14 +4120,14 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_GIVEREF(__pyx_slice__6);
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_slice__6);
   __pyx_t_11 = 0;
-  __pyx_t_11 = PyObject_GetItem(__pyx_v_dtd, __pyx_t_2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 192, __pyx_L1_error)
+  __pyx_t_11 = PyObject_GetItem(__pyx_v_dtd, __pyx_t_2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_11);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_d); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 192, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_d); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyNumber_Invert(__pyx_v_empty_docs); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 192, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Invert(__pyx_v_empty_docs); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_10 = PyTuple_New(2); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 192, __pyx_L1_error)
+  __pyx_t_10 = PyTuple_New(2); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_1);
@@ -4251,17 +4135,17 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_GIVEREF(__pyx_slice__7);
   PyTuple_SET_ITEM(__pyx_t_10, 1, __pyx_slice__7);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyObject_GetItem(__pyx_t_2, __pyx_t_10); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 192, __pyx_L1_error)
+  __pyx_t_1 = PyObject_GetItem(__pyx_t_2, __pyx_t_10); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-  __pyx_t_10 = __Pyx_PyNumber_Divide(__pyx_t_11, __pyx_t_1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 192, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyNumber_Divide(__pyx_t_11, __pyx_t_1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyNumber_Invert(__pyx_v_empty_docs); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 192, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Invert(__pyx_v_empty_docs); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_11 = PyTuple_New(2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 192, __pyx_L1_error)
+  __pyx_t_11 = PyTuple_New(2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_11);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_1);
@@ -4269,11 +4153,11 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_GIVEREF(__pyx_slice__8);
   PyTuple_SET_ITEM(__pyx_t_11, 1, __pyx_slice__8);
   __pyx_t_1 = 0;
-  if (unlikely(PyObject_SetItem(__pyx_v_dtd, __pyx_t_11, __pyx_t_10) < 0)) __PYX_ERR(0, 192, __pyx_L1_error)
+  if (unlikely(PyObject_SetItem(__pyx_v_dtd, __pyx_t_11, __pyx_t_10) < 0)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":193
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":181
  *         dtd[empty_docs,:] = 1.0 / self.n_topics
  *         dtd[~empty_docs,:] = dtd[~empty_docs,:] / self._n_d[~empty_docs,:]
  *         return dtd             # <<<<<<<<<<<<<<
@@ -4285,7 +4169,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_r = __pyx_v_dtd;
   goto __pyx_L0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":168
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":156
  * 
  * 
  *     def fit_transform(self,X):             # <<<<<<<<<<<<<<
@@ -4323,7 +4207,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   return __pyx_r;
 }
 
-/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":196
+/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":184
  * 
  * 
  *     def fit(self,X):             # <<<<<<<<<<<<<<
@@ -4361,11 +4245,11 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_X)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fit", 1, 2, 2, 1); __PYX_ERR(0, 196, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fit", 1, 2, 2, 1); __PYX_ERR(0, 184, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fit") < 0)) __PYX_ERR(0, 196, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fit") < 0)) __PYX_ERR(0, 184, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -4378,7 +4262,7 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("fit", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 196, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("fit", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 184, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("skbayes.decomposition_models.gibbs_lda_cython.GibbsLDA.fit", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4412,10 +4296,10 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   PyObject *__pyx_t_4 = NULL;
   PyObject *__pyx_t_5 = NULL;
   PyObject *(*__pyx_t_6)(PyObject *);
-  PyObject *__pyx_t_7 = NULL;
-  Py_ssize_t __pyx_t_8;
-  PyObject *(*__pyx_t_9)(PyObject *);
-  Py_ssize_t __pyx_t_10;
+  Py_ssize_t __pyx_t_7;
+  PyObject *(*__pyx_t_8)(PyObject *);
+  Py_ssize_t __pyx_t_9;
+  PyObject *__pyx_t_10 = NULL;
   PyObject *__pyx_t_11 = NULL;
   int __pyx_t_12;
   int __pyx_t_13;
@@ -4423,14 +4307,14 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_RefNannySetupContext("fit", 0);
   __Pyx_INCREF(__pyx_v_X);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":210
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":198
  *            self
  *         '''
  *         X = self._check_X(X)             # <<<<<<<<<<<<<<
  *         docs,words,tf = vectorize(X) # tf is term frequency
  *         docs  = np.array(docs,dtype = np.int)
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_check_X); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 210, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_check_X); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 198, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -4443,16 +4327,16 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_X); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 210, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_X); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 198, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 210, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 198, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
     __Pyx_INCREF(__pyx_v_X);
     __Pyx_GIVEREF(__pyx_v_X);
     PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_X);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 210, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 198, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
@@ -4460,14 +4344,14 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_DECREF_SET(__pyx_v_X, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":211
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":199
  *         '''
  *         X = self._check_X(X)
  *         docs,words,tf = vectorize(X) # tf is term frequency             # <<<<<<<<<<<<<<
  *         docs  = np.array(docs,dtype = np.int)
  *         words = np.array(words,dtype = np.int)
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_vectorize); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 211, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_vectorize); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 199, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -4480,16 +4364,16 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_4) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_X); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 211, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_X); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 199, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 211, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 199, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4); __pyx_t_4 = NULL;
     __Pyx_INCREF(__pyx_v_X);
     __Pyx_GIVEREF(__pyx_v_X);
     PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_v_X);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 211, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 199, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
@@ -4504,7 +4388,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     if (unlikely(size != 3)) {
       if (size > 3) __Pyx_RaiseTooManyValuesError(3);
       else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      __PYX_ERR(0, 211, __pyx_L1_error)
+      __PYX_ERR(0, 199, __pyx_L1_error)
     }
     #if CYTHON_COMPILING_IN_CPYTHON
     if (likely(PyTuple_CheckExact(sequence))) {
@@ -4520,17 +4404,17 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_INCREF(__pyx_t_3);
     __Pyx_INCREF(__pyx_t_4);
     #else
-    __pyx_t_2 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 211, __pyx_L1_error)
+    __pyx_t_2 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 199, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 211, __pyx_L1_error)
+    __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 199, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = PySequence_ITEM(sequence, 2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 211, __pyx_L1_error)
+    __pyx_t_4 = PySequence_ITEM(sequence, 2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 199, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     #endif
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   } else {
     Py_ssize_t index = -1;
-    __pyx_t_5 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 211, __pyx_L1_error)
+    __pyx_t_5 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 199, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_6 = Py_TYPE(__pyx_t_5)->tp_iternext;
@@ -4540,7 +4424,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_GOTREF(__pyx_t_3);
     index = 2; __pyx_t_4 = __pyx_t_6(__pyx_t_5); if (unlikely(!__pyx_t_4)) goto __pyx_L3_unpacking_failed;
     __Pyx_GOTREF(__pyx_t_4);
-    if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_5), 3) < 0) __PYX_ERR(0, 211, __pyx_L1_error)
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_5), 3) < 0) __PYX_ERR(0, 199, __pyx_L1_error)
     __pyx_t_6 = NULL;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     goto __pyx_L4_unpacking_done;
@@ -4548,7 +4432,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __pyx_t_6 = NULL;
     if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-    __PYX_ERR(0, 211, __pyx_L1_error)
+    __PYX_ERR(0, 199, __pyx_L1_error)
     __pyx_L4_unpacking_done:;
   }
   __pyx_v_docs = __pyx_t_2;
@@ -4558,33 +4442,33 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_v_tf = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":212
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":200
  *         X = self._check_X(X)
  *         docs,words,tf = vectorize(X) # tf is term frequency
  *         docs  = np.array(docs,dtype = np.int)             # <<<<<<<<<<<<<<
  *         words = np.array(words,dtype = np.int)
  *         tf    = np.array(tf,dtype = np.int)
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 212, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 212, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 212, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_docs);
   __Pyx_GIVEREF(__pyx_v_docs);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_docs);
-  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 212, __pyx_L1_error)
+  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 212, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_int); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 212, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_int); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 212, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 212, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -4592,33 +4476,33 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_DECREF_SET(__pyx_v_docs, __pyx_t_5);
   __pyx_t_5 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":213
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":201
  *         docs,words,tf = vectorize(X) # tf is term frequency
  *         docs  = np.array(docs,dtype = np.int)
  *         words = np.array(words,dtype = np.int)             # <<<<<<<<<<<<<<
  *         tf    = np.array(tf,dtype = np.int)
  * 
  */
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 201, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 201, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 201, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_INCREF(__pyx_v_words);
   __Pyx_GIVEREF(__pyx_v_words);
   PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_v_words);
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 201, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 201, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_int); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_int); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 201, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_2) < 0) __PYX_ERR(0, 213, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_2) < 0) __PYX_ERR(0, 201, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 201, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -4626,33 +4510,33 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_DECREF_SET(__pyx_v_words, __pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":214
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":202
  *         docs  = np.array(docs,dtype = np.int)
  *         words = np.array(words,dtype = np.int)
  *         tf    = np.array(tf,dtype = np.int)             # <<<<<<<<<<<<<<
  * 
  *         #number of documents and size of vocabulary
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 214, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 202, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 214, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 202, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 214, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 202, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_v_tf);
   __Pyx_GIVEREF(__pyx_v_tf);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_tf);
-  __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 214, __pyx_L1_error)
+  __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 202, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 214, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 202, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_int); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 214, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_int); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 202, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 214, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 202, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 214, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 202, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -4660,14 +4544,14 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_DECREF_SET(__pyx_v_tf, __pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":217
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":205
  * 
  *         #number of documents and size of vocabulary
  *         n_docs,n_words = X.shape             # <<<<<<<<<<<<<<
  * 
  *         # initialise topic assignments & parameters of prior distribution
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_X, __pyx_n_s_shape); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 217, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_X, __pyx_n_s_shape); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 205, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   if ((likely(PyTuple_CheckExact(__pyx_t_4))) || (PyList_CheckExact(__pyx_t_4))) {
     PyObject* sequence = __pyx_t_4;
@@ -4679,7 +4563,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     if (unlikely(size != 2)) {
       if (size > 2) __Pyx_RaiseTooManyValuesError(2);
       else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      __PYX_ERR(0, 217, __pyx_L1_error)
+      __PYX_ERR(0, 205, __pyx_L1_error)
     }
     #if CYTHON_COMPILING_IN_CPYTHON
     if (likely(PyTuple_CheckExact(sequence))) {
@@ -4692,15 +4576,15 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_INCREF(__pyx_t_5);
     __Pyx_INCREF(__pyx_t_2);
     #else
-    __pyx_t_5 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 217, __pyx_L1_error)
+    __pyx_t_5 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 205, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_2 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 217, __pyx_L1_error)
+    __pyx_t_2 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 205, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     #endif
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   } else {
     Py_ssize_t index = -1;
-    __pyx_t_1 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 217, __pyx_L1_error)
+    __pyx_t_1 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 205, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __pyx_t_6 = Py_TYPE(__pyx_t_1)->tp_iternext;
@@ -4708,7 +4592,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_GOTREF(__pyx_t_5);
     index = 1; __pyx_t_2 = __pyx_t_6(__pyx_t_1); if (unlikely(!__pyx_t_2)) goto __pyx_L5_unpacking_failed;
     __Pyx_GOTREF(__pyx_t_2);
-    if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_1), 2) < 0) __PYX_ERR(0, 217, __pyx_L1_error)
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_1), 2) < 0) __PYX_ERR(0, 205, __pyx_L1_error)
     __pyx_t_6 = NULL;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     goto __pyx_L6_unpacking_done;
@@ -4716,7 +4600,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_6 = NULL;
     if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-    __PYX_ERR(0, 217, __pyx_L1_error)
+    __PYX_ERR(0, 205, __pyx_L1_error)
     __pyx_L6_unpacking_done:;
   }
   __pyx_v_n_docs = __pyx_t_5;
@@ -4724,14 +4608,14 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_v_n_words = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":220
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":208
  * 
  *         # initialise topic assignments & parameters of prior distribution
- *         self.alpha, self.gamma, topic_assignment, n_d = self._init_params(X)             # <<<<<<<<<<<<<<
+ *         topic_assignment, n_d = self._init_params(X)             # <<<<<<<<<<<<<<
  * 
  *         # compute initial word topic and document topic matrices
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_init_params_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 220, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_init_params); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 208, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_5 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -4744,16 +4628,16 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_5) {
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_X); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 220, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_X); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 208, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
   } else {
-    __pyx_t_1 = PyTuple_New(1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 220, __pyx_L1_error)
+    __pyx_t_1 = PyTuple_New(1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 208, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_5); __pyx_t_5 = NULL;
     __Pyx_INCREF(__pyx_v_X);
     __Pyx_GIVEREF(__pyx_v_X);
     PyTuple_SET_ITEM(__pyx_t_1, 0+1, __pyx_v_X);
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 220, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 208, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
@@ -4765,132 +4649,115 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     #else
     Py_ssize_t size = PySequence_Size(sequence);
     #endif
-    if (unlikely(size != 4)) {
-      if (size > 4) __Pyx_RaiseTooManyValuesError(4);
+    if (unlikely(size != 2)) {
+      if (size > 2) __Pyx_RaiseTooManyValuesError(2);
       else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      __PYX_ERR(0, 220, __pyx_L1_error)
+      __PYX_ERR(0, 208, __pyx_L1_error)
     }
     #if CYTHON_COMPILING_IN_CPYTHON
     if (likely(PyTuple_CheckExact(sequence))) {
       __pyx_t_2 = PyTuple_GET_ITEM(sequence, 0); 
       __pyx_t_1 = PyTuple_GET_ITEM(sequence, 1); 
-      __pyx_t_5 = PyTuple_GET_ITEM(sequence, 2); 
-      __pyx_t_3 = PyTuple_GET_ITEM(sequence, 3); 
     } else {
       __pyx_t_2 = PyList_GET_ITEM(sequence, 0); 
       __pyx_t_1 = PyList_GET_ITEM(sequence, 1); 
-      __pyx_t_5 = PyList_GET_ITEM(sequence, 2); 
-      __pyx_t_3 = PyList_GET_ITEM(sequence, 3); 
     }
     __Pyx_INCREF(__pyx_t_2);
     __Pyx_INCREF(__pyx_t_1);
-    __Pyx_INCREF(__pyx_t_5);
-    __Pyx_INCREF(__pyx_t_3);
     #else
-    {
-      Py_ssize_t i;
-      PyObject** temps[4] = {&__pyx_t_2,&__pyx_t_1,&__pyx_t_5,&__pyx_t_3};
-      for (i=0; i < 4; i++) {
-        PyObject* item = PySequence_ITEM(sequence, i); if (unlikely(!item)) __PYX_ERR(0, 220, __pyx_L1_error)
-        __Pyx_GOTREF(item);
-        *(temps[i]) = item;
-      }
-    }
+    __pyx_t_2 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 208, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_1 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 208, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
     #endif
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   } else {
     Py_ssize_t index = -1;
-    PyObject** temps[4] = {&__pyx_t_2,&__pyx_t_1,&__pyx_t_5,&__pyx_t_3};
-    __pyx_t_7 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 220, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
+    __pyx_t_5 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 208, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_6 = Py_TYPE(__pyx_t_7)->tp_iternext;
-    for (index=0; index < 4; index++) {
-      PyObject* item = __pyx_t_6(__pyx_t_7); if (unlikely(!item)) goto __pyx_L7_unpacking_failed;
-      __Pyx_GOTREF(item);
-      *(temps[index]) = item;
-    }
-    if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_7), 4) < 0) __PYX_ERR(0, 220, __pyx_L1_error)
+    __pyx_t_6 = Py_TYPE(__pyx_t_5)->tp_iternext;
+    index = 0; __pyx_t_2 = __pyx_t_6(__pyx_t_5); if (unlikely(!__pyx_t_2)) goto __pyx_L7_unpacking_failed;
+    __Pyx_GOTREF(__pyx_t_2);
+    index = 1; __pyx_t_1 = __pyx_t_6(__pyx_t_5); if (unlikely(!__pyx_t_1)) goto __pyx_L7_unpacking_failed;
+    __Pyx_GOTREF(__pyx_t_1);
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_5), 2) < 0) __PYX_ERR(0, 208, __pyx_L1_error)
     __pyx_t_6 = NULL;
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     goto __pyx_L8_unpacking_done;
     __pyx_L7_unpacking_failed:;
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __pyx_t_6 = NULL;
     if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-    __PYX_ERR(0, 220, __pyx_L1_error)
+    __PYX_ERR(0, 208, __pyx_L1_error)
     __pyx_L8_unpacking_done:;
   }
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_alpha, __pyx_t_2) < 0) __PYX_ERR(0, 220, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_gamma, __pyx_t_1) < 0) __PYX_ERR(0, 220, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_topic_assignment = __pyx_t_5;
-  __pyx_t_5 = 0;
-  __pyx_v_n_d = __pyx_t_3;
-  __pyx_t_3 = 0;
+  __pyx_v_topic_assignment = __pyx_t_2;
+  __pyx_t_2 = 0;
+  __pyx_v_n_d = __pyx_t_1;
+  __pyx_t_1 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":223
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":211
  * 
  *         # compute initial word topic and document topic matrices
  *         word_topic,doc_topic,topics = word_doc_topic(words,docs,tf,topic_assignment,             # <<<<<<<<<<<<<<
  *                                                     n_docs,n_words, self.n_topics)
  *         # run burn-in samples
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_word_doc_topic); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 223, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_word_doc_topic); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 211, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":224
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":212
  *         # compute initial word topic and document topic matrices
  *         word_topic,doc_topic,topics = word_doc_topic(words,docs,tf,topic_assignment,
  *                                                     n_docs,n_words, self.n_topics)             # <<<<<<<<<<<<<<
  *         # run burn-in samples
  *         for j in range(self.n_burnin):
  */
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 224, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_1 = NULL;
-  __pyx_t_8 = 0;
-  if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_1)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 212, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_5 = NULL;
+  __pyx_t_7 = 0;
+  if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_1))) {
+    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_1);
+    if (likely(__pyx_t_5)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+      __Pyx_INCREF(__pyx_t_5);
       __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-      __pyx_t_8 = 1;
+      __Pyx_DECREF_SET(__pyx_t_1, function);
+      __pyx_t_7 = 1;
     }
   }
-  __pyx_t_2 = PyTuple_New(7+__pyx_t_8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 223, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (__pyx_t_1) {
-    __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1); __pyx_t_1 = NULL;
+  __pyx_t_3 = PyTuple_New(7+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 211, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  if (__pyx_t_5) {
+    __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5); __pyx_t_5 = NULL;
   }
   __Pyx_INCREF(__pyx_v_words);
   __Pyx_GIVEREF(__pyx_v_words);
-  PyTuple_SET_ITEM(__pyx_t_2, 0+__pyx_t_8, __pyx_v_words);
+  PyTuple_SET_ITEM(__pyx_t_3, 0+__pyx_t_7, __pyx_v_words);
   __Pyx_INCREF(__pyx_v_docs);
   __Pyx_GIVEREF(__pyx_v_docs);
-  PyTuple_SET_ITEM(__pyx_t_2, 1+__pyx_t_8, __pyx_v_docs);
+  PyTuple_SET_ITEM(__pyx_t_3, 1+__pyx_t_7, __pyx_v_docs);
   __Pyx_INCREF(__pyx_v_tf);
   __Pyx_GIVEREF(__pyx_v_tf);
-  PyTuple_SET_ITEM(__pyx_t_2, 2+__pyx_t_8, __pyx_v_tf);
+  PyTuple_SET_ITEM(__pyx_t_3, 2+__pyx_t_7, __pyx_v_tf);
   __Pyx_INCREF(__pyx_v_topic_assignment);
   __Pyx_GIVEREF(__pyx_v_topic_assignment);
-  PyTuple_SET_ITEM(__pyx_t_2, 3+__pyx_t_8, __pyx_v_topic_assignment);
+  PyTuple_SET_ITEM(__pyx_t_3, 3+__pyx_t_7, __pyx_v_topic_assignment);
   __Pyx_INCREF(__pyx_v_n_docs);
   __Pyx_GIVEREF(__pyx_v_n_docs);
-  PyTuple_SET_ITEM(__pyx_t_2, 4+__pyx_t_8, __pyx_v_n_docs);
+  PyTuple_SET_ITEM(__pyx_t_3, 4+__pyx_t_7, __pyx_v_n_docs);
   __Pyx_INCREF(__pyx_v_n_words);
   __Pyx_GIVEREF(__pyx_v_n_words);
-  PyTuple_SET_ITEM(__pyx_t_2, 5+__pyx_t_8, __pyx_v_n_words);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_2, 6+__pyx_t_8, __pyx_t_5);
-  __pyx_t_5 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_2, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 223, __pyx_L1_error)
+  PyTuple_SET_ITEM(__pyx_t_3, 5+__pyx_t_7, __pyx_v_n_words);
+  __Pyx_GIVEREF(__pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_3, 6+__pyx_t_7, __pyx_t_2);
+  __pyx_t_2 = 0;
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 211, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if ((likely(PyTuple_CheckExact(__pyx_t_4))) || (PyList_CheckExact(__pyx_t_4))) {
     PyObject* sequence = __pyx_t_4;
     #if CYTHON_COMPILING_IN_CPYTHON
@@ -4901,120 +4768,120 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     if (unlikely(size != 3)) {
       if (size > 3) __Pyx_RaiseTooManyValuesError(3);
       else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      __PYX_ERR(0, 223, __pyx_L1_error)
+      __PYX_ERR(0, 211, __pyx_L1_error)
     }
     #if CYTHON_COMPILING_IN_CPYTHON
     if (likely(PyTuple_CheckExact(sequence))) {
-      __pyx_t_3 = PyTuple_GET_ITEM(sequence, 0); 
-      __pyx_t_2 = PyTuple_GET_ITEM(sequence, 1); 
-      __pyx_t_5 = PyTuple_GET_ITEM(sequence, 2); 
+      __pyx_t_1 = PyTuple_GET_ITEM(sequence, 0); 
+      __pyx_t_3 = PyTuple_GET_ITEM(sequence, 1); 
+      __pyx_t_2 = PyTuple_GET_ITEM(sequence, 2); 
     } else {
-      __pyx_t_3 = PyList_GET_ITEM(sequence, 0); 
-      __pyx_t_2 = PyList_GET_ITEM(sequence, 1); 
-      __pyx_t_5 = PyList_GET_ITEM(sequence, 2); 
+      __pyx_t_1 = PyList_GET_ITEM(sequence, 0); 
+      __pyx_t_3 = PyList_GET_ITEM(sequence, 1); 
+      __pyx_t_2 = PyList_GET_ITEM(sequence, 2); 
     }
+    __Pyx_INCREF(__pyx_t_1);
     __Pyx_INCREF(__pyx_t_3);
     __Pyx_INCREF(__pyx_t_2);
-    __Pyx_INCREF(__pyx_t_5);
     #else
-    __pyx_t_3 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 223, __pyx_L1_error)
+    __pyx_t_1 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 211, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 211, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_2 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 223, __pyx_L1_error)
+    __pyx_t_2 = PySequence_ITEM(sequence, 2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 211, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_5 = PySequence_ITEM(sequence, 2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 223, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
     #endif
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   } else {
     Py_ssize_t index = -1;
-    __pyx_t_1 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 223, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_6 = Py_TYPE(__pyx_t_1)->tp_iternext;
-    index = 0; __pyx_t_3 = __pyx_t_6(__pyx_t_1); if (unlikely(!__pyx_t_3)) goto __pyx_L9_unpacking_failed;
-    __Pyx_GOTREF(__pyx_t_3);
-    index = 1; __pyx_t_2 = __pyx_t_6(__pyx_t_1); if (unlikely(!__pyx_t_2)) goto __pyx_L9_unpacking_failed;
-    __Pyx_GOTREF(__pyx_t_2);
-    index = 2; __pyx_t_5 = __pyx_t_6(__pyx_t_1); if (unlikely(!__pyx_t_5)) goto __pyx_L9_unpacking_failed;
+    __pyx_t_5 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 211, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_1), 3) < 0) __PYX_ERR(0, 223, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_6 = Py_TYPE(__pyx_t_5)->tp_iternext;
+    index = 0; __pyx_t_1 = __pyx_t_6(__pyx_t_5); if (unlikely(!__pyx_t_1)) goto __pyx_L9_unpacking_failed;
+    __Pyx_GOTREF(__pyx_t_1);
+    index = 1; __pyx_t_3 = __pyx_t_6(__pyx_t_5); if (unlikely(!__pyx_t_3)) goto __pyx_L9_unpacking_failed;
+    __Pyx_GOTREF(__pyx_t_3);
+    index = 2; __pyx_t_2 = __pyx_t_6(__pyx_t_5); if (unlikely(!__pyx_t_2)) goto __pyx_L9_unpacking_failed;
+    __Pyx_GOTREF(__pyx_t_2);
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_5), 3) < 0) __PYX_ERR(0, 211, __pyx_L1_error)
     __pyx_t_6 = NULL;
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     goto __pyx_L10_unpacking_done;
     __pyx_L9_unpacking_failed:;
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __pyx_t_6 = NULL;
     if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-    __PYX_ERR(0, 223, __pyx_L1_error)
+    __PYX_ERR(0, 211, __pyx_L1_error)
     __pyx_L10_unpacking_done:;
   }
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":223
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":211
  * 
  *         # compute initial word topic and document topic matrices
  *         word_topic,doc_topic,topics = word_doc_topic(words,docs,tf,topic_assignment,             # <<<<<<<<<<<<<<
  *                                                     n_docs,n_words, self.n_topics)
  *         # run burn-in samples
  */
-  __pyx_v_word_topic = __pyx_t_3;
+  __pyx_v_word_topic = __pyx_t_1;
+  __pyx_t_1 = 0;
+  __pyx_v_doc_topic = __pyx_t_3;
   __pyx_t_3 = 0;
-  __pyx_v_doc_topic = __pyx_t_2;
+  __pyx_v_topics = __pyx_t_2;
   __pyx_t_2 = 0;
-  __pyx_v_topics = __pyx_t_5;
-  __pyx_t_5 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":226
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":214
  *                                                     n_docs,n_words, self.n_topics)
  *         # run burn-in samples
  *         for j in range(self.n_burnin):             # <<<<<<<<<<<<<<
  * 
  *              t0 = time()
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_burnin); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 226, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_burnin); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 214, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 226, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 214, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4);
+  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_4);
   __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 226, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_2, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 214, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (likely(PyList_CheckExact(__pyx_t_4)) || PyTuple_CheckExact(__pyx_t_4)) {
-    __pyx_t_5 = __pyx_t_4; __Pyx_INCREF(__pyx_t_5); __pyx_t_8 = 0;
-    __pyx_t_9 = NULL;
+    __pyx_t_2 = __pyx_t_4; __Pyx_INCREF(__pyx_t_2); __pyx_t_7 = 0;
+    __pyx_t_8 = NULL;
   } else {
-    __pyx_t_8 = -1; __pyx_t_5 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 226, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_9 = Py_TYPE(__pyx_t_5)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 226, __pyx_L1_error)
+    __pyx_t_7 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 214, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_8 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 214, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   for (;;) {
-    if (likely(!__pyx_t_9)) {
-      if (likely(PyList_CheckExact(__pyx_t_5))) {
-        if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_5)) break;
+    if (likely(!__pyx_t_8)) {
+      if (likely(PyList_CheckExact(__pyx_t_2))) {
+        if (__pyx_t_7 >= PyList_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_5, __pyx_t_8); __Pyx_INCREF(__pyx_t_4); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 226, __pyx_L1_error)
+        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_7); __Pyx_INCREF(__pyx_t_4); __pyx_t_7++; if (unlikely(0 < 0)) __PYX_ERR(0, 214, __pyx_L1_error)
         #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_5, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 226, __pyx_L1_error)
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_2, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 214, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         #endif
       } else {
-        if (__pyx_t_8 >= PyTuple_GET_SIZE(__pyx_t_5)) break;
+        if (__pyx_t_7 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_5, __pyx_t_8); __Pyx_INCREF(__pyx_t_4); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 226, __pyx_L1_error)
+        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_7); __Pyx_INCREF(__pyx_t_4); __pyx_t_7++; if (unlikely(0 < 0)) __PYX_ERR(0, 214, __pyx_L1_error)
         #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_5, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 226, __pyx_L1_error)
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_2, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 214, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         #endif
       }
     } else {
-      __pyx_t_4 = __pyx_t_9(__pyx_t_5);
+      __pyx_t_4 = __pyx_t_8(__pyx_t_2);
       if (unlikely(!__pyx_t_4)) {
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 226, __pyx_L1_error)
+          else __PYX_ERR(0, 214, __pyx_L1_error)
         }
         break;
       }
@@ -5023,101 +4890,101 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_XDECREF_SET(__pyx_v_j, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":228
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":216
  *         for j in range(self.n_burnin):
  * 
  *              t0 = time()             # <<<<<<<<<<<<<<
  *              # one iteration of collapsed Gibbs Sampler
  *              word_topic,doc_topic,topic_assignment,topics = self._gibbs_sample_lda(words,docs,
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 228, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = NULL;
-    if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
-      __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
-      if (likely(__pyx_t_3)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-        __Pyx_INCREF(__pyx_t_3);
+    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 216, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_1 = NULL;
+    if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
+      __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_3);
+      if (likely(__pyx_t_1)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+        __Pyx_INCREF(__pyx_t_1);
         __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_2, function);
+        __Pyx_DECREF_SET(__pyx_t_3, function);
       }
     }
-    if (__pyx_t_3) {
-      __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 228, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    if (__pyx_t_1) {
+      __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 216, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     } else {
-      __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 228, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 216, __pyx_L1_error)
     }
     __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_XDECREF_SET(__pyx_v_t0, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":230
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":218
  *              t0 = time()
  *              # one iteration of collapsed Gibbs Sampler
  *              word_topic,doc_topic,topic_assignment,topics = self._gibbs_sample_lda(words,docs,             # <<<<<<<<<<<<<<
  *                                                             topic_assignment,word_topic,
  *                                                             doc_topic,topics,tf,n_d,n_words)
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gibbs_sample_lda); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 230, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gibbs_sample_lda); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 218, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":232
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":220
  *              word_topic,doc_topic,topic_assignment,topics = self._gibbs_sample_lda(words,docs,
  *                                                             topic_assignment,word_topic,
  *                                                             doc_topic,topics,tf,n_d,n_words)             # <<<<<<<<<<<<<<
  *              # compute joint log-likelihood if required
  *              if self.compute_score:
  */
-    __pyx_t_3 = NULL;
-    __pyx_t_10 = 0;
-    if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
-      __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
-      if (likely(__pyx_t_3)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-        __Pyx_INCREF(__pyx_t_3);
+    __pyx_t_1 = NULL;
+    __pyx_t_9 = 0;
+    if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
+      __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_3);
+      if (likely(__pyx_t_1)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+        __Pyx_INCREF(__pyx_t_1);
         __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_2, function);
-        __pyx_t_10 = 1;
+        __Pyx_DECREF_SET(__pyx_t_3, function);
+        __pyx_t_9 = 1;
       }
     }
-    __pyx_t_1 = PyTuple_New(9+__pyx_t_10); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 230, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    if (__pyx_t_3) {
-      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3); __pyx_t_3 = NULL;
+    __pyx_t_5 = PyTuple_New(9+__pyx_t_9); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 218, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    if (__pyx_t_1) {
+      __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1); __pyx_t_1 = NULL;
     }
     __Pyx_INCREF(__pyx_v_words);
     __Pyx_GIVEREF(__pyx_v_words);
-    PyTuple_SET_ITEM(__pyx_t_1, 0+__pyx_t_10, __pyx_v_words);
+    PyTuple_SET_ITEM(__pyx_t_5, 0+__pyx_t_9, __pyx_v_words);
     __Pyx_INCREF(__pyx_v_docs);
     __Pyx_GIVEREF(__pyx_v_docs);
-    PyTuple_SET_ITEM(__pyx_t_1, 1+__pyx_t_10, __pyx_v_docs);
+    PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_9, __pyx_v_docs);
     __Pyx_INCREF(__pyx_v_topic_assignment);
     __Pyx_GIVEREF(__pyx_v_topic_assignment);
-    PyTuple_SET_ITEM(__pyx_t_1, 2+__pyx_t_10, __pyx_v_topic_assignment);
+    PyTuple_SET_ITEM(__pyx_t_5, 2+__pyx_t_9, __pyx_v_topic_assignment);
     __Pyx_INCREF(__pyx_v_word_topic);
     __Pyx_GIVEREF(__pyx_v_word_topic);
-    PyTuple_SET_ITEM(__pyx_t_1, 3+__pyx_t_10, __pyx_v_word_topic);
+    PyTuple_SET_ITEM(__pyx_t_5, 3+__pyx_t_9, __pyx_v_word_topic);
     __Pyx_INCREF(__pyx_v_doc_topic);
     __Pyx_GIVEREF(__pyx_v_doc_topic);
-    PyTuple_SET_ITEM(__pyx_t_1, 4+__pyx_t_10, __pyx_v_doc_topic);
+    PyTuple_SET_ITEM(__pyx_t_5, 4+__pyx_t_9, __pyx_v_doc_topic);
     __Pyx_INCREF(__pyx_v_topics);
     __Pyx_GIVEREF(__pyx_v_topics);
-    PyTuple_SET_ITEM(__pyx_t_1, 5+__pyx_t_10, __pyx_v_topics);
+    PyTuple_SET_ITEM(__pyx_t_5, 5+__pyx_t_9, __pyx_v_topics);
     __Pyx_INCREF(__pyx_v_tf);
     __Pyx_GIVEREF(__pyx_v_tf);
-    PyTuple_SET_ITEM(__pyx_t_1, 6+__pyx_t_10, __pyx_v_tf);
+    PyTuple_SET_ITEM(__pyx_t_5, 6+__pyx_t_9, __pyx_v_tf);
     __Pyx_INCREF(__pyx_v_n_d);
     __Pyx_GIVEREF(__pyx_v_n_d);
-    PyTuple_SET_ITEM(__pyx_t_1, 7+__pyx_t_10, __pyx_v_n_d);
+    PyTuple_SET_ITEM(__pyx_t_5, 7+__pyx_t_9, __pyx_v_n_d);
     __Pyx_INCREF(__pyx_v_n_words);
     __Pyx_GIVEREF(__pyx_v_n_words);
-    PyTuple_SET_ITEM(__pyx_t_1, 8+__pyx_t_10, __pyx_v_n_words);
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 230, __pyx_L1_error)
+    PyTuple_SET_ITEM(__pyx_t_5, 8+__pyx_t_9, __pyx_v_n_words);
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 218, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     if ((likely(PyTuple_CheckExact(__pyx_t_4))) || (PyList_CheckExact(__pyx_t_4))) {
       PyObject* sequence = __pyx_t_4;
       #if CYTHON_COMPILING_IN_CPYTHON
@@ -5128,30 +4995,30 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       if (unlikely(size != 4)) {
         if (size > 4) __Pyx_RaiseTooManyValuesError(4);
         else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-        __PYX_ERR(0, 230, __pyx_L1_error)
+        __PYX_ERR(0, 218, __pyx_L1_error)
       }
       #if CYTHON_COMPILING_IN_CPYTHON
       if (likely(PyTuple_CheckExact(sequence))) {
-        __pyx_t_2 = PyTuple_GET_ITEM(sequence, 0); 
-        __pyx_t_1 = PyTuple_GET_ITEM(sequence, 1); 
-        __pyx_t_3 = PyTuple_GET_ITEM(sequence, 2); 
-        __pyx_t_7 = PyTuple_GET_ITEM(sequence, 3); 
+        __pyx_t_3 = PyTuple_GET_ITEM(sequence, 0); 
+        __pyx_t_5 = PyTuple_GET_ITEM(sequence, 1); 
+        __pyx_t_1 = PyTuple_GET_ITEM(sequence, 2); 
+        __pyx_t_10 = PyTuple_GET_ITEM(sequence, 3); 
       } else {
-        __pyx_t_2 = PyList_GET_ITEM(sequence, 0); 
-        __pyx_t_1 = PyList_GET_ITEM(sequence, 1); 
-        __pyx_t_3 = PyList_GET_ITEM(sequence, 2); 
-        __pyx_t_7 = PyList_GET_ITEM(sequence, 3); 
+        __pyx_t_3 = PyList_GET_ITEM(sequence, 0); 
+        __pyx_t_5 = PyList_GET_ITEM(sequence, 1); 
+        __pyx_t_1 = PyList_GET_ITEM(sequence, 2); 
+        __pyx_t_10 = PyList_GET_ITEM(sequence, 3); 
       }
-      __Pyx_INCREF(__pyx_t_2);
-      __Pyx_INCREF(__pyx_t_1);
       __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_7);
+      __Pyx_INCREF(__pyx_t_5);
+      __Pyx_INCREF(__pyx_t_1);
+      __Pyx_INCREF(__pyx_t_10);
       #else
       {
         Py_ssize_t i;
-        PyObject** temps[4] = {&__pyx_t_2,&__pyx_t_1,&__pyx_t_3,&__pyx_t_7};
+        PyObject** temps[4] = {&__pyx_t_3,&__pyx_t_5,&__pyx_t_1,&__pyx_t_10};
         for (i=0; i < 4; i++) {
-          PyObject* item = PySequence_ITEM(sequence, i); if (unlikely(!item)) __PYX_ERR(0, 230, __pyx_L1_error)
+          PyObject* item = PySequence_ITEM(sequence, i); if (unlikely(!item)) __PYX_ERR(0, 218, __pyx_L1_error)
           __Pyx_GOTREF(item);
           *(temps[i]) = item;
         }
@@ -5160,8 +5027,8 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     } else {
       Py_ssize_t index = -1;
-      PyObject** temps[4] = {&__pyx_t_2,&__pyx_t_1,&__pyx_t_3,&__pyx_t_7};
-      __pyx_t_11 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 230, __pyx_L1_error)
+      PyObject** temps[4] = {&__pyx_t_3,&__pyx_t_5,&__pyx_t_1,&__pyx_t_10};
+      __pyx_t_11 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 218, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_11);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __pyx_t_6 = Py_TYPE(__pyx_t_11)->tp_iternext;
@@ -5170,7 +5037,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         __Pyx_GOTREF(item);
         *(temps[index]) = item;
       }
-      if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_11), 4) < 0) __PYX_ERR(0, 230, __pyx_L1_error)
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_11), 4) < 0) __PYX_ERR(0, 218, __pyx_L1_error)
       __pyx_t_6 = NULL;
       __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
       goto __pyx_L14_unpacking_done;
@@ -5178,110 +5045,110 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
       __pyx_t_6 = NULL;
       if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-      __PYX_ERR(0, 230, __pyx_L1_error)
+      __PYX_ERR(0, 218, __pyx_L1_error)
       __pyx_L14_unpacking_done:;
     }
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":230
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":218
  *              t0 = time()
  *              # one iteration of collapsed Gibbs Sampler
  *              word_topic,doc_topic,topic_assignment,topics = self._gibbs_sample_lda(words,docs,             # <<<<<<<<<<<<<<
  *                                                             topic_assignment,word_topic,
  *                                                             doc_topic,topics,tf,n_d,n_words)
  */
-    __Pyx_DECREF_SET(__pyx_v_word_topic, __pyx_t_2);
-    __pyx_t_2 = 0;
-    __Pyx_DECREF_SET(__pyx_v_doc_topic, __pyx_t_1);
-    __pyx_t_1 = 0;
-    __Pyx_DECREF_SET(__pyx_v_topic_assignment, __pyx_t_3);
+    __Pyx_DECREF_SET(__pyx_v_word_topic, __pyx_t_3);
     __pyx_t_3 = 0;
-    __Pyx_DECREF_SET(__pyx_v_topics, __pyx_t_7);
-    __pyx_t_7 = 0;
+    __Pyx_DECREF_SET(__pyx_v_doc_topic, __pyx_t_5);
+    __pyx_t_5 = 0;
+    __Pyx_DECREF_SET(__pyx_v_topic_assignment, __pyx_t_1);
+    __pyx_t_1 = 0;
+    __Pyx_DECREF_SET(__pyx_v_topics, __pyx_t_10);
+    __pyx_t_10 = 0;
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":234
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":222
  *                                                             doc_topic,topics,tf,n_d,n_words)
  *              # compute joint log-likelihood if required
  *              if self.compute_score:             # <<<<<<<<<<<<<<
  *                  self.scores_.append(self._joint_loglike(n_d,n_words,n_docs,doc_topic,
  *                                                         word_topic,topics))
  */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_compute_score); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 234, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_compute_score); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 222, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 234, __pyx_L1_error)
+    __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 222, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     if (__pyx_t_12) {
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":235
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":223
  *              # compute joint log-likelihood if required
  *              if self.compute_score:
  *                  self.scores_.append(self._joint_loglike(n_d,n_words,n_docs,doc_topic,             # <<<<<<<<<<<<<<
  *                                                         word_topic,topics))
  *              # print info
  */
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_scores); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 235, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_scores); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 223, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_joint_loglike); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 235, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_joint_loglike); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 223, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":236
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":224
  *              if self.compute_score:
  *                  self.scores_.append(self._joint_loglike(n_d,n_words,n_docs,doc_topic,
  *                                                         word_topic,topics))             # <<<<<<<<<<<<<<
  *              # print info
  *              if self.verbose:
  */
-      __pyx_t_1 = NULL;
-      __pyx_t_10 = 0;
-      if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
-        __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_3);
-        if (likely(__pyx_t_1)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-          __Pyx_INCREF(__pyx_t_1);
+      __pyx_t_5 = NULL;
+      __pyx_t_9 = 0;
+      if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_1))) {
+        __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_1);
+        if (likely(__pyx_t_5)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+          __Pyx_INCREF(__pyx_t_5);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_3, function);
-          __pyx_t_10 = 1;
+          __Pyx_DECREF_SET(__pyx_t_1, function);
+          __pyx_t_9 = 1;
         }
       }
-      __pyx_t_2 = PyTuple_New(6+__pyx_t_10); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 235, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      if (__pyx_t_1) {
-        __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1); __pyx_t_1 = NULL;
+      __pyx_t_3 = PyTuple_New(6+__pyx_t_9); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 223, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      if (__pyx_t_5) {
+        __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5); __pyx_t_5 = NULL;
       }
       __Pyx_INCREF(__pyx_v_n_d);
       __Pyx_GIVEREF(__pyx_v_n_d);
-      PyTuple_SET_ITEM(__pyx_t_2, 0+__pyx_t_10, __pyx_v_n_d);
+      PyTuple_SET_ITEM(__pyx_t_3, 0+__pyx_t_9, __pyx_v_n_d);
       __Pyx_INCREF(__pyx_v_n_words);
       __Pyx_GIVEREF(__pyx_v_n_words);
-      PyTuple_SET_ITEM(__pyx_t_2, 1+__pyx_t_10, __pyx_v_n_words);
+      PyTuple_SET_ITEM(__pyx_t_3, 1+__pyx_t_9, __pyx_v_n_words);
       __Pyx_INCREF(__pyx_v_n_docs);
       __Pyx_GIVEREF(__pyx_v_n_docs);
-      PyTuple_SET_ITEM(__pyx_t_2, 2+__pyx_t_10, __pyx_v_n_docs);
+      PyTuple_SET_ITEM(__pyx_t_3, 2+__pyx_t_9, __pyx_v_n_docs);
       __Pyx_INCREF(__pyx_v_doc_topic);
       __Pyx_GIVEREF(__pyx_v_doc_topic);
-      PyTuple_SET_ITEM(__pyx_t_2, 3+__pyx_t_10, __pyx_v_doc_topic);
+      PyTuple_SET_ITEM(__pyx_t_3, 3+__pyx_t_9, __pyx_v_doc_topic);
       __Pyx_INCREF(__pyx_v_word_topic);
       __Pyx_GIVEREF(__pyx_v_word_topic);
-      PyTuple_SET_ITEM(__pyx_t_2, 4+__pyx_t_10, __pyx_v_word_topic);
+      PyTuple_SET_ITEM(__pyx_t_3, 4+__pyx_t_9, __pyx_v_word_topic);
       __Pyx_INCREF(__pyx_v_topics);
       __Pyx_GIVEREF(__pyx_v_topics);
-      PyTuple_SET_ITEM(__pyx_t_2, 5+__pyx_t_10, __pyx_v_topics);
-      __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_2, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 235, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      PyTuple_SET_ITEM(__pyx_t_3, 5+__pyx_t_9, __pyx_v_topics);
+      __pyx_t_10 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, NULL); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 223, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_10);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":235
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":223
  *              # compute joint log-likelihood if required
  *              if self.compute_score:
  *                  self.scores_.append(self._joint_loglike(n_d,n_words,n_docs,doc_topic,             # <<<<<<<<<<<<<<
  *                                                         word_topic,topics))
  *              # print info
  */
-      __pyx_t_13 = __Pyx_PyObject_Append(__pyx_t_4, __pyx_t_7); if (unlikely(__pyx_t_13 == -1)) __PYX_ERR(0, 235, __pyx_L1_error)
+      __pyx_t_13 = __Pyx_PyObject_Append(__pyx_t_4, __pyx_t_10); if (unlikely(__pyx_t_13 == -1)) __PYX_ERR(0, 223, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":234
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":222
  *                                                             doc_topic,topics,tf,n_d,n_words)
  *              # compute joint log-likelihood if required
  *              if self.compute_score:             # <<<<<<<<<<<<<<
@@ -5290,96 +5157,96 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
  */
     }
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":238
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":226
  *                                                         word_topic,topics))
  *              # print info
  *              if self.verbose:             # <<<<<<<<<<<<<<
  *                  if not self.compute_score:
  *                      print( ("collected {0} sample in burn-in stage, "
  */
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_verbose); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 238, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 238, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_verbose); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 226, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_10);
+    __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 226, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
     if (__pyx_t_12) {
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":239
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":227
  *              # print info
  *              if self.verbose:
  *                  if not self.compute_score:             # <<<<<<<<<<<<<<
  *                      print( ("collected {0} sample in burn-in stage, "
  *                                "time spent on sample = {1}").format(j, time()-t0))
  */
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_compute_score); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 239, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 239, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_compute_score); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 227, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_10);
+      __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 227, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       __pyx_t_14 = ((!__pyx_t_12) != 0);
       if (__pyx_t_14) {
 
-        /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":241
+        /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":229
  *                  if not self.compute_score:
  *                      print( ("collected {0} sample in burn-in stage, "
  *                                "time spent on sample = {1}").format(j, time()-t0))             # <<<<<<<<<<<<<<
  *                  else:
  *                      print(("collected {0} sample in burn-in stage, "
  */
-        __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_collected_0_sample_in_burn_in_st, __pyx_n_s_format); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 241, __pyx_L1_error)
+        __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_collected_0_sample_in_burn_in_st, __pyx_n_s_format); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 229, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
-        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 241, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
+        __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 229, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __pyx_t_5 = NULL;
+        if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
+          __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_3);
+          if (likely(__pyx_t_5)) {
+            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+            __Pyx_INCREF(__pyx_t_5);
+            __Pyx_INCREF(function);
+            __Pyx_DECREF_SET(__pyx_t_3, function);
+          }
+        }
+        if (__pyx_t_5) {
+          __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 229, __pyx_L1_error)
+          __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+        } else {
+          __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 229, __pyx_L1_error)
+        }
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __pyx_t_3 = PyNumber_Subtract(__pyx_t_1, __pyx_v_t0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 229, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         __pyx_t_1 = NULL;
-        if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
-          __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_2);
+        __pyx_t_9 = 0;
+        if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
+          __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_4);
           if (likely(__pyx_t_1)) {
-            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
             __Pyx_INCREF(__pyx_t_1);
             __Pyx_INCREF(function);
-            __Pyx_DECREF_SET(__pyx_t_2, function);
-          }
-        }
-        if (__pyx_t_1) {
-          __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 241, __pyx_L1_error)
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        } else {
-          __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 241, __pyx_L1_error)
-        }
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __pyx_t_2 = PyNumber_Subtract(__pyx_t_3, __pyx_v_t0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 241, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        __pyx_t_3 = NULL;
-        __pyx_t_10 = 0;
-        if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
-          __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_4);
-          if (likely(__pyx_t_3)) {
-            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-            __Pyx_INCREF(__pyx_t_3);
-            __Pyx_INCREF(function);
             __Pyx_DECREF_SET(__pyx_t_4, function);
-            __pyx_t_10 = 1;
+            __pyx_t_9 = 1;
           }
         }
-        __pyx_t_1 = PyTuple_New(2+__pyx_t_10); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 241, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        if (__pyx_t_3) {
-          __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3); __pyx_t_3 = NULL;
+        __pyx_t_5 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 229, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_5);
+        if (__pyx_t_1) {
+          __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1); __pyx_t_1 = NULL;
         }
         __Pyx_INCREF(__pyx_v_j);
         __Pyx_GIVEREF(__pyx_v_j);
-        PyTuple_SET_ITEM(__pyx_t_1, 0+__pyx_t_10, __pyx_v_j);
-        __Pyx_GIVEREF(__pyx_t_2);
-        PyTuple_SET_ITEM(__pyx_t_1, 1+__pyx_t_10, __pyx_t_2);
-        __pyx_t_2 = 0;
-        __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 241, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_7);
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        PyTuple_SET_ITEM(__pyx_t_5, 0+__pyx_t_9, __pyx_v_j);
+        __Pyx_GIVEREF(__pyx_t_3);
+        PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_9, __pyx_t_3);
+        __pyx_t_3 = 0;
+        __pyx_t_10 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 229, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_10);
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        if (__Pyx_PrintOne(0, __pyx_t_7) < 0) __PYX_ERR(0, 240, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+        if (__Pyx_PrintOne(0, __pyx_t_10) < 0) __PYX_ERR(0, 228, __pyx_L1_error)
+        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
 
-        /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":239
+        /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":227
  *              # print info
  *              if self.verbose:
  *                  if not self.compute_score:             # <<<<<<<<<<<<<<
@@ -5389,7 +5256,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         goto __pyx_L17;
       }
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":243
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":231
  *                                "time spent on sample = {1}").format(j, time()-t0))
  *                  else:
  *                      print(("collected {0} sample in burn-in stage, "             # <<<<<<<<<<<<<<
@@ -5398,87 +5265,87 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
  */
       /*else*/ {
 
-        /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":244
+        /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":232
  *                  else:
  *                      print(("collected {0} sample in burn-in stage, "
  *                             "time spent on sample = {1}, log-like = {2}").format(j, time()-t0,             # <<<<<<<<<<<<<<
  *                              self.scores_[-1]))
  * 
  */
-        __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_collected_0_sample_in_burn_in_st_2, __pyx_n_s_format); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 244, __pyx_L1_error)
+        __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_collected_0_sample_in_burn_in_st_2, __pyx_n_s_format); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 232, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
-        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 244, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __pyx_t_3 = NULL;
-        if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
-          __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
-          if (likely(__pyx_t_3)) {
-            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-            __Pyx_INCREF(__pyx_t_3);
+        __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 232, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __pyx_t_1 = NULL;
+        if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
+          __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_3);
+          if (likely(__pyx_t_1)) {
+            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+            __Pyx_INCREF(__pyx_t_1);
             __Pyx_INCREF(function);
-            __Pyx_DECREF_SET(__pyx_t_2, function);
+            __Pyx_DECREF_SET(__pyx_t_3, function);
           }
         }
-        if (__pyx_t_3) {
-          __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 244, __pyx_L1_error)
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        if (__pyx_t_1) {
+          __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 232, __pyx_L1_error)
+          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         } else {
-          __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 244, __pyx_L1_error)
+          __pyx_t_5 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 232, __pyx_L1_error)
         }
-        __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __pyx_t_2 = PyNumber_Subtract(__pyx_t_1, __pyx_v_t0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 244, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __Pyx_GOTREF(__pyx_t_5);
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __pyx_t_3 = PyNumber_Subtract(__pyx_t_5, __pyx_v_t0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 232, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-        /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":245
+        /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":233
  *                      print(("collected {0} sample in burn-in stage, "
  *                             "time spent on sample = {1}, log-like = {2}").format(j, time()-t0,
  *                              self.scores_[-1]))             # <<<<<<<<<<<<<<
  * 
  *         # save parameters from last sample of burn-in stage
  */
-        __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_scores); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 245, __pyx_L1_error)
+        __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_scores); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 233, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_5);
+        __pyx_t_1 = __Pyx_GetItemInt(__pyx_t_5, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 233, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_3 = __Pyx_GetItemInt(__pyx_t_1, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 245, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __pyx_t_1 = NULL;
-        __pyx_t_10 = 0;
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __pyx_t_5 = NULL;
+        __pyx_t_9 = 0;
         if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
-          __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_4);
-          if (likely(__pyx_t_1)) {
+          __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
+          if (likely(__pyx_t_5)) {
             PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-            __Pyx_INCREF(__pyx_t_1);
+            __Pyx_INCREF(__pyx_t_5);
             __Pyx_INCREF(function);
             __Pyx_DECREF_SET(__pyx_t_4, function);
-            __pyx_t_10 = 1;
+            __pyx_t_9 = 1;
           }
         }
-        __pyx_t_11 = PyTuple_New(3+__pyx_t_10); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 244, __pyx_L1_error)
+        __pyx_t_11 = PyTuple_New(3+__pyx_t_9); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 232, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_11);
-        if (__pyx_t_1) {
-          __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_1); __pyx_t_1 = NULL;
+        if (__pyx_t_5) {
+          __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_5); __pyx_t_5 = NULL;
         }
         __Pyx_INCREF(__pyx_v_j);
         __Pyx_GIVEREF(__pyx_v_j);
-        PyTuple_SET_ITEM(__pyx_t_11, 0+__pyx_t_10, __pyx_v_j);
-        __Pyx_GIVEREF(__pyx_t_2);
-        PyTuple_SET_ITEM(__pyx_t_11, 1+__pyx_t_10, __pyx_t_2);
+        PyTuple_SET_ITEM(__pyx_t_11, 0+__pyx_t_9, __pyx_v_j);
         __Pyx_GIVEREF(__pyx_t_3);
-        PyTuple_SET_ITEM(__pyx_t_11, 2+__pyx_t_10, __pyx_t_3);
-        __pyx_t_2 = 0;
+        PyTuple_SET_ITEM(__pyx_t_11, 1+__pyx_t_9, __pyx_t_3);
+        __Pyx_GIVEREF(__pyx_t_1);
+        PyTuple_SET_ITEM(__pyx_t_11, 2+__pyx_t_9, __pyx_t_1);
         __pyx_t_3 = 0;
-        __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_11, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 244, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_7);
+        __pyx_t_1 = 0;
+        __pyx_t_10 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_11, NULL); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 232, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_10);
         __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        if (__Pyx_PrintOne(0, __pyx_t_7) < 0) __PYX_ERR(0, 243, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+        if (__Pyx_PrintOne(0, __pyx_t_10) < 0) __PYX_ERR(0, 231, __pyx_L1_error)
+        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       }
       __pyx_L17:;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":238
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":226
  *                                                         word_topic,topics))
  *              # print info
  *              if self.verbose:             # <<<<<<<<<<<<<<
@@ -5487,7 +5354,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
  */
     }
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":226
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":214
  *                                                     n_docs,n_words, self.n_topics)
  *         # run burn-in samples
  *         for j in range(self.n_burnin):             # <<<<<<<<<<<<<<
@@ -5495,90 +5362,90 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
  *              t0 = time()
  */
   }
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":248
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":236
  * 
  *         # save parameters from last sample of burn-in stage
  *         self.word_topic_ = word_topic             # <<<<<<<<<<<<<<
  *         self.doc_topic_  = doc_topic
  *         self.topics_ = topics
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_word_topic, __pyx_v_word_topic) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_word_topic, __pyx_v_word_topic) < 0) __PYX_ERR(0, 236, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":249
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":237
  *         # save parameters from last sample of burn-in stage
  *         self.word_topic_ = word_topic
  *         self.doc_topic_  = doc_topic             # <<<<<<<<<<<<<<
  *         self.topics_ = topics
  *         self._words  = words
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_doc_topic, __pyx_v_doc_topic) < 0) __PYX_ERR(0, 249, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_doc_topic, __pyx_v_doc_topic) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":250
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":238
  *         self.word_topic_ = word_topic
  *         self.doc_topic_  = doc_topic
  *         self.topics_ = topics             # <<<<<<<<<<<<<<
  *         self._words  = words
  *         self._docs = docs
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_topics, __pyx_v_topics) < 0) __PYX_ERR(0, 250, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_topics, __pyx_v_topics) < 0) __PYX_ERR(0, 238, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":251
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":239
  *         self.doc_topic_  = doc_topic
  *         self.topics_ = topics
  *         self._words  = words             # <<<<<<<<<<<<<<
  *         self._docs = docs
  *         self._tf = tf
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_words_2, __pyx_v_words) < 0) __PYX_ERR(0, 251, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_words_2, __pyx_v_words) < 0) __PYX_ERR(0, 239, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":252
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":240
  *         self.topics_ = topics
  *         self._words  = words
  *         self._docs = docs             # <<<<<<<<<<<<<<
  *         self._tf = tf
  *         self._topic_assignment = topic_assignment
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_docs_2, __pyx_v_docs) < 0) __PYX_ERR(0, 252, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_docs_2, __pyx_v_docs) < 0) __PYX_ERR(0, 240, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":253
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":241
  *         self._words  = words
  *         self._docs = docs
  *         self._tf = tf             # <<<<<<<<<<<<<<
  *         self._topic_assignment = topic_assignment
  *         self._n_words = n_words
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_tf_2, __pyx_v_tf) < 0) __PYX_ERR(0, 253, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_tf_2, __pyx_v_tf) < 0) __PYX_ERR(0, 241, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":254
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":242
  *         self._docs = docs
  *         self._tf = tf
  *         self._topic_assignment = topic_assignment             # <<<<<<<<<<<<<<
  *         self._n_words = n_words
  *         self._n_d = n_d
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_topic_assignment_2, __pyx_v_topic_assignment) < 0) __PYX_ERR(0, 254, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_topic_assignment_2, __pyx_v_topic_assignment) < 0) __PYX_ERR(0, 242, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":255
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":243
  *         self._tf = tf
  *         self._topic_assignment = topic_assignment
  *         self._n_words = n_words             # <<<<<<<<<<<<<<
  *         self._n_d = n_d
  *         return self
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_n_words_2, __pyx_v_n_words) < 0) __PYX_ERR(0, 255, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_n_words_2, __pyx_v_n_words) < 0) __PYX_ERR(0, 243, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":256
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":244
  *         self._topic_assignment = topic_assignment
  *         self._n_words = n_words
  *         self._n_d = n_d             # <<<<<<<<<<<<<<
  *         return self
  * 
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_n_d, __pyx_v_n_d) < 0) __PYX_ERR(0, 256, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_n_d, __pyx_v_n_d) < 0) __PYX_ERR(0, 244, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":257
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":245
  *         self._n_words = n_words
  *         self._n_d = n_d
  *         return self             # <<<<<<<<<<<<<<
@@ -5590,7 +5457,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_r = __pyx_v_self;
   goto __pyx_L0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":196
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":184
  * 
  * 
  *     def fit(self,X):             # <<<<<<<<<<<<<<
@@ -5605,7 +5472,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_XDECREF(__pyx_t_10);
   __Pyx_XDECREF(__pyx_t_11);
   __Pyx_AddTraceback("skbayes.decomposition_models.gibbs_lda_cython.GibbsLDA.fit", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
@@ -5628,7 +5495,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   return __pyx_r;
 }
 
-/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":263
+/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":251
  *     @cython.wraparound(False)
  *     @cython.boundscheck(False)
  *     def _gibbs_sample_lda(self,np.ndarray[DTYPE_t,ndim=1] words, np.ndarray[DTYPE_t,ndim=1] docs,             # <<<<<<<<<<<<<<
@@ -5682,51 +5549,51 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_words)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 1); __PYX_ERR(0, 263, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 1); __PYX_ERR(0, 251, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_docs)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 2); __PYX_ERR(0, 263, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 2); __PYX_ERR(0, 251, __pyx_L3_error)
         }
         case  3:
         if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_topic_assignment)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 3); __PYX_ERR(0, 263, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 3); __PYX_ERR(0, 251, __pyx_L3_error)
         }
         case  4:
         if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_word_topic_2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 4); __PYX_ERR(0, 263, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 4); __PYX_ERR(0, 251, __pyx_L3_error)
         }
         case  5:
         if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_doc_topic_2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 5); __PYX_ERR(0, 263, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 5); __PYX_ERR(0, 251, __pyx_L3_error)
         }
         case  6:
         if (likely((values[6] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_topics_2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 6); __PYX_ERR(0, 263, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 6); __PYX_ERR(0, 251, __pyx_L3_error)
         }
         case  7:
         if (likely((values[7] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_tf)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 7); __PYX_ERR(0, 263, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 7); __PYX_ERR(0, 251, __pyx_L3_error)
         }
         case  8:
         if (likely((values[8] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_n_d_2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 8); __PYX_ERR(0, 263, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 8); __PYX_ERR(0, 251, __pyx_L3_error)
         }
         case  9:
         if (likely((values[9] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_n_words)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 9); __PYX_ERR(0, 263, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, 9); __PYX_ERR(0, 251, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_gibbs_sample_lda") < 0)) __PYX_ERR(0, 263, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_gibbs_sample_lda") < 0)) __PYX_ERR(0, 251, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 10) {
       goto __pyx_L5_argtuple_error;
@@ -5751,24 +5618,24 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __pyx_v_topics = ((PyArrayObject *)values[6]);
     __pyx_v_tf = ((PyArrayObject *)values[7]);
     __pyx_v_n_d = ((PyArrayObject *)values[8]);
-    __pyx_v_n_words = __Pyx_PyInt_As_int(values[9]); if (unlikely((__pyx_v_n_words == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 266, __pyx_L3_error)
+    __pyx_v_n_words = __Pyx_PyInt_As_int(values[9]); if (unlikely((__pyx_v_n_words == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 254, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 263, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("_gibbs_sample_lda", 1, 10, 10, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 251, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("skbayes.decomposition_models.gibbs_lda_cython.GibbsLDA._gibbs_sample_lda", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_words), __pyx_ptype_5numpy_ndarray, 1, "words", 0))) __PYX_ERR(0, 263, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_docs), __pyx_ptype_5numpy_ndarray, 1, "docs", 0))) __PYX_ERR(0, 263, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_topic_assignment), __pyx_ptype_5numpy_ndarray, 1, "topic_assignment", 0))) __PYX_ERR(0, 264, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_word_topic), __pyx_ptype_5numpy_ndarray, 1, "word_topic", 0))) __PYX_ERR(0, 264, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_doc_topic), __pyx_ptype_5numpy_ndarray, 1, "doc_topic", 0))) __PYX_ERR(0, 265, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_topics), __pyx_ptype_5numpy_ndarray, 1, "topics", 0))) __PYX_ERR(0, 265, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_tf), __pyx_ptype_5numpy_ndarray, 1, "tf", 0))) __PYX_ERR(0, 266, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_n_d), __pyx_ptype_5numpy_ndarray, 1, "n_d", 0))) __PYX_ERR(0, 266, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_words), __pyx_ptype_5numpy_ndarray, 1, "words", 0))) __PYX_ERR(0, 251, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_docs), __pyx_ptype_5numpy_ndarray, 1, "docs", 0))) __PYX_ERR(0, 251, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_topic_assignment), __pyx_ptype_5numpy_ndarray, 1, "topic_assignment", 0))) __PYX_ERR(0, 252, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_word_topic), __pyx_ptype_5numpy_ndarray, 1, "word_topic", 0))) __PYX_ERR(0, 252, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_doc_topic), __pyx_ptype_5numpy_ndarray, 1, "doc_topic", 0))) __PYX_ERR(0, 253, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_topics), __pyx_ptype_5numpy_ndarray, 1, "topics", 0))) __PYX_ERR(0, 253, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_tf), __pyx_ptype_5numpy_ndarray, 1, "tf", 0))) __PYX_ERR(0, 254, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_n_d), __pyx_ptype_5numpy_ndarray, 1, "n_d", 0))) __PYX_ERR(0, 254, __pyx_L1_error)
   __pyx_r = __pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_10_gibbs_sample_lda(__pyx_self, __pyx_v_self, __pyx_v_words, __pyx_v_docs, __pyx_v_topic_assignment, __pyx_v_word_topic, __pyx_v_doc_topic, __pyx_v_topics, __pyx_v_tf, __pyx_v_n_d, __pyx_v_n_words);
 
   /* function exit code */
@@ -5894,72 +5761,72 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_pybuffernd_n_d.rcbuffer = &__pyx_pybuffer_n_d;
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_words.rcbuffer->pybuffer, (PyObject*)__pyx_v_words, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 263, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_words.rcbuffer->pybuffer, (PyObject*)__pyx_v_words, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 251, __pyx_L1_error)
   }
   __pyx_pybuffernd_words.diminfo[0].strides = __pyx_pybuffernd_words.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_words.diminfo[0].shape = __pyx_pybuffernd_words.rcbuffer->pybuffer.shape[0];
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_docs.rcbuffer->pybuffer, (PyObject*)__pyx_v_docs, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 263, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_docs.rcbuffer->pybuffer, (PyObject*)__pyx_v_docs, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 251, __pyx_L1_error)
   }
   __pyx_pybuffernd_docs.diminfo[0].strides = __pyx_pybuffernd_docs.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_docs.diminfo[0].shape = __pyx_pybuffernd_docs.rcbuffer->pybuffer.shape[0];
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_topic_assignment.rcbuffer->pybuffer, (PyObject*)__pyx_v_topic_assignment, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 263, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_topic_assignment.rcbuffer->pybuffer, (PyObject*)__pyx_v_topic_assignment, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 251, __pyx_L1_error)
   }
   __pyx_pybuffernd_topic_assignment.diminfo[0].strides = __pyx_pybuffernd_topic_assignment.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_topic_assignment.diminfo[0].shape = __pyx_pybuffernd_topic_assignment.rcbuffer->pybuffer.shape[0];
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_word_topic.rcbuffer->pybuffer, (PyObject*)__pyx_v_word_topic, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) __PYX_ERR(0, 263, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_word_topic.rcbuffer->pybuffer, (PyObject*)__pyx_v_word_topic, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) __PYX_ERR(0, 251, __pyx_L1_error)
   }
   __pyx_pybuffernd_word_topic.diminfo[0].strides = __pyx_pybuffernd_word_topic.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_word_topic.diminfo[0].shape = __pyx_pybuffernd_word_topic.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_word_topic.diminfo[1].strides = __pyx_pybuffernd_word_topic.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_word_topic.diminfo[1].shape = __pyx_pybuffernd_word_topic.rcbuffer->pybuffer.shape[1];
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_doc_topic.rcbuffer->pybuffer, (PyObject*)__pyx_v_doc_topic, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) __PYX_ERR(0, 263, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_doc_topic.rcbuffer->pybuffer, (PyObject*)__pyx_v_doc_topic, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) __PYX_ERR(0, 251, __pyx_L1_error)
   }
   __pyx_pybuffernd_doc_topic.diminfo[0].strides = __pyx_pybuffernd_doc_topic.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_doc_topic.diminfo[0].shape = __pyx_pybuffernd_doc_topic.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_doc_topic.diminfo[1].strides = __pyx_pybuffernd_doc_topic.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_doc_topic.diminfo[1].shape = __pyx_pybuffernd_doc_topic.rcbuffer->pybuffer.shape[1];
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_topics.rcbuffer->pybuffer, (PyObject*)__pyx_v_topics, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 263, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_topics.rcbuffer->pybuffer, (PyObject*)__pyx_v_topics, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 251, __pyx_L1_error)
   }
   __pyx_pybuffernd_topics.diminfo[0].strides = __pyx_pybuffernd_topics.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_topics.diminfo[0].shape = __pyx_pybuffernd_topics.rcbuffer->pybuffer.shape[0];
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_tf.rcbuffer->pybuffer, (PyObject*)__pyx_v_tf, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 263, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_tf.rcbuffer->pybuffer, (PyObject*)__pyx_v_tf, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 251, __pyx_L1_error)
   }
   __pyx_pybuffernd_tf.diminfo[0].strides = __pyx_pybuffernd_tf.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_tf.diminfo[0].shape = __pyx_pybuffernd_tf.rcbuffer->pybuffer.shape[0];
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_n_d.rcbuffer->pybuffer, (PyObject*)__pyx_v_n_d, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 2, 0, __pyx_stack) == -1)) __PYX_ERR(0, 263, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_n_d.rcbuffer->pybuffer, (PyObject*)__pyx_v_n_d, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 2, 0, __pyx_stack) == -1)) __PYX_ERR(0, 251, __pyx_L1_error)
   }
   __pyx_pybuffernd_n_d.diminfo[0].strides = __pyx_pybuffernd_n_d.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_n_d.diminfo[0].shape = __pyx_pybuffernd_n_d.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_n_d.diminfo[1].strides = __pyx_pybuffernd_n_d.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_n_d.diminfo[1].shape = __pyx_pybuffernd_n_d.rcbuffer->pybuffer.shape[1];
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":270
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":258
  *         Collapsed Gibbs Sampler (single sample)
  *         '''
  *         cdef double alpha = self.alpha             # <<<<<<<<<<<<<<
  *         cdef double gamma = self.gamma
  *         cdef int wi,di,ti,i,k,j
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_alpha); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 270, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_alpha); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 258, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 270, __pyx_L1_error)
+  __pyx_t_2 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 258, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_alpha = __pyx_t_2;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":271
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":259
  *         '''
  *         cdef double alpha = self.alpha
  *         cdef double gamma = self.gamma             # <<<<<<<<<<<<<<
  *         cdef int wi,di,ti,i,k,j
  *         cdef int cum_i = 0
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gamma); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 271, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gamma); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 259, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 271, __pyx_L1_error)
+  __pyx_t_2 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 259, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_gamma = __pyx_t_2;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":273
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":261
  *         cdef double gamma = self.gamma
  *         cdef int wi,di,ti,i,k,j
  *         cdef int cum_i = 0             # <<<<<<<<<<<<<<
@@ -5968,31 +5835,31 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
  */
   __pyx_v_cum_i = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":275
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":263
  *         cdef int cum_i = 0
  *         cdef np.ndarray[np.double_t,ndim=1] p_z
  *         cdef int n_topics = self.n_topics             # <<<<<<<<<<<<<<
  *         cdef double partial_sum
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 275, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 263, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 275, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 263, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_n_topics = __pyx_t_3;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":278
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":266
  *         cdef double partial_sum
  * 
  *         for i in xrange(len(words)):             # <<<<<<<<<<<<<<
  *             for j in xrange(tf[i]):
  *                # retrieve doc, word and topic indices
  */
-  __pyx_t_4 = PyObject_Length(((PyObject *)__pyx_v_words)); if (unlikely(__pyx_t_4 == -1)) __PYX_ERR(0, 278, __pyx_L1_error)
+  __pyx_t_4 = PyObject_Length(((PyObject *)__pyx_v_words)); if (unlikely(__pyx_t_4 == -1)) __PYX_ERR(0, 266, __pyx_L1_error)
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_4; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":279
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":267
  * 
  *         for i in xrange(len(words)):
  *             for j in xrange(tf[i]):             # <<<<<<<<<<<<<<
@@ -6004,7 +5871,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
       __pyx_v_j = __pyx_t_7;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":281
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":269
  *             for j in xrange(tf[i]):
  *                # retrieve doc, word and topic indices
  *                wi = words[i]             # <<<<<<<<<<<<<<
@@ -6014,7 +5881,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __pyx_t_8 = __pyx_v_i;
       __pyx_v_wi = (*__Pyx_BufPtrStrided1d(__pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t *, __pyx_pybuffernd_words.rcbuffer->pybuffer.buf, __pyx_t_8, __pyx_pybuffernd_words.diminfo[0].strides));
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":282
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":270
  *                # retrieve doc, word and topic indices
  *                wi = words[i]
  *                di = docs[i]             # <<<<<<<<<<<<<<
@@ -6024,7 +5891,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __pyx_t_9 = __pyx_v_i;
       __pyx_v_di = (*__Pyx_BufPtrStrided1d(__pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t *, __pyx_pybuffernd_docs.rcbuffer->pybuffer.buf, __pyx_t_9, __pyx_pybuffernd_docs.diminfo[0].strides));
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":283
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":271
  *                wi = words[i]
  *                di = docs[i]
  *                ti = topic_assignment[cum_i]             # <<<<<<<<<<<<<<
@@ -6034,7 +5901,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __pyx_t_10 = __pyx_v_cum_i;
       __pyx_v_ti = (*__Pyx_BufPtrStrided1d(__pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t *, __pyx_pybuffernd_topic_assignment.rcbuffer->pybuffer.buf, __pyx_t_10, __pyx_pybuffernd_topic_assignment.diminfo[0].strides));
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":286
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":274
  * 
  *                # remove all 'influence' of i-th word in corpus
  *                word_topic[wi,ti] -= 1             # <<<<<<<<<<<<<<
@@ -6045,7 +5912,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __pyx_t_12 = __pyx_v_ti;
       *__Pyx_BufPtrStrided2d(__pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t *, __pyx_pybuffernd_word_topic.rcbuffer->pybuffer.buf, __pyx_t_11, __pyx_pybuffernd_word_topic.diminfo[0].strides, __pyx_t_12, __pyx_pybuffernd_word_topic.diminfo[1].strides) -= 1;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":287
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":275
  *                # remove all 'influence' of i-th word in corpus
  *                word_topic[wi,ti] -= 1
  *                doc_topic[di,ti] -= 1             # <<<<<<<<<<<<<<
@@ -6056,7 +5923,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __pyx_t_14 = __pyx_v_ti;
       *__Pyx_BufPtrStrided2d(__pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t *, __pyx_pybuffernd_doc_topic.rcbuffer->pybuffer.buf, __pyx_t_13, __pyx_pybuffernd_doc_topic.diminfo[0].strides, __pyx_t_14, __pyx_pybuffernd_doc_topic.diminfo[1].strides) -= 1;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":288
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":276
  *                word_topic[wi,ti] -= 1
  *                doc_topic[di,ti] -= 1
  *                topics[ti] -= 1             # <<<<<<<<<<<<<<
@@ -6066,18 +5933,18 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __pyx_t_15 = __pyx_v_ti;
       *__Pyx_BufPtrStrided1d(__pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t *, __pyx_pybuffernd_topics.rcbuffer->pybuffer.buf, __pyx_t_15, __pyx_pybuffernd_topics.diminfo[0].strides) -= 1;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":292
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":280
  *                # compute p(z_{n,d} = k| Z_{-n,d}) (i.e. probability of assigning
  *                # topic k for word n in document d, given all other topic assignments)
  *                p_z = (doc_topic[di] + alpha) / (alpha*n_topics + max(n_d[di,0] - 1,0) )             # <<<<<<<<<<<<<<
  * 
  *                # compute p(W|Z) (i.e. probability of observing corpus given all
  */
-      __pyx_t_1 = __Pyx_GetItemInt(((PyObject *)__pyx_v_doc_topic), __pyx_v_di, int, 1, __Pyx_PyInt_From_int, 0, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 292, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_GetItemInt(((PyObject *)__pyx_v_doc_topic), __pyx_v_di, int, 1, __Pyx_PyInt_From_int, 0, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 280, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_16 = PyFloat_FromDouble(__pyx_v_alpha); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 292, __pyx_L1_error)
+      __pyx_t_16 = PyFloat_FromDouble(__pyx_v_alpha); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 280, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_16);
-      __pyx_t_17 = PyNumber_Add(__pyx_t_1, __pyx_t_16); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 292, __pyx_L1_error)
+      __pyx_t_17 = PyNumber_Add(__pyx_t_1, __pyx_t_16); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 280, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_17);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
@@ -6090,13 +5957,13 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       } else {
         __pyx_t_22 = __pyx_t_21;
       }
-      __pyx_t_16 = PyFloat_FromDouble(((__pyx_v_alpha * __pyx_v_n_topics) + __pyx_t_22)); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 292, __pyx_L1_error)
+      __pyx_t_16 = PyFloat_FromDouble(((__pyx_v_alpha * __pyx_v_n_topics) + __pyx_t_22)); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 280, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_16);
-      __pyx_t_1 = __Pyx_PyNumber_Divide(__pyx_t_17, __pyx_t_16); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 292, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyNumber_Divide(__pyx_t_17, __pyx_t_16); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 280, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-      if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 292, __pyx_L1_error)
+      if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 280, __pyx_L1_error)
       __pyx_t_23 = ((PyArrayObject *)__pyx_t_1);
       {
         __Pyx_BufFmt_StackElem __pyx_stack[1];
@@ -6112,22 +5979,22 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
           }
         }
         __pyx_pybuffernd_p_z.diminfo[0].strides = __pyx_pybuffernd_p_z.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_p_z.diminfo[0].shape = __pyx_pybuffernd_p_z.rcbuffer->pybuffer.shape[0];
-        if (unlikely(__pyx_t_24 < 0)) __PYX_ERR(0, 292, __pyx_L1_error)
+        if (unlikely(__pyx_t_24 < 0)) __PYX_ERR(0, 280, __pyx_L1_error)
       }
       __pyx_t_23 = 0;
       __Pyx_XDECREF_SET(__pyx_v_p_z, ((PyArrayObject *)__pyx_t_1));
       __pyx_t_1 = 0;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":297
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":285
  *                # topic assignments) and by multiplying it to p(z_{n,d} = k| Z_{-n,d})
  *                # obtain unnormalised p(z_{n,d}| DATA)
  *                p_z *= (word_topic[wi,:] + gamma) / (gamma*n_words + topics)             # <<<<<<<<<<<<<<
  * 
  *                # normalise & handle any conversion issues
  */
-      __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_wi); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 297, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_wi); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 285, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_16 = PyTuple_New(2); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 297, __pyx_L1_error)
+      __pyx_t_16 = PyTuple_New(2); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 285, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_16);
       __Pyx_GIVEREF(__pyx_t_1);
       PyTuple_SET_ITEM(__pyx_t_16, 0, __pyx_t_1);
@@ -6135,28 +6002,28 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __Pyx_GIVEREF(__pyx_slice__9);
       PyTuple_SET_ITEM(__pyx_t_16, 1, __pyx_slice__9);
       __pyx_t_1 = 0;
-      __pyx_t_1 = PyObject_GetItem(((PyObject *)__pyx_v_word_topic), __pyx_t_16); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 297, __pyx_L1_error)
+      __pyx_t_1 = PyObject_GetItem(((PyObject *)__pyx_v_word_topic), __pyx_t_16); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 285, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-      __pyx_t_16 = PyFloat_FromDouble(__pyx_v_gamma); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 297, __pyx_L1_error)
+      __pyx_t_16 = PyFloat_FromDouble(__pyx_v_gamma); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 285, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_16);
-      __pyx_t_17 = PyNumber_Add(__pyx_t_1, __pyx_t_16); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 297, __pyx_L1_error)
+      __pyx_t_17 = PyNumber_Add(__pyx_t_1, __pyx_t_16); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 285, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_17);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-      __pyx_t_16 = PyFloat_FromDouble((__pyx_v_gamma * __pyx_v_n_words)); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 297, __pyx_L1_error)
+      __pyx_t_16 = PyFloat_FromDouble((__pyx_v_gamma * __pyx_v_n_words)); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 285, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_16);
-      __pyx_t_1 = PyNumber_Add(__pyx_t_16, ((PyObject *)__pyx_v_topics)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 297, __pyx_L1_error)
+      __pyx_t_1 = PyNumber_Add(__pyx_t_16, ((PyObject *)__pyx_v_topics)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 285, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-      __pyx_t_16 = __Pyx_PyNumber_Divide(__pyx_t_17, __pyx_t_1); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 297, __pyx_L1_error)
+      __pyx_t_16 = __Pyx_PyNumber_Divide(__pyx_t_17, __pyx_t_1); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 285, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_16);
       __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_1 = PyNumber_InPlaceMultiply(((PyObject *)__pyx_v_p_z), __pyx_t_16); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 297, __pyx_L1_error)
+      __pyx_t_1 = PyNumber_InPlaceMultiply(((PyObject *)__pyx_v_p_z), __pyx_t_16); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 285, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-      if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 297, __pyx_L1_error)
+      if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 285, __pyx_L1_error)
       __pyx_t_23 = ((PyArrayObject *)__pyx_t_1);
       {
         __Pyx_BufFmt_StackElem __pyx_stack[1];
@@ -6172,22 +6039,22 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
           }
         }
         __pyx_pybuffernd_p_z.diminfo[0].strides = __pyx_pybuffernd_p_z.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_p_z.diminfo[0].shape = __pyx_pybuffernd_p_z.rcbuffer->pybuffer.shape[0];
-        if (unlikely(__pyx_t_24 < 0)) __PYX_ERR(0, 297, __pyx_L1_error)
+        if (unlikely(__pyx_t_24 < 0)) __PYX_ERR(0, 285, __pyx_L1_error)
       }
       __pyx_t_23 = 0;
       __Pyx_DECREF_SET(__pyx_v_p_z, ((PyArrayObject *)__pyx_t_1));
       __pyx_t_1 = 0;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":300
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":288
  * 
  *                # normalise & handle any conversion issues
  *                normalizer = np.sum(p_z)             # <<<<<<<<<<<<<<
  *                partial_sum = 0.0
  *                for k in xrange(self.n_topics-1):
  */
-      __pyx_t_16 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 300, __pyx_L1_error)
+      __pyx_t_16 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 288, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_16);
-      __pyx_t_17 = __Pyx_PyObject_GetAttrStr(__pyx_t_16, __pyx_n_s_sum); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 300, __pyx_L1_error)
+      __pyx_t_17 = __Pyx_PyObject_GetAttrStr(__pyx_t_16, __pyx_n_s_sum); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 288, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_17);
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
       __pyx_t_16 = NULL;
@@ -6201,16 +6068,16 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         }
       }
       if (!__pyx_t_16) {
-        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_17, ((PyObject *)__pyx_v_p_z)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 300, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_17, ((PyObject *)__pyx_v_p_z)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 288, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
       } else {
-        __pyx_t_28 = PyTuple_New(1+1); if (unlikely(!__pyx_t_28)) __PYX_ERR(0, 300, __pyx_L1_error)
+        __pyx_t_28 = PyTuple_New(1+1); if (unlikely(!__pyx_t_28)) __PYX_ERR(0, 288, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_28);
         __Pyx_GIVEREF(__pyx_t_16); PyTuple_SET_ITEM(__pyx_t_28, 0, __pyx_t_16); __pyx_t_16 = NULL;
         __Pyx_INCREF(((PyObject *)__pyx_v_p_z));
         __Pyx_GIVEREF(((PyObject *)__pyx_v_p_z));
         PyTuple_SET_ITEM(__pyx_t_28, 0+1, ((PyObject *)__pyx_v_p_z));
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_17, __pyx_t_28, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 300, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_17, __pyx_t_28, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 288, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_28); __pyx_t_28 = 0;
       }
@@ -6218,7 +6085,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __Pyx_XDECREF_SET(__pyx_v_normalizer, __pyx_t_1);
       __pyx_t_1 = 0;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":301
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":289
  *                # normalise & handle any conversion issues
  *                normalizer = np.sum(p_z)
  *                partial_sum = 0.0             # <<<<<<<<<<<<<<
@@ -6227,35 +6094,35 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
  */
       __pyx_v_partial_sum = 0.0;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":302
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":290
  *                normalizer = np.sum(p_z)
  *                partial_sum = 0.0
  *                for k in xrange(self.n_topics-1):             # <<<<<<<<<<<<<<
  *                    p_z[k] /= normalizer
  *                    partial_sum += p_z[k]
  */
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 302, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 290, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_17 = __Pyx_PyInt_SubtractObjC(__pyx_t_1, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 302, __pyx_L1_error)
+      __pyx_t_17 = __Pyx_PyInt_SubtractObjC(__pyx_t_1, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 290, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_17);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_18 = __Pyx_PyInt_As_long(__pyx_t_17); if (unlikely((__pyx_t_18 == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 302, __pyx_L1_error)
+      __pyx_t_18 = __Pyx_PyInt_As_long(__pyx_t_17); if (unlikely((__pyx_t_18 == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 290, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
       for (__pyx_t_24 = 0; __pyx_t_24 < __pyx_t_18; __pyx_t_24+=1) {
         __pyx_v_k = __pyx_t_24;
 
-        /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":303
+        /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":291
  *                partial_sum = 0.0
  *                for k in xrange(self.n_topics-1):
  *                    p_z[k] /= normalizer             # <<<<<<<<<<<<<<
  *                    partial_sum += p_z[k]
  *                p_z[n_topics-1] = 1.0 - partial_sum
  */
-        __pyx_t_29 = __pyx_PyFloat_AsDouble(__pyx_v_normalizer); if (unlikely((__pyx_t_29 == (npy_double)-1) && PyErr_Occurred())) __PYX_ERR(0, 303, __pyx_L1_error)
+        __pyx_t_29 = __pyx_PyFloat_AsDouble(__pyx_v_normalizer); if (unlikely((__pyx_t_29 == (npy_double)-1) && PyErr_Occurred())) __PYX_ERR(0, 291, __pyx_L1_error)
         __pyx_t_30 = __pyx_v_k;
         *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_p_z.rcbuffer->pybuffer.buf, __pyx_t_30, __pyx_pybuffernd_p_z.diminfo[0].strides) /= __pyx_t_29;
 
-        /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":304
+        /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":292
  *                for k in xrange(self.n_topics-1):
  *                    p_z[k] /= normalizer
  *                    partial_sum += p_z[k]             # <<<<<<<<<<<<<<
@@ -6266,7 +6133,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         __pyx_v_partial_sum = (__pyx_v_partial_sum + (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_p_z.rcbuffer->pybuffer.buf, __pyx_t_31, __pyx_pybuffernd_p_z.diminfo[0].strides)));
       }
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":305
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":293
  *                    p_z[k] /= normalizer
  *                    partial_sum += p_z[k]
  *                p_z[n_topics-1] = 1.0 - partial_sum             # <<<<<<<<<<<<<<
@@ -6276,24 +6143,24 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __pyx_t_32 = (__pyx_v_n_topics - 1);
       *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_p_z.rcbuffer->pybuffer.buf, __pyx_t_32, __pyx_pybuffernd_p_z.diminfo[0].strides) = (1.0 - __pyx_v_partial_sum);
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":308
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":296
  * 
  *                # make sample from multinoulli distribution & update topic assignment
  *                ti = np.where(np.random.multinomial(1,p_z))[0][0]             # <<<<<<<<<<<<<<
  *                topic_assignment[cum_i] = ti
  * 
  */
-      __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 308, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 296, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_28 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_where); if (unlikely(!__pyx_t_28)) __PYX_ERR(0, 308, __pyx_L1_error)
+      __pyx_t_28 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_where); if (unlikely(!__pyx_t_28)) __PYX_ERR(0, 296, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_28);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_16 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 308, __pyx_L1_error)
+      __pyx_t_16 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 296, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_16);
-      __pyx_t_33 = __Pyx_PyObject_GetAttrStr(__pyx_t_16, __pyx_n_s_random); if (unlikely(!__pyx_t_33)) __PYX_ERR(0, 308, __pyx_L1_error)
+      __pyx_t_33 = __Pyx_PyObject_GetAttrStr(__pyx_t_16, __pyx_n_s_random); if (unlikely(!__pyx_t_33)) __PYX_ERR(0, 296, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_33);
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-      __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_t_33, __pyx_n_s_multinomial); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 308, __pyx_L1_error)
+      __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_t_33, __pyx_n_s_multinomial); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 296, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_16);
       __Pyx_DECREF(__pyx_t_33); __pyx_t_33 = 0;
       __pyx_t_33 = NULL;
@@ -6308,7 +6175,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
           __pyx_t_34 = 1;
         }
       }
-      __pyx_t_35 = PyTuple_New(2+__pyx_t_34); if (unlikely(!__pyx_t_35)) __PYX_ERR(0, 308, __pyx_L1_error)
+      __pyx_t_35 = PyTuple_New(2+__pyx_t_34); if (unlikely(!__pyx_t_35)) __PYX_ERR(0, 296, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_35);
       if (__pyx_t_33) {
         __Pyx_GIVEREF(__pyx_t_33); PyTuple_SET_ITEM(__pyx_t_35, 0, __pyx_t_33); __pyx_t_33 = NULL;
@@ -6319,7 +6186,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __Pyx_INCREF(((PyObject *)__pyx_v_p_z));
       __Pyx_GIVEREF(((PyObject *)__pyx_v_p_z));
       PyTuple_SET_ITEM(__pyx_t_35, 1+__pyx_t_34, ((PyObject *)__pyx_v_p_z));
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_16, __pyx_t_35, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 308, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_16, __pyx_t_35, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 296, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_35); __pyx_t_35 = 0;
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
@@ -6334,32 +6201,32 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         }
       }
       if (!__pyx_t_16) {
-        __pyx_t_17 = __Pyx_PyObject_CallOneArg(__pyx_t_28, __pyx_t_1); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 308, __pyx_L1_error)
+        __pyx_t_17 = __Pyx_PyObject_CallOneArg(__pyx_t_28, __pyx_t_1); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 296, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_GOTREF(__pyx_t_17);
       } else {
-        __pyx_t_35 = PyTuple_New(1+1); if (unlikely(!__pyx_t_35)) __PYX_ERR(0, 308, __pyx_L1_error)
+        __pyx_t_35 = PyTuple_New(1+1); if (unlikely(!__pyx_t_35)) __PYX_ERR(0, 296, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_35);
         __Pyx_GIVEREF(__pyx_t_16); PyTuple_SET_ITEM(__pyx_t_35, 0, __pyx_t_16); __pyx_t_16 = NULL;
         __Pyx_GIVEREF(__pyx_t_1);
         PyTuple_SET_ITEM(__pyx_t_35, 0+1, __pyx_t_1);
         __pyx_t_1 = 0;
-        __pyx_t_17 = __Pyx_PyObject_Call(__pyx_t_28, __pyx_t_35, NULL); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 308, __pyx_L1_error)
+        __pyx_t_17 = __Pyx_PyObject_Call(__pyx_t_28, __pyx_t_35, NULL); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 296, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_17);
         __Pyx_DECREF(__pyx_t_35); __pyx_t_35 = 0;
       }
       __Pyx_DECREF(__pyx_t_28); __pyx_t_28 = 0;
-      __pyx_t_28 = __Pyx_GetItemInt(__pyx_t_17, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_28)) __PYX_ERR(0, 308, __pyx_L1_error)
+      __pyx_t_28 = __Pyx_GetItemInt(__pyx_t_17, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_28)) __PYX_ERR(0, 296, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_28);
       __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
-      __pyx_t_17 = __Pyx_GetItemInt(__pyx_t_28, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 308, __pyx_L1_error)
+      __pyx_t_17 = __Pyx_GetItemInt(__pyx_t_28, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 296, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_17);
       __Pyx_DECREF(__pyx_t_28); __pyx_t_28 = 0;
-      __pyx_t_24 = __Pyx_PyInt_As_int(__pyx_t_17); if (unlikely((__pyx_t_24 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 308, __pyx_L1_error)
+      __pyx_t_24 = __Pyx_PyInt_As_int(__pyx_t_17); if (unlikely((__pyx_t_24 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 296, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
       __pyx_v_ti = __pyx_t_24;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":309
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":297
  *                # make sample from multinoulli distribution & update topic assignment
  *                ti = np.where(np.random.multinomial(1,p_z))[0][0]
  *                topic_assignment[cum_i] = ti             # <<<<<<<<<<<<<<
@@ -6369,7 +6236,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __pyx_t_36 = __pyx_v_cum_i;
       *__Pyx_BufPtrStrided1d(__pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t *, __pyx_pybuffernd_topic_assignment.rcbuffer->pybuffer.buf, __pyx_t_36, __pyx_pybuffernd_topic_assignment.diminfo[0].strides) = __pyx_v_ti;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":312
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":300
  * 
  *                # add 'influence' of i-th element in corpus back
  *                word_topic[wi,ti] += 1             # <<<<<<<<<<<<<<
@@ -6380,7 +6247,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __pyx_t_38 = __pyx_v_ti;
       *__Pyx_BufPtrStrided2d(__pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t *, __pyx_pybuffernd_word_topic.rcbuffer->pybuffer.buf, __pyx_t_37, __pyx_pybuffernd_word_topic.diminfo[0].strides, __pyx_t_38, __pyx_pybuffernd_word_topic.diminfo[1].strides) += 1;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":313
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":301
  *                # add 'influence' of i-th element in corpus back
  *                word_topic[wi,ti] += 1
  *                doc_topic[di,ti] += 1             # <<<<<<<<<<<<<<
@@ -6391,7 +6258,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __pyx_t_40 = __pyx_v_ti;
       *__Pyx_BufPtrStrided2d(__pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t *, __pyx_pybuffernd_doc_topic.rcbuffer->pybuffer.buf, __pyx_t_39, __pyx_pybuffernd_doc_topic.diminfo[0].strides, __pyx_t_40, __pyx_pybuffernd_doc_topic.diminfo[1].strides) += 1;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":314
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":302
  *                word_topic[wi,ti] += 1
  *                doc_topic[di,ti] += 1
  *                topics[ti] += 1             # <<<<<<<<<<<<<<
@@ -6401,7 +6268,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __pyx_t_41 = __pyx_v_ti;
       *__Pyx_BufPtrStrided1d(__pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t *, __pyx_pybuffernd_topics.rcbuffer->pybuffer.buf, __pyx_t_41, __pyx_pybuffernd_topics.diminfo[0].strides) += 1;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":315
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":303
  *                doc_topic[di,ti] += 1
  *                topics[ti] += 1
  *                cum_i += 1             # <<<<<<<<<<<<<<
@@ -6412,7 +6279,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":317
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":305
  *                cum_i += 1
  * 
  *         return word_topic, doc_topic, topic_assignment, topics             # <<<<<<<<<<<<<<
@@ -6420,7 +6287,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_17 = PyTuple_New(4); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 317, __pyx_L1_error)
+  __pyx_t_17 = PyTuple_New(4); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 305, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_17);
   __Pyx_INCREF(((PyObject *)__pyx_v_word_topic));
   __Pyx_GIVEREF(((PyObject *)__pyx_v_word_topic));
@@ -6438,7 +6305,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_t_17 = 0;
   goto __pyx_L0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":263
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":251
  *     @cython.wraparound(False)
  *     @cython.boundscheck(False)
  *     def _gibbs_sample_lda(self,np.ndarray[DTYPE_t,ndim=1] words, np.ndarray[DTYPE_t,ndim=1] docs,             # <<<<<<<<<<<<<<
@@ -6489,7 +6356,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   return __pyx_r;
 }
 
-/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":320
+/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":308
  * 
  * 
  *     def _joint_loglike(self,n_d,n_words,n_docs,doc_topic,word_topic,topics):             # <<<<<<<<<<<<<<
@@ -6537,36 +6404,36 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_n_d_2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_joint_loglike", 1, 7, 7, 1); __PYX_ERR(0, 320, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_joint_loglike", 1, 7, 7, 1); __PYX_ERR(0, 308, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_n_words)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_joint_loglike", 1, 7, 7, 2); __PYX_ERR(0, 320, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_joint_loglike", 1, 7, 7, 2); __PYX_ERR(0, 308, __pyx_L3_error)
         }
         case  3:
         if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_n_docs)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_joint_loglike", 1, 7, 7, 3); __PYX_ERR(0, 320, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_joint_loglike", 1, 7, 7, 3); __PYX_ERR(0, 308, __pyx_L3_error)
         }
         case  4:
         if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_doc_topic_2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_joint_loglike", 1, 7, 7, 4); __PYX_ERR(0, 320, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_joint_loglike", 1, 7, 7, 4); __PYX_ERR(0, 308, __pyx_L3_error)
         }
         case  5:
         if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_word_topic_2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_joint_loglike", 1, 7, 7, 5); __PYX_ERR(0, 320, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_joint_loglike", 1, 7, 7, 5); __PYX_ERR(0, 308, __pyx_L3_error)
         }
         case  6:
         if (likely((values[6] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_topics_2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_joint_loglike", 1, 7, 7, 6); __PYX_ERR(0, 320, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_joint_loglike", 1, 7, 7, 6); __PYX_ERR(0, 308, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_joint_loglike") < 0)) __PYX_ERR(0, 320, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_joint_loglike") < 0)) __PYX_ERR(0, 308, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 7) {
       goto __pyx_L5_argtuple_error;
@@ -6589,7 +6456,7 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_joint_loglike", 1, 7, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 320, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("_joint_loglike", 1, 7, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 308, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("skbayes.decomposition_models.gibbs_lda_cython.GibbsLDA._joint_loglike", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -6615,7 +6482,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   PyObject *__pyx_t_7 = NULL;
   __Pyx_RefNannySetupContext("_joint_loglike", 0);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":324
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":312
  *         Computes joint log likelihood of latent and observed variables
  *         '''
  *         ll = 0             # <<<<<<<<<<<<<<
@@ -6625,20 +6492,20 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_INCREF(__pyx_int_0);
   __pyx_v_ll = __pyx_int_0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":327
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":315
  * 
  *         # log of normalization constant for prior of topic distrib
  *         ll += n_docs*(gammaln(self.n_topics*self.alpha) - self.n_topics*gammaln(self.alpha))             # <<<<<<<<<<<<<<
  * 
  *         # log of normalization constant for prior of word distribution
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_gammaln); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 327, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_gammaln); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 315, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 327, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 315, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_alpha); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 327, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_alpha); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 315, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyNumber_Multiply(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 327, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Multiply(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 315, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -6653,26 +6520,26 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_4) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 327, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 315, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 327, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 315, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4); __pyx_t_4 = NULL;
     __Pyx_GIVEREF(__pyx_t_5);
     PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 327, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 315, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 327, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 315, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_gammaln); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 327, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_gammaln); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 315, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_alpha); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 327, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_alpha); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 315, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_6 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_5))) {
@@ -6685,52 +6552,52 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_6) {
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 327, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 315, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_3);
   } else {
-    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 327, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 315, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __pyx_t_6 = NULL;
     __Pyx_GIVEREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_4);
     __pyx_t_4 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 327, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 315, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyNumber_Multiply(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 327, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Multiply(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 315, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyNumber_Subtract(__pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 327, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_Subtract(__pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 315, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyNumber_Multiply(__pyx_v_n_docs, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 327, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Multiply(__pyx_v_n_docs, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 315, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyNumber_InPlaceAdd(__pyx_v_ll, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 327, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_InPlaceAdd(__pyx_v_ll, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 315, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF_SET(__pyx_v_ll, __pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":330
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":318
  * 
  *         # log of normalization constant for prior of word distribution
  *         ll += self.n_topics*gammaln(n_words*self.gamma) - n_words*gammaln(self.gamma)             # <<<<<<<<<<<<<<
  * 
  *         # log of latent dist pdf without normalization constant (obtained after
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 330, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 318, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_gammaln); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 330, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_gammaln); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 318, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gamma); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 330, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gamma); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 318, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_7 = PyNumber_Multiply(__pyx_v_n_words, __pyx_t_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 330, __pyx_L1_error)
+  __pyx_t_7 = PyNumber_Multiply(__pyx_v_n_words, __pyx_t_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 318, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -6744,28 +6611,28 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_2) {
-    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_7); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 330, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_7); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 318, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_GOTREF(__pyx_t_5);
   } else {
-    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 330, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 318, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2); __pyx_t_2 = NULL;
     __Pyx_GIVEREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_7);
     __pyx_t_7 = 0;
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 330, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 318, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyNumber_Multiply(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 330, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Multiply(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 318, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_gammaln); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 330, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_gammaln); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 318, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gamma); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 330, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gamma); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 318, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_7 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -6778,51 +6645,51 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_7) {
-    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 330, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 318, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_5);
   } else {
-    __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 330, __pyx_L1_error)
+    __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 318, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_7); __pyx_t_7 = NULL;
     __Pyx_GIVEREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_2, 0+1, __pyx_t_4);
     __pyx_t_4 = 0;
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_2, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 330, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_2, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 318, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyNumber_Multiply(__pyx_v_n_words, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 330, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_Multiply(__pyx_v_n_words, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 318, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyNumber_Subtract(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 330, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Subtract(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 318, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyNumber_InPlaceAdd(__pyx_v_ll, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 330, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_InPlaceAdd(__pyx_v_ll, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 318, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF_SET(__pyx_v_ll, __pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":334
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":322
  *         # log of latent dist pdf without normalization constant (obtained after
  *         # integrating out topic distribution)
  *         ll += np.sum(gammaln(self.alpha + doc_topic))             # <<<<<<<<<<<<<<
  *         ll -= np.sum(gammaln(self.n_topics*self.alpha + n_d[:,0]))
  * 
  */
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 334, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 322, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_sum); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 334, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_sum); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 322, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_gammaln); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 334, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_gammaln); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 322, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_alpha); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 334, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_alpha); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 322, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_7 = PyNumber_Add(__pyx_t_4, __pyx_v_doc_topic); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 334, __pyx_L1_error)
+  __pyx_t_7 = PyNumber_Add(__pyx_t_4, __pyx_v_doc_topic); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 322, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_4 = NULL;
@@ -6836,17 +6703,17 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_4) {
-    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_7); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 334, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_7); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 322, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_GOTREF(__pyx_t_5);
   } else {
-    __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 334, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 322, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
     __Pyx_GIVEREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_t_7);
     __pyx_t_7 = 0;
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 334, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 322, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
@@ -6862,52 +6729,52 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_2) {
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 334, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 322, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_3);
   } else {
-    __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 334, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 322, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_2); __pyx_t_2 = NULL;
     __Pyx_GIVEREF(__pyx_t_5);
     PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 334, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 322, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyNumber_InPlaceAdd(__pyx_v_ll, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 334, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_InPlaceAdd(__pyx_v_ll, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 322, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF_SET(__pyx_v_ll, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":335
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":323
  *         # integrating out topic distribution)
  *         ll += np.sum(gammaln(self.alpha + doc_topic))
  *         ll -= np.sum(gammaln(self.n_topics*self.alpha + n_d[:,0]))             # <<<<<<<<<<<<<<
  * 
  *         # log p( words | latent_var), obtained after integrating out word
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 335, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 323, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_sum); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 335, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_sum); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 323, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_gammaln); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 335, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_gammaln); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 323, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 335, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 323, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_alpha); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 335, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_alpha); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 323, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_4 = PyNumber_Multiply(__pyx_t_2, __pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 335, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_Multiply(__pyx_t_2, __pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 323, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = PyObject_GetItem(__pyx_v_n_d, __pyx_tuple__11); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 335, __pyx_L1_error)
+  __pyx_t_7 = PyObject_GetItem(__pyx_v_n_d, __pyx_tuple__11); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 323, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_2 = PyNumber_Add(__pyx_t_4, __pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 335, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Add(__pyx_t_4, __pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 323, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
@@ -6922,17 +6789,17 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_7) {
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 335, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 323, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_GOTREF(__pyx_t_3);
   } else {
-    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 335, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 323, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_7); __pyx_t_7 = NULL;
     __Pyx_GIVEREF(__pyx_t_2);
     PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_2);
     __pyx_t_2 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 335, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 323, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
@@ -6948,44 +6815,44 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_5) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 335, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 323, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 335, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 323, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5); __pyx_t_5 = NULL;
     __Pyx_GIVEREF(__pyx_t_3);
     PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_3);
     __pyx_t_3 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 335, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 323, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = PyNumber_InPlaceSubtract(__pyx_v_ll, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 335, __pyx_L1_error)
+  __pyx_t_6 = PyNumber_InPlaceSubtract(__pyx_v_ll, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 323, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF_SET(__pyx_v_ll, __pyx_t_6);
   __pyx_t_6 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":339
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":327
  *         # log p( words | latent_var), obtained after integrating out word
  *         # distribution
  *         ll += np.sum(gammaln(self.gamma + word_topic))             # <<<<<<<<<<<<<<
  *         ll -= np.sum(gammaln(n_words*self.gamma + topics))
  * 
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 339, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 327, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_sum); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 339, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_sum); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 327, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_gammaln); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 339, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_gammaln); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 327, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gamma); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 339, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gamma); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 327, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = PyNumber_Add(__pyx_t_5, __pyx_v_word_topic); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 339, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Add(__pyx_t_5, __pyx_v_word_topic); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 327, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_5 = NULL;
@@ -6999,17 +6866,17 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_5) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 339, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 327, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 339, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 327, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __pyx_t_5 = NULL;
     __Pyx_GIVEREF(__pyx_t_2);
     PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_2);
     __pyx_t_2 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 339, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 327, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
@@ -7025,47 +6892,47 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_3) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 339, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 327, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_GOTREF(__pyx_t_6);
   } else {
-    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 339, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 327, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_3); __pyx_t_3 = NULL;
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_1);
     __pyx_t_1 = 0;
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 339, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 327, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = PyNumber_InPlaceAdd(__pyx_v_ll, __pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 339, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_InPlaceAdd(__pyx_v_ll, __pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 327, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_DECREF_SET(__pyx_v_ll, __pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":340
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":328
  *         # distribution
  *         ll += np.sum(gammaln(self.gamma + word_topic))
  *         ll -= np.sum(gammaln(n_words*self.gamma + topics))             # <<<<<<<<<<<<<<
  * 
  *         return ll
  */
-  __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 340, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 328, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_sum); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 340, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_sum); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 328, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_gammaln); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 340, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_gammaln); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 328, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gamma); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 340, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gamma); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 328, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = PyNumber_Multiply(__pyx_v_n_words, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 340, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Multiply(__pyx_v_n_words, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 328, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyNumber_Add(__pyx_t_2, __pyx_v_topics); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 340, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_Add(__pyx_t_2, __pyx_v_topics); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 328, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -7079,17 +6946,17 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_2) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 328, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_6);
   } else {
-    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 328, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_2); __pyx_t_2 = NULL;
     __Pyx_GIVEREF(__pyx_t_3);
     PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_3);
     __pyx_t_3 = 0;
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 328, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
@@ -7105,28 +6972,28 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_1) {
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 328, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_GOTREF(__pyx_t_4);
   } else {
-    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 328, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1); __pyx_t_1 = NULL;
     __Pyx_GIVEREF(__pyx_t_6);
     PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_6);
     __pyx_t_6 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 328, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = PyNumber_InPlaceSubtract(__pyx_v_ll, __pyx_t_4); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 340, __pyx_L1_error)
+  __pyx_t_7 = PyNumber_InPlaceSubtract(__pyx_v_ll, __pyx_t_4); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 328, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF_SET(__pyx_v_ll, __pyx_t_7);
   __pyx_t_7 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":342
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":330
  *         ll -= np.sum(gammaln(n_words*self.gamma + topics))
  * 
  *         return ll             # <<<<<<<<<<<<<<
@@ -7138,7 +7005,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_r = __pyx_v_ll;
   goto __pyx_L0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":320
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":308
  * 
  * 
  *     def _joint_loglike(self,n_d,n_words,n_docs,doc_topic,word_topic,topics):             # <<<<<<<<<<<<<<
@@ -7164,7 +7031,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   return __pyx_r;
 }
 
-/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":347
+/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":335
  *     @cython.wraparound(False)
  *     @cython.boundscheck(False)
  *     def sample(self, n_samples = 5):             # <<<<<<<<<<<<<<
@@ -7207,7 +7074,7 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "sample") < 0)) __PYX_ERR(0, 347, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "sample") < 0)) __PYX_ERR(0, 335, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -7222,7 +7089,7 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("sample", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 347, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("sample", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 335, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("skbayes.decomposition_models.gibbs_lda_cython.GibbsLDA.sample", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -7266,14 +7133,14 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   int __pyx_t_20;
   __Pyx_RefNannySetupContext("sample", 0);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":372
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":360
  *                  topics[k] - number of words assigned to topic k
  *         '''
  *         check_is_fitted(self,'_n_words')             # <<<<<<<<<<<<<<
  *         samples = []
  *         for i in xrange((n_samples-1)*self.n_thin + 1):
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_is_fitted); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 372, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_is_fitted); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 360, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   __pyx_t_4 = 0;
@@ -7287,7 +7154,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __pyx_t_4 = 1;
     }
   }
-  __pyx_t_5 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 372, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 360, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   if (__pyx_t_3) {
     __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __pyx_t_3 = NULL;
@@ -7298,57 +7165,57 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_INCREF(__pyx_n_s_n_words_2);
   __Pyx_GIVEREF(__pyx_n_s_n_words_2);
   PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_4, __pyx_n_s_n_words_2);
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 372, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 360, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":373
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":361
  *         '''
  *         check_is_fitted(self,'_n_words')
  *         samples = []             # <<<<<<<<<<<<<<
  *         for i in xrange((n_samples-1)*self.n_thin + 1):
  *             wt,dt,ta,ts = self._gibbs_sample_lda(self._words, self._docs, self._topic_assignment,
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 373, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 361, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_samples = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":374
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":362
  *         check_is_fitted(self,'_n_words')
  *         samples = []
  *         for i in xrange((n_samples-1)*self.n_thin + 1):             # <<<<<<<<<<<<<<
  *             wt,dt,ta,ts = self._gibbs_sample_lda(self._words, self._docs, self._topic_assignment,
  *                                                  self.word_topic_, self.doc_topic_, self.topics_,
  */
-  __pyx_t_1 = __Pyx_PyInt_SubtractObjC(__pyx_v_n_samples, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 374, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_SubtractObjC(__pyx_v_n_samples, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 362, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_thin); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 374, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_thin); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 362, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = PyNumber_Multiply(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 374, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Multiply(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 362, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_t_5, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 374, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_t_5, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 362, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 374, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 362, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_2);
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_xrange, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 374, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_xrange, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 362, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   if (likely(PyList_CheckExact(__pyx_t_2)) || PyTuple_CheckExact(__pyx_t_2)) {
     __pyx_t_5 = __pyx_t_2; __Pyx_INCREF(__pyx_t_5); __pyx_t_4 = 0;
     __pyx_t_6 = NULL;
   } else {
-    __pyx_t_4 = -1; __pyx_t_5 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 374, __pyx_L1_error)
+    __pyx_t_4 = -1; __pyx_t_5 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 362, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_6 = Py_TYPE(__pyx_t_5)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 374, __pyx_L1_error)
+    __pyx_t_6 = Py_TYPE(__pyx_t_5)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 362, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   for (;;) {
@@ -7356,17 +7223,17 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       if (likely(PyList_CheckExact(__pyx_t_5))) {
         if (__pyx_t_4 >= PyList_GET_SIZE(__pyx_t_5)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_5, __pyx_t_4); __Pyx_INCREF(__pyx_t_2); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 374, __pyx_L1_error)
+        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_5, __pyx_t_4); __Pyx_INCREF(__pyx_t_2); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 362, __pyx_L1_error)
         #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_5, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 374, __pyx_L1_error)
+        __pyx_t_2 = PySequence_ITEM(__pyx_t_5, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 362, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         #endif
       } else {
         if (__pyx_t_4 >= PyTuple_GET_SIZE(__pyx_t_5)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_5, __pyx_t_4); __Pyx_INCREF(__pyx_t_2); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 374, __pyx_L1_error)
+        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_5, __pyx_t_4); __Pyx_INCREF(__pyx_t_2); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 362, __pyx_L1_error)
         #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_5, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 374, __pyx_L1_error)
+        __pyx_t_2 = PySequence_ITEM(__pyx_t_5, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 362, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         #endif
       }
@@ -7376,7 +7243,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 374, __pyx_L1_error)
+          else __PYX_ERR(0, 362, __pyx_L1_error)
         }
         break;
       }
@@ -7385,48 +7252,48 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_XDECREF_SET(__pyx_v_i, __pyx_t_2);
     __pyx_t_2 = 0;
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":375
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":363
  *         samples = []
  *         for i in xrange((n_samples-1)*self.n_thin + 1):
  *             wt,dt,ta,ts = self._gibbs_sample_lda(self._words, self._docs, self._topic_assignment,             # <<<<<<<<<<<<<<
  *                                                  self.word_topic_, self.doc_topic_, self.topics_,
  *                                                  self._tf, self._n_d, self._n_words)
  */
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gibbs_sample_lda); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 375, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gibbs_sample_lda); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 363, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_words_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 375, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_words_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 363, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_docs_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 375, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_docs_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 363, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_topic_assignment_2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 375, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_topic_assignment_2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 363, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":376
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":364
  *         for i in xrange((n_samples-1)*self.n_thin + 1):
  *             wt,dt,ta,ts = self._gibbs_sample_lda(self._words, self._docs, self._topic_assignment,
  *                                                  self.word_topic_, self.doc_topic_, self.topics_,             # <<<<<<<<<<<<<<
  *                                                  self._tf, self._n_d, self._n_words)
  *             if i%self.n_thin==0:
  */
-    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_word_topic); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 376, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_word_topic); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 364, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_doc_topic); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 376, __pyx_L1_error)
+    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_doc_topic); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 364, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
-    __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_topics); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 376, __pyx_L1_error)
+    __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_topics); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 364, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_11);
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":377
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":365
  *             wt,dt,ta,ts = self._gibbs_sample_lda(self._words, self._docs, self._topic_assignment,
  *                                                  self.word_topic_, self.doc_topic_, self.topics_,
  *                                                  self._tf, self._n_d, self._n_words)             # <<<<<<<<<<<<<<
  *             if i%self.n_thin==0:
  *                 samples.append({'word_topic':wt,'doc_topic':dt,'topics':ts})
  */
-    __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_tf_2); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 377, __pyx_L1_error)
+    __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_tf_2); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 365, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_12);
-    __pyx_t_13 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_d); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 377, __pyx_L1_error)
+    __pyx_t_13 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_d); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 365, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_13);
-    __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_words_2); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 377, __pyx_L1_error)
+    __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_words_2); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 365, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_14);
     __pyx_t_15 = NULL;
     __pyx_t_16 = 0;
@@ -7440,7 +7307,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         __pyx_t_16 = 1;
       }
     }
-    __pyx_t_17 = PyTuple_New(9+__pyx_t_16); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 375, __pyx_L1_error)
+    __pyx_t_17 = PyTuple_New(9+__pyx_t_16); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 363, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_17);
     if (__pyx_t_15) {
       __Pyx_GIVEREF(__pyx_t_15); PyTuple_SET_ITEM(__pyx_t_17, 0, __pyx_t_15); __pyx_t_15 = NULL;
@@ -7472,7 +7339,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __pyx_t_12 = 0;
     __pyx_t_13 = 0;
     __pyx_t_14 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_17, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 375, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_17, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 363, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -7486,7 +7353,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       if (unlikely(size != 4)) {
         if (size > 4) __Pyx_RaiseTooManyValuesError(4);
         else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-        __PYX_ERR(0, 375, __pyx_L1_error)
+        __PYX_ERR(0, 363, __pyx_L1_error)
       }
       #if CYTHON_COMPILING_IN_CPYTHON
       if (likely(PyTuple_CheckExact(sequence))) {
@@ -7509,7 +7376,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         Py_ssize_t i;
         PyObject** temps[4] = {&__pyx_t_1,&__pyx_t_17,&__pyx_t_14,&__pyx_t_13};
         for (i=0; i < 4; i++) {
-          PyObject* item = PySequence_ITEM(sequence, i); if (unlikely(!item)) __PYX_ERR(0, 375, __pyx_L1_error)
+          PyObject* item = PySequence_ITEM(sequence, i); if (unlikely(!item)) __PYX_ERR(0, 363, __pyx_L1_error)
           __Pyx_GOTREF(item);
           *(temps[i]) = item;
         }
@@ -7519,7 +7386,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     } else {
       Py_ssize_t index = -1;
       PyObject** temps[4] = {&__pyx_t_1,&__pyx_t_17,&__pyx_t_14,&__pyx_t_13};
-      __pyx_t_12 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 375, __pyx_L1_error)
+      __pyx_t_12 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 363, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_12);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_t_18 = Py_TYPE(__pyx_t_12)->tp_iternext;
@@ -7528,7 +7395,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         __Pyx_GOTREF(item);
         *(temps[index]) = item;
       }
-      if (__Pyx_IternextUnpackEndCheck(__pyx_t_18(__pyx_t_12), 4) < 0) __PYX_ERR(0, 375, __pyx_L1_error)
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_18(__pyx_t_12), 4) < 0) __PYX_ERR(0, 363, __pyx_L1_error)
       __pyx_t_18 = NULL;
       __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
       goto __pyx_L6_unpacking_done;
@@ -7536,11 +7403,11 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
       __pyx_t_18 = NULL;
       if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-      __PYX_ERR(0, 375, __pyx_L1_error)
+      __PYX_ERR(0, 363, __pyx_L1_error)
       __pyx_L6_unpacking_done:;
     }
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":375
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":363
  *         samples = []
  *         for i in xrange((n_samples-1)*self.n_thin + 1):
  *             wt,dt,ta,ts = self._gibbs_sample_lda(self._words, self._docs, self._topic_assignment,             # <<<<<<<<<<<<<<
@@ -7556,41 +7423,41 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_XDECREF_SET(__pyx_v_ts, __pyx_t_13);
     __pyx_t_13 = 0;
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":378
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":366
  *                                                  self.word_topic_, self.doc_topic_, self.topics_,
  *                                                  self._tf, self._n_d, self._n_words)
  *             if i%self.n_thin==0:             # <<<<<<<<<<<<<<
  *                 samples.append({'word_topic':wt,'doc_topic':dt,'topics':ts})
  *         return samples
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_thin); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 378, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_thin); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 366, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_13 = PyNumber_Remainder(__pyx_v_i, __pyx_t_2); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 378, __pyx_L1_error)
+    __pyx_t_13 = PyNumber_Remainder(__pyx_v_i, __pyx_t_2); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 366, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_13);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyInt_EqObjC(__pyx_t_13, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 378, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyInt_EqObjC(__pyx_t_13, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 366, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
-    __pyx_t_19 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_19 < 0)) __PYX_ERR(0, 378, __pyx_L1_error)
+    __pyx_t_19 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_19 < 0)) __PYX_ERR(0, 366, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     if (__pyx_t_19) {
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":379
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":367
  *                                                  self._tf, self._n_d, self._n_words)
  *             if i%self.n_thin==0:
  *                 samples.append({'word_topic':wt,'doc_topic':dt,'topics':ts})             # <<<<<<<<<<<<<<
  *         return samples
  * 
  */
-      __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 379, __pyx_L1_error)
+      __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 367, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_word_topic_2, __pyx_v_wt) < 0) __PYX_ERR(0, 379, __pyx_L1_error)
-      if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_doc_topic_2, __pyx_v_dt) < 0) __PYX_ERR(0, 379, __pyx_L1_error)
-      if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_topics_2, __pyx_v_ts) < 0) __PYX_ERR(0, 379, __pyx_L1_error)
-      __pyx_t_20 = __Pyx_PyList_Append(__pyx_v_samples, __pyx_t_2); if (unlikely(__pyx_t_20 == -1)) __PYX_ERR(0, 379, __pyx_L1_error)
+      if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_word_topic_2, __pyx_v_wt) < 0) __PYX_ERR(0, 367, __pyx_L1_error)
+      if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_doc_topic_2, __pyx_v_dt) < 0) __PYX_ERR(0, 367, __pyx_L1_error)
+      if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_topics_2, __pyx_v_ts) < 0) __PYX_ERR(0, 367, __pyx_L1_error)
+      __pyx_t_20 = __Pyx_PyList_Append(__pyx_v_samples, __pyx_t_2); if (unlikely(__pyx_t_20 == -1)) __PYX_ERR(0, 367, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":378
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":366
  *                                                  self.word_topic_, self.doc_topic_, self.topics_,
  *                                                  self._tf, self._n_d, self._n_words)
  *             if i%self.n_thin==0:             # <<<<<<<<<<<<<<
@@ -7599,7 +7466,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
  */
     }
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":374
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":362
  *         check_is_fitted(self,'_n_words')
  *         samples = []
  *         for i in xrange((n_samples-1)*self.n_thin + 1):             # <<<<<<<<<<<<<<
@@ -7609,7 +7476,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":380
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":368
  *             if i%self.n_thin==0:
  *                 samples.append({'word_topic':wt,'doc_topic':dt,'topics':ts})
  *         return samples             # <<<<<<<<<<<<<<
@@ -7621,7 +7488,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_r = __pyx_v_samples;
   goto __pyx_L0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":347
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":335
  *     @cython.wraparound(False)
  *     @cython.boundscheck(False)
  *     def sample(self, n_samples = 5):             # <<<<<<<<<<<<<<
@@ -7659,7 +7526,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   return __pyx_r;
 }
 
-/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":384
+/* "skbayes/decomposition_models/gibbs_lda_cython.pyx":372
  * 
  * 
  *     def transform(self, X, n_iter = 5):             # <<<<<<<<<<<<<<
@@ -7700,7 +7567,7 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_X)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("transform", 0, 2, 3, 1); __PYX_ERR(0, 384, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("transform", 0, 2, 3, 1); __PYX_ERR(0, 372, __pyx_L3_error)
         }
         case  2:
         if (kw_args > 0) {
@@ -7709,7 +7576,7 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "transform") < 0)) __PYX_ERR(0, 384, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "transform") < 0)) __PYX_ERR(0, 372, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -7726,7 +7593,7 @@ static PyObject *__pyx_pw_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("transform", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 384, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("transform", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 372, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("skbayes.decomposition_models.gibbs_lda_cython.GibbsLDA.transform", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -7808,14 +7675,14 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_pybuffernd_ta.data = NULL;
   __pyx_pybuffernd_ta.rcbuffer = &__pyx_pybuffer_ta;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":404
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":392
  *            Matrix of document topics
  *         '''
  *         X = self._check_X(X)             # <<<<<<<<<<<<<<
  *         docs,words,tf = vectorize(X)
  *         n_docs, n_words = X.shape
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_check_X); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 404, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_check_X); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 392, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -7828,16 +7695,16 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_X); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 404, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_X); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 392, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 404, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 392, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
     __Pyx_INCREF(__pyx_v_X);
     __Pyx_GIVEREF(__pyx_v_X);
     PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_X);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 404, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 392, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
@@ -7845,14 +7712,14 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_DECREF_SET(__pyx_v_X, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":405
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":393
  *         '''
  *         X = self._check_X(X)
  *         docs,words,tf = vectorize(X)             # <<<<<<<<<<<<<<
  *         n_docs, n_words = X.shape
  *         n_d = np.array(X.sum(1))
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_vectorize); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 405, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_vectorize); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 393, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -7865,16 +7732,16 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_4) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_X); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 405, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_X); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 393, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 405, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 393, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4); __pyx_t_4 = NULL;
     __Pyx_INCREF(__pyx_v_X);
     __Pyx_GIVEREF(__pyx_v_X);
     PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_v_X);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 405, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 393, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
@@ -7889,7 +7756,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     if (unlikely(size != 3)) {
       if (size > 3) __Pyx_RaiseTooManyValuesError(3);
       else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      __PYX_ERR(0, 405, __pyx_L1_error)
+      __PYX_ERR(0, 393, __pyx_L1_error)
     }
     #if CYTHON_COMPILING_IN_CPYTHON
     if (likely(PyTuple_CheckExact(sequence))) {
@@ -7905,17 +7772,17 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_INCREF(__pyx_t_3);
     __Pyx_INCREF(__pyx_t_4);
     #else
-    __pyx_t_2 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 405, __pyx_L1_error)
+    __pyx_t_2 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 393, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 405, __pyx_L1_error)
+    __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 393, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = PySequence_ITEM(sequence, 2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 405, __pyx_L1_error)
+    __pyx_t_4 = PySequence_ITEM(sequence, 2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 393, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     #endif
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   } else {
     Py_ssize_t index = -1;
-    __pyx_t_5 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 405, __pyx_L1_error)
+    __pyx_t_5 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 393, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_6 = Py_TYPE(__pyx_t_5)->tp_iternext;
@@ -7925,7 +7792,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_GOTREF(__pyx_t_3);
     index = 2; __pyx_t_4 = __pyx_t_6(__pyx_t_5); if (unlikely(!__pyx_t_4)) goto __pyx_L3_unpacking_failed;
     __Pyx_GOTREF(__pyx_t_4);
-    if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_5), 3) < 0) __PYX_ERR(0, 405, __pyx_L1_error)
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_5), 3) < 0) __PYX_ERR(0, 393, __pyx_L1_error)
     __pyx_t_6 = NULL;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     goto __pyx_L4_unpacking_done;
@@ -7933,7 +7800,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __pyx_t_6 = NULL;
     if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-    __PYX_ERR(0, 405, __pyx_L1_error)
+    __PYX_ERR(0, 393, __pyx_L1_error)
     __pyx_L4_unpacking_done:;
   }
   __pyx_v_docs = __pyx_t_2;
@@ -7943,14 +7810,14 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_v_tf = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":406
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":394
  *         X = self._check_X(X)
  *         docs,words,tf = vectorize(X)
  *         n_docs, n_words = X.shape             # <<<<<<<<<<<<<<
  *         n_d = np.array(X.sum(1))
  *         cdef np.ndarray[DTYPE_t, ndim=2] wt = np.zeros([n_words,self.n_topics],dtype = DTYPE)
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_X, __pyx_n_s_shape); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 406, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_X, __pyx_n_s_shape); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 394, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if ((likely(PyTuple_CheckExact(__pyx_t_1))) || (PyList_CheckExact(__pyx_t_1))) {
     PyObject* sequence = __pyx_t_1;
@@ -7962,7 +7829,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     if (unlikely(size != 2)) {
       if (size > 2) __Pyx_RaiseTooManyValuesError(2);
       else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      __PYX_ERR(0, 406, __pyx_L1_error)
+      __PYX_ERR(0, 394, __pyx_L1_error)
     }
     #if CYTHON_COMPILING_IN_CPYTHON
     if (likely(PyTuple_CheckExact(sequence))) {
@@ -7975,15 +7842,15 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_INCREF(__pyx_t_4);
     __Pyx_INCREF(__pyx_t_3);
     #else
-    __pyx_t_4 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 406, __pyx_L1_error)
+    __pyx_t_4 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 394, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 406, __pyx_L1_error)
+    __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 394, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     #endif
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   } else {
     Py_ssize_t index = -1;
-    __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 406, __pyx_L1_error)
+    __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 394, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_6 = Py_TYPE(__pyx_t_2)->tp_iternext;
@@ -7991,7 +7858,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_GOTREF(__pyx_t_4);
     index = 1; __pyx_t_3 = __pyx_t_6(__pyx_t_2); if (unlikely(!__pyx_t_3)) goto __pyx_L5_unpacking_failed;
     __Pyx_GOTREF(__pyx_t_3);
-    if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_2), 2) < 0) __PYX_ERR(0, 406, __pyx_L1_error)
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_2), 2) < 0) __PYX_ERR(0, 394, __pyx_L1_error)
     __pyx_t_6 = NULL;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     goto __pyx_L6_unpacking_done;
@@ -7999,7 +7866,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_t_6 = NULL;
     if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-    __PYX_ERR(0, 406, __pyx_L1_error)
+    __PYX_ERR(0, 394, __pyx_L1_error)
     __pyx_L6_unpacking_done:;
   }
   __pyx_v_n_docs = __pyx_t_4;
@@ -8007,21 +7874,21 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_v_n_words = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":407
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":395
  *         docs,words,tf = vectorize(X)
  *         n_docs, n_words = X.shape
  *         n_d = np.array(X.sum(1))             # <<<<<<<<<<<<<<
  *         cdef np.ndarray[DTYPE_t, ndim=2] wt = np.zeros([n_words,self.n_topics],dtype = DTYPE)
  *         cdef np.ndarray[DTYPE_t, ndim=2] dt = np.zeros([n_docs,self.n_topics], dtype = DTYPE)
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 407, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 395, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 407, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 395, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_X, __pyx_n_s_sum); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 407, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_X, __pyx_n_s_sum); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 395, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 407, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 395, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -8035,17 +7902,17 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 407, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 395, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 407, __pyx_L1_error)
+    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 395, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __pyx_t_3 = NULL;
     __Pyx_GIVEREF(__pyx_t_2);
     PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_2);
     __pyx_t_2 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 407, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 395, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
@@ -8053,21 +7920,21 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_v_n_d = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":408
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":396
  *         n_docs, n_words = X.shape
  *         n_d = np.array(X.sum(1))
  *         cdef np.ndarray[DTYPE_t, ndim=2] wt = np.zeros([n_words,self.n_topics],dtype = DTYPE)             # <<<<<<<<<<<<<<
  *         cdef np.ndarray[DTYPE_t, ndim=2] dt = np.zeros([n_docs,self.n_topics], dtype = DTYPE)
  *         cdef np.ndarray[DTYPE_t, ndim=1] ta = np.zeros(np.sum(n_d), dtype = np.int)
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 408, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 396, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 408, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 396, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 408, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 396, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = PyList_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 408, __pyx_L1_error)
+  __pyx_t_5 = PyList_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 396, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_INCREF(__pyx_v_n_words);
   __Pyx_GIVEREF(__pyx_v_n_words);
@@ -8075,29 +7942,29 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_GIVEREF(__pyx_t_1);
   PyList_SET_ITEM(__pyx_t_5, 1, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 408, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 396, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_5);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_5);
   __pyx_t_5 = 0;
-  __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 408, __pyx_L1_error)
+  __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 396, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_DTYPE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 408, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_DTYPE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 396, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_2) < 0) __PYX_ERR(0, 408, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_2) < 0) __PYX_ERR(0, 396, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 408, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 396, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 408, __pyx_L1_error)
+  if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 396, __pyx_L1_error)
   __pyx_t_7 = ((PyArrayObject *)__pyx_t_2);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_wt.rcbuffer->pybuffer, (PyObject*)__pyx_t_7, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) {
       __pyx_v_wt = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_wt.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 408, __pyx_L1_error)
+      __PYX_ERR(0, 396, __pyx_L1_error)
     } else {__pyx_pybuffernd_wt.diminfo[0].strides = __pyx_pybuffernd_wt.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_wt.diminfo[0].shape = __pyx_pybuffernd_wt.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_wt.diminfo[1].strides = __pyx_pybuffernd_wt.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_wt.diminfo[1].shape = __pyx_pybuffernd_wt.rcbuffer->pybuffer.shape[1];
     }
   }
@@ -8105,21 +7972,21 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_v_wt = ((PyArrayObject *)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":409
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":397
  *         n_d = np.array(X.sum(1))
  *         cdef np.ndarray[DTYPE_t, ndim=2] wt = np.zeros([n_words,self.n_topics],dtype = DTYPE)
  *         cdef np.ndarray[DTYPE_t, ndim=2] dt = np.zeros([n_docs,self.n_topics], dtype = DTYPE)             # <<<<<<<<<<<<<<
  *         cdef np.ndarray[DTYPE_t, ndim=1] ta = np.zeros(np.sum(n_d), dtype = np.int)
  *         cdef int cumi = 0
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 409, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 397, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 409, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 397, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 409, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 397, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 409, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 397, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_n_docs);
   __Pyx_GIVEREF(__pyx_v_n_docs);
@@ -8127,29 +7994,29 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_GIVEREF(__pyx_t_2);
   PyList_SET_ITEM(__pyx_t_1, 1, __pyx_t_2);
   __pyx_t_2 = 0;
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 409, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 397, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 409, __pyx_L1_error)
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 397, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_DTYPE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 409, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_DTYPE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 397, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 409, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 397, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 409, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 397, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 409, __pyx_L1_error)
+  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 397, __pyx_L1_error)
   __pyx_t_8 = ((PyArrayObject *)__pyx_t_4);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_dt.rcbuffer->pybuffer, (PyObject*)__pyx_t_8, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) {
       __pyx_v_dt = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_dt.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 409, __pyx_L1_error)
+      __PYX_ERR(0, 397, __pyx_L1_error)
     } else {__pyx_pybuffernd_dt.diminfo[0].strides = __pyx_pybuffernd_dt.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_dt.diminfo[0].shape = __pyx_pybuffernd_dt.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_dt.diminfo[1].strides = __pyx_pybuffernd_dt.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_dt.diminfo[1].shape = __pyx_pybuffernd_dt.rcbuffer->pybuffer.shape[1];
     }
   }
@@ -8157,21 +8024,21 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_v_dt = ((PyArrayObject *)__pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":410
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":398
  *         cdef np.ndarray[DTYPE_t, ndim=2] wt = np.zeros([n_words,self.n_topics],dtype = DTYPE)
  *         cdef np.ndarray[DTYPE_t, ndim=2] dt = np.zeros([n_docs,self.n_topics], dtype = DTYPE)
  *         cdef np.ndarray[DTYPE_t, ndim=1] ta = np.zeros(np.sum(n_d), dtype = np.int)             # <<<<<<<<<<<<<<
  *         cdef int cumi = 0
  *         cdef int i,wi,di,j,ti
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 410, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 398, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 410, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 398, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 410, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 398, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_sum); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 410, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_sum); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 398, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -8185,46 +8052,46 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
   if (!__pyx_t_2) {
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_n_d); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 410, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_n_d); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 398, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
   } else {
-    __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 410, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 398, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2); __pyx_t_2 = NULL;
     __Pyx_INCREF(__pyx_v_n_d);
     __Pyx_GIVEREF(__pyx_v_n_d);
     PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_v_n_d);
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_3, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 410, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_3, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 398, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 410, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 398, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4);
   __pyx_t_4 = 0;
-  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 410, __pyx_L1_error)
+  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 398, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 410, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 398, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_int); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 410, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_int); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 398, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_2) < 0) __PYX_ERR(0, 410, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_2) < 0) __PYX_ERR(0, 398, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 410, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 398, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 410, __pyx_L1_error)
+  if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 398, __pyx_L1_error)
   __pyx_t_9 = ((PyArrayObject *)__pyx_t_2);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_ta.rcbuffer->pybuffer, (PyObject*)__pyx_t_9, &__Pyx_TypeInfo_nn___pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) {
       __pyx_v_ta = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_ta.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 410, __pyx_L1_error)
+      __PYX_ERR(0, 398, __pyx_L1_error)
     } else {__pyx_pybuffernd_ta.diminfo[0].strides = __pyx_pybuffernd_ta.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_ta.diminfo[0].shape = __pyx_pybuffernd_ta.rcbuffer->pybuffer.shape[0];
     }
   }
@@ -8232,7 +8099,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_v_ta = ((PyArrayObject *)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":411
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":399
  *         cdef np.ndarray[DTYPE_t, ndim=2] dt = np.zeros([n_docs,self.n_topics], dtype = DTYPE)
  *         cdef np.ndarray[DTYPE_t, ndim=1] ta = np.zeros(np.sum(n_d), dtype = np.int)
  *         cdef int cumi = 0             # <<<<<<<<<<<<<<
@@ -8241,60 +8108,60 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
  */
   __pyx_v_cumi = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":413
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":401
  *         cdef int cumi = 0
  *         cdef int i,wi,di,j,ti
  *         for i in xrange(len(words)):             # <<<<<<<<<<<<<<
  *             wi = words[i]
  *             di = docs[i]
  */
-  __pyx_t_10 = PyObject_Length(__pyx_v_words); if (unlikely(__pyx_t_10 == -1)) __PYX_ERR(0, 413, __pyx_L1_error)
+  __pyx_t_10 = PyObject_Length(__pyx_v_words); if (unlikely(__pyx_t_10 == -1)) __PYX_ERR(0, 401, __pyx_L1_error)
   for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
     __pyx_v_i = __pyx_t_11;
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":414
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":402
  *         cdef int i,wi,di,j,ti
  *         for i in xrange(len(words)):
  *             wi = words[i]             # <<<<<<<<<<<<<<
  *             di = docs[i]
  *             ti = np.argmax(self.word_topic_[wi,:])
  */
-    __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_words, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 414, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_words, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 402, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_12 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_12 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 414, __pyx_L1_error)
+    __pyx_t_12 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_12 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 402, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_v_wi = __pyx_t_12;
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":415
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":403
  *         for i in xrange(len(words)):
  *             wi = words[i]
  *             di = docs[i]             # <<<<<<<<<<<<<<
  *             ti = np.argmax(self.word_topic_[wi,:])
  *             for j in xrange(tf[i]):
  */
-    __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_docs, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 415, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_docs, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 403, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_12 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_12 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 415, __pyx_L1_error)
+    __pyx_t_12 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_12 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 403, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_v_di = __pyx_t_12;
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":416
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":404
  *             wi = words[i]
  *             di = docs[i]
  *             ti = np.argmax(self.word_topic_[wi,:])             # <<<<<<<<<<<<<<
  *             for j in xrange(tf[i]):
  *                 ta[cumi] = ti
  */
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 416, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 404, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_argmax); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 416, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_argmax); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 404, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_word_topic); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 416, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_word_topic); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 404, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_wi); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 416, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_wi); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 404, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 416, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 404, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
@@ -8302,7 +8169,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_GIVEREF(__pyx_slice__13);
     PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_slice__13);
     __pyx_t_1 = 0;
-    __pyx_t_1 = PyObject_GetItem(__pyx_t_4, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 416, __pyx_L1_error)
+    __pyx_t_1 = PyObject_GetItem(__pyx_t_4, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 404, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -8317,40 +8184,40 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       }
     }
     if (!__pyx_t_3) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 416, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 404, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __Pyx_GOTREF(__pyx_t_2);
     } else {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 416, __pyx_L1_error)
+      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 404, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
       __Pyx_GIVEREF(__pyx_t_1);
       PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_1);
       __pyx_t_1 = 0;
-      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_4, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 416, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_4, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 404, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     }
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_12 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_12 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 416, __pyx_L1_error)
+    __pyx_t_12 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_12 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 404, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_v_ti = __pyx_t_12;
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":417
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":405
  *             di = docs[i]
  *             ti = np.argmax(self.word_topic_[wi,:])
  *             for j in xrange(tf[i]):             # <<<<<<<<<<<<<<
  *                 ta[cumi] = ti
  *                 wt[wi,ti] += 1
  */
-    __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_tf, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 417, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_tf, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 405, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_13 = __Pyx_PyInt_As_long(__pyx_t_2); if (unlikely((__pyx_t_13 == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 417, __pyx_L1_error)
+    __pyx_t_13 = __Pyx_PyInt_As_long(__pyx_t_2); if (unlikely((__pyx_t_13 == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 405, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     for (__pyx_t_12 = 0; __pyx_t_12 < __pyx_t_13; __pyx_t_12+=1) {
       __pyx_v_j = __pyx_t_12;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":418
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":406
  *             ti = np.argmax(self.word_topic_[wi,:])
  *             for j in xrange(tf[i]):
  *                 ta[cumi] = ti             # <<<<<<<<<<<<<<
@@ -8365,11 +8232,11 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       } else if (unlikely(__pyx_t_14 >= __pyx_pybuffernd_ta.diminfo[0].shape)) __pyx_t_15 = 0;
       if (unlikely(__pyx_t_15 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_15);
-        __PYX_ERR(0, 418, __pyx_L1_error)
+        __PYX_ERR(0, 406, __pyx_L1_error)
       }
       *__Pyx_BufPtrStrided1d(__pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t *, __pyx_pybuffernd_ta.rcbuffer->pybuffer.buf, __pyx_t_14, __pyx_pybuffernd_ta.diminfo[0].strides) = __pyx_v_ti;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":419
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":407
  *             for j in xrange(tf[i]):
  *                 ta[cumi] = ti
  *                 wt[wi,ti] += 1             # <<<<<<<<<<<<<<
@@ -8389,11 +8256,11 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       } else if (unlikely(__pyx_t_17 >= __pyx_pybuffernd_wt.diminfo[1].shape)) __pyx_t_15 = 1;
       if (unlikely(__pyx_t_15 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_15);
-        __PYX_ERR(0, 419, __pyx_L1_error)
+        __PYX_ERR(0, 407, __pyx_L1_error)
       }
       *__Pyx_BufPtrStrided2d(__pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t *, __pyx_pybuffernd_wt.rcbuffer->pybuffer.buf, __pyx_t_16, __pyx_pybuffernd_wt.diminfo[0].strides, __pyx_t_17, __pyx_pybuffernd_wt.diminfo[1].strides) += 1;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":420
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":408
  *                 ta[cumi] = ti
  *                 wt[wi,ti] += 1
  *                 dt[di,ti] += 1             # <<<<<<<<<<<<<<
@@ -8413,11 +8280,11 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       } else if (unlikely(__pyx_t_19 >= __pyx_pybuffernd_dt.diminfo[1].shape)) __pyx_t_15 = 1;
       if (unlikely(__pyx_t_15 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_15);
-        __PYX_ERR(0, 420, __pyx_L1_error)
+        __PYX_ERR(0, 408, __pyx_L1_error)
       }
       *__Pyx_BufPtrStrided2d(__pyx_t_7skbayes_20decomposition_models_16gibbs_lda_cython_DTYPE_t *, __pyx_pybuffernd_dt.rcbuffer->pybuffer.buf, __pyx_t_18, __pyx_pybuffernd_dt.diminfo[0].strides, __pyx_t_19, __pyx_pybuffernd_dt.diminfo[1].strides) += 1;
 
-      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":421
+      /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":409
  *                 wt[wi,ti] += 1
  *                 dt[di,ti] += 1
  *                 cumi += 1             # <<<<<<<<<<<<<<
@@ -8428,33 +8295,33 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     }
   }
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":422
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":410
  *                 dt[di,ti] += 1
  *                 cumi += 1
  *         docs  = np.array(docs,dtype = np.int)             # <<<<<<<<<<<<<<
  *         words = np.array(words,dtype = np.int)
  *         tf    = np.array(tf,dtype = np.int)
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 422, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 410, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 422, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 410, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 422, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 410, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_v_docs);
   __Pyx_GIVEREF(__pyx_v_docs);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_docs);
-  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 422, __pyx_L1_error)
+  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 410, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 422, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 410, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_int); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 422, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_int); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 410, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_3) < 0) __PYX_ERR(0, 422, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_3) < 0) __PYX_ERR(0, 410, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 422, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 410, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -8462,33 +8329,33 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_DECREF_SET(__pyx_v_docs, __pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":423
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":411
  *                 cumi += 1
  *         docs  = np.array(docs,dtype = np.int)
  *         words = np.array(words,dtype = np.int)             # <<<<<<<<<<<<<<
  *         tf    = np.array(tf,dtype = np.int)
  *         for k in xrange(n_iter):
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 423, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 411, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 423, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 411, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 423, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 411, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_INCREF(__pyx_v_words);
   __Pyx_GIVEREF(__pyx_v_words);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_v_words);
-  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 423, __pyx_L1_error)
+  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 411, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 423, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 411, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_int); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 423, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_int); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 411, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dtype, __pyx_t_1) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dtype, __pyx_t_1) < 0) __PYX_ERR(0, 411, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 423, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 411, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -8496,33 +8363,33 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_DECREF_SET(__pyx_v_words, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":424
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":412
  *         docs  = np.array(docs,dtype = np.int)
  *         words = np.array(words,dtype = np.int)
  *         tf    = np.array(tf,dtype = np.int)             # <<<<<<<<<<<<<<
  *         for k in xrange(n_iter):
  *             wt,dt,ta,ts = self._gibbs_sample_lda( words, docs, ta, wt, dt, self.topics_,
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 424, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 412, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 424, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 412, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 424, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 412, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_tf);
   __Pyx_GIVEREF(__pyx_v_tf);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_tf);
-  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 424, __pyx_L1_error)
+  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 412, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 424, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 412, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_int); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 424, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_int); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 412, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 424, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 412, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 424, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 412, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -8530,28 +8397,28 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_DECREF_SET(__pyx_v_tf, __pyx_t_5);
   __pyx_t_5 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":425
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":413
  *         words = np.array(words,dtype = np.int)
  *         tf    = np.array(tf,dtype = np.int)
  *         for k in xrange(n_iter):             # <<<<<<<<<<<<<<
  *             wt,dt,ta,ts = self._gibbs_sample_lda( words, docs, ta, wt, dt, self.topics_,
  *                                                   tf, n_d, n_words)
  */
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 425, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 413, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_INCREF(__pyx_v_n_iter);
   __Pyx_GIVEREF(__pyx_v_n_iter);
   PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_v_n_iter);
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_xrange, __pyx_t_5, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 425, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_xrange, __pyx_t_5, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 413, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   if (likely(PyList_CheckExact(__pyx_t_3)) || PyTuple_CheckExact(__pyx_t_3)) {
     __pyx_t_5 = __pyx_t_3; __Pyx_INCREF(__pyx_t_5); __pyx_t_10 = 0;
     __pyx_t_20 = NULL;
   } else {
-    __pyx_t_10 = -1; __pyx_t_5 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 425, __pyx_L1_error)
+    __pyx_t_10 = -1; __pyx_t_5 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 413, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_20 = Py_TYPE(__pyx_t_5)->tp_iternext; if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 425, __pyx_L1_error)
+    __pyx_t_20 = Py_TYPE(__pyx_t_5)->tp_iternext; if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 413, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   for (;;) {
@@ -8559,17 +8426,17 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       if (likely(PyList_CheckExact(__pyx_t_5))) {
         if (__pyx_t_10 >= PyList_GET_SIZE(__pyx_t_5)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_3 = PyList_GET_ITEM(__pyx_t_5, __pyx_t_10); __Pyx_INCREF(__pyx_t_3); __pyx_t_10++; if (unlikely(0 < 0)) __PYX_ERR(0, 425, __pyx_L1_error)
+        __pyx_t_3 = PyList_GET_ITEM(__pyx_t_5, __pyx_t_10); __Pyx_INCREF(__pyx_t_3); __pyx_t_10++; if (unlikely(0 < 0)) __PYX_ERR(0, 413, __pyx_L1_error)
         #else
-        __pyx_t_3 = PySequence_ITEM(__pyx_t_5, __pyx_t_10); __pyx_t_10++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 425, __pyx_L1_error)
+        __pyx_t_3 = PySequence_ITEM(__pyx_t_5, __pyx_t_10); __pyx_t_10++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 413, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         #endif
       } else {
         if (__pyx_t_10 >= PyTuple_GET_SIZE(__pyx_t_5)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_3 = PyTuple_GET_ITEM(__pyx_t_5, __pyx_t_10); __Pyx_INCREF(__pyx_t_3); __pyx_t_10++; if (unlikely(0 < 0)) __PYX_ERR(0, 425, __pyx_L1_error)
+        __pyx_t_3 = PyTuple_GET_ITEM(__pyx_t_5, __pyx_t_10); __Pyx_INCREF(__pyx_t_3); __pyx_t_10++; if (unlikely(0 < 0)) __PYX_ERR(0, 413, __pyx_L1_error)
         #else
-        __pyx_t_3 = PySequence_ITEM(__pyx_t_5, __pyx_t_10); __pyx_t_10++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 425, __pyx_L1_error)
+        __pyx_t_3 = PySequence_ITEM(__pyx_t_5, __pyx_t_10); __pyx_t_10++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 413, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         #endif
       }
@@ -8579,7 +8446,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 425, __pyx_L1_error)
+          else __PYX_ERR(0, 413, __pyx_L1_error)
         }
         break;
       }
@@ -8588,19 +8455,19 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_XDECREF_SET(__pyx_v_k, __pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":426
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":414
  *         tf    = np.array(tf,dtype = np.int)
  *         for k in xrange(n_iter):
  *             wt,dt,ta,ts = self._gibbs_sample_lda( words, docs, ta, wt, dt, self.topics_,             # <<<<<<<<<<<<<<
  *                                                   tf, n_d, n_words)
  *         empty_docs = n_d[:,0]==0
  */
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gibbs_sample_lda); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 426, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_gibbs_sample_lda); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 414, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_topics); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 426, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_topics); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 414, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":427
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":415
  *         for k in xrange(n_iter):
  *             wt,dt,ta,ts = self._gibbs_sample_lda( words, docs, ta, wt, dt, self.topics_,
  *                                                   tf, n_d, n_words)             # <<<<<<<<<<<<<<
@@ -8619,7 +8486,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         __pyx_t_21 = 1;
       }
     }
-    __pyx_t_22 = PyTuple_New(9+__pyx_t_21); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 426, __pyx_L1_error)
+    __pyx_t_22 = PyTuple_New(9+__pyx_t_21); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 414, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_22);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_22, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -8651,7 +8518,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_GIVEREF(__pyx_v_n_words);
     PyTuple_SET_ITEM(__pyx_t_22, 8+__pyx_t_21, __pyx_v_n_words);
     __pyx_t_2 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_22, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 426, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_22, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 414, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -8665,7 +8532,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       if (unlikely(size != 4)) {
         if (size > 4) __Pyx_RaiseTooManyValuesError(4);
         else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-        __PYX_ERR(0, 426, __pyx_L1_error)
+        __PYX_ERR(0, 414, __pyx_L1_error)
       }
       #if CYTHON_COMPILING_IN_CPYTHON
       if (likely(PyTuple_CheckExact(sequence))) {
@@ -8688,7 +8555,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         Py_ssize_t i;
         PyObject** temps[4] = {&__pyx_t_1,&__pyx_t_22,&__pyx_t_2,&__pyx_t_4};
         for (i=0; i < 4; i++) {
-          PyObject* item = PySequence_ITEM(sequence, i); if (unlikely(!item)) __PYX_ERR(0, 426, __pyx_L1_error)
+          PyObject* item = PySequence_ITEM(sequence, i); if (unlikely(!item)) __PYX_ERR(0, 414, __pyx_L1_error)
           __Pyx_GOTREF(item);
           *(temps[i]) = item;
         }
@@ -8698,7 +8565,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     } else {
       Py_ssize_t index = -1;
       PyObject** temps[4] = {&__pyx_t_1,&__pyx_t_22,&__pyx_t_2,&__pyx_t_4};
-      __pyx_t_23 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_23)) __PYX_ERR(0, 426, __pyx_L1_error)
+      __pyx_t_23 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_23)) __PYX_ERR(0, 414, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_23);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __pyx_t_6 = Py_TYPE(__pyx_t_23)->tp_iternext;
@@ -8707,7 +8574,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         __Pyx_GOTREF(item);
         *(temps[index]) = item;
       }
-      if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_23), 4) < 0) __PYX_ERR(0, 426, __pyx_L1_error)
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_23), 4) < 0) __PYX_ERR(0, 414, __pyx_L1_error)
       __pyx_t_6 = NULL;
       __Pyx_DECREF(__pyx_t_23); __pyx_t_23 = 0;
       goto __pyx_L14_unpacking_done;
@@ -8715,20 +8582,20 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
       __Pyx_DECREF(__pyx_t_23); __pyx_t_23 = 0;
       __pyx_t_6 = NULL;
       if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-      __PYX_ERR(0, 426, __pyx_L1_error)
+      __PYX_ERR(0, 414, __pyx_L1_error)
       __pyx_L14_unpacking_done:;
     }
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":426
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":414
  *         tf    = np.array(tf,dtype = np.int)
  *         for k in xrange(n_iter):
  *             wt,dt,ta,ts = self._gibbs_sample_lda( words, docs, ta, wt, dt, self.topics_,             # <<<<<<<<<<<<<<
  *                                                   tf, n_d, n_words)
  *         empty_docs = n_d[:,0]==0
  */
-    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 426, __pyx_L1_error)
-    if (!(likely(((__pyx_t_22) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_22, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 426, __pyx_L1_error)
-    if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 426, __pyx_L1_error)
+    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 414, __pyx_L1_error)
+    if (!(likely(((__pyx_t_22) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_22, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 414, __pyx_L1_error)
+    if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 414, __pyx_L1_error)
     __pyx_t_7 = ((PyArrayObject *)__pyx_t_1);
     {
       __Pyx_BufFmt_StackElem __pyx_stack[1];
@@ -8744,7 +8611,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         }
       }
       __pyx_pybuffernd_wt.diminfo[0].strides = __pyx_pybuffernd_wt.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_wt.diminfo[0].shape = __pyx_pybuffernd_wt.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_wt.diminfo[1].strides = __pyx_pybuffernd_wt.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_wt.diminfo[1].shape = __pyx_pybuffernd_wt.rcbuffer->pybuffer.shape[1];
-      if (unlikely(__pyx_t_11 < 0)) __PYX_ERR(0, 426, __pyx_L1_error)
+      if (unlikely(__pyx_t_11 < 0)) __PYX_ERR(0, 414, __pyx_L1_error)
     }
     __pyx_t_7 = 0;
     __Pyx_DECREF_SET(__pyx_v_wt, ((PyArrayObject *)__pyx_t_1));
@@ -8764,7 +8631,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         }
       }
       __pyx_pybuffernd_dt.diminfo[0].strides = __pyx_pybuffernd_dt.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_dt.diminfo[0].shape = __pyx_pybuffernd_dt.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_dt.diminfo[1].strides = __pyx_pybuffernd_dt.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_dt.diminfo[1].shape = __pyx_pybuffernd_dt.rcbuffer->pybuffer.shape[1];
-      if (unlikely(__pyx_t_11 < 0)) __PYX_ERR(0, 426, __pyx_L1_error)
+      if (unlikely(__pyx_t_11 < 0)) __PYX_ERR(0, 414, __pyx_L1_error)
     }
     __pyx_t_8 = 0;
     __Pyx_DECREF_SET(__pyx_v_dt, ((PyArrayObject *)__pyx_t_22));
@@ -8784,7 +8651,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
         }
       }
       __pyx_pybuffernd_ta.diminfo[0].strides = __pyx_pybuffernd_ta.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_ta.diminfo[0].shape = __pyx_pybuffernd_ta.rcbuffer->pybuffer.shape[0];
-      if (unlikely(__pyx_t_11 < 0)) __PYX_ERR(0, 426, __pyx_L1_error)
+      if (unlikely(__pyx_t_11 < 0)) __PYX_ERR(0, 414, __pyx_L1_error)
     }
     __pyx_t_9 = 0;
     __Pyx_DECREF_SET(__pyx_v_ta, ((PyArrayObject *)__pyx_t_2));
@@ -8792,7 +8659,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
     __Pyx_XDECREF_SET(__pyx_v_ts, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":425
+    /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":413
  *         words = np.array(words,dtype = np.int)
  *         tf    = np.array(tf,dtype = np.int)
  *         for k in xrange(n_iter):             # <<<<<<<<<<<<<<
@@ -8802,48 +8669,48 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":428
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":416
  *             wt,dt,ta,ts = self._gibbs_sample_lda( words, docs, ta, wt, dt, self.topics_,
  *                                                   tf, n_d, n_words)
  *         empty_docs = n_d[:,0]==0             # <<<<<<<<<<<<<<
  *         dtd = np.array(dt,dtype = np.double)
  *         dtd[empty_docs,:] = 1.0 / self.n_topics
  */
-  __pyx_t_5 = PyObject_GetItem(__pyx_v_n_d, __pyx_tuple__15); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 428, __pyx_L1_error)
+  __pyx_t_5 = PyObject_GetItem(__pyx_v_n_d, __pyx_tuple__15); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 416, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = __Pyx_PyInt_EqObjC(__pyx_t_5, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 428, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_EqObjC(__pyx_t_5, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 416, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_v_empty_docs = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":429
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":417
  *                                                   tf, n_d, n_words)
  *         empty_docs = n_d[:,0]==0
  *         dtd = np.array(dt,dtype = np.double)             # <<<<<<<<<<<<<<
  *         dtd[empty_docs,:] = 1.0 / self.n_topics
  *         dtd[~empty_docs,:] = dtd[~empty_docs,:] / n_d[~empty_docs,:]
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 429, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 417, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_array); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 429, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_array); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 417, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 429, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 417, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_INCREF(((PyObject *)__pyx_v_dt));
   __Pyx_GIVEREF(((PyObject *)__pyx_v_dt));
   PyTuple_SET_ITEM(__pyx_t_3, 0, ((PyObject *)__pyx_v_dt));
-  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 429, __pyx_L1_error)
+  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 417, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 429, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 417, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_22 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_double); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 429, __pyx_L1_error)
+  __pyx_t_22 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_double); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 417, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_22);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_22) < 0) __PYX_ERR(0, 429, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_22) < 0) __PYX_ERR(0, 417, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
-  __pyx_t_22 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 429, __pyx_L1_error)
+  __pyx_t_22 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 417, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_22);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -8851,19 +8718,19 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_v_dtd = __pyx_t_22;
   __pyx_t_22 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":430
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":418
  *         empty_docs = n_d[:,0]==0
  *         dtd = np.array(dt,dtype = np.double)
  *         dtd[empty_docs,:] = 1.0 / self.n_topics             # <<<<<<<<<<<<<<
  *         dtd[~empty_docs,:] = dtd[~empty_docs,:] / n_d[~empty_docs,:]
  *         return dtd
  */
-  __pyx_t_22 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 430, __pyx_L1_error)
+  __pyx_t_22 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_topics); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 418, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_22);
-  __pyx_t_4 = __Pyx_PyFloat_DivideCObj(__pyx_float_1_0, __pyx_t_22, 1.0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 430, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyFloat_DivideCObj(__pyx_float_1_0, __pyx_t_22, 1.0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 418, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
-  __pyx_t_22 = PyTuple_New(2); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 430, __pyx_L1_error)
+  __pyx_t_22 = PyTuple_New(2); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 418, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_22);
   __Pyx_INCREF(__pyx_v_empty_docs);
   __Pyx_GIVEREF(__pyx_v_empty_docs);
@@ -8871,20 +8738,20 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_INCREF(__pyx_slice__16);
   __Pyx_GIVEREF(__pyx_slice__16);
   PyTuple_SET_ITEM(__pyx_t_22, 1, __pyx_slice__16);
-  if (unlikely(PyObject_SetItem(__pyx_v_dtd, __pyx_t_22, __pyx_t_4) < 0)) __PYX_ERR(0, 430, __pyx_L1_error)
+  if (unlikely(PyObject_SetItem(__pyx_v_dtd, __pyx_t_22, __pyx_t_4) < 0)) __PYX_ERR(0, 418, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":431
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":419
  *         dtd = np.array(dt,dtype = np.double)
  *         dtd[empty_docs,:] = 1.0 / self.n_topics
  *         dtd[~empty_docs,:] = dtd[~empty_docs,:] / n_d[~empty_docs,:]             # <<<<<<<<<<<<<<
  *         return dtd
  * 
  */
-  __pyx_t_4 = PyNumber_Invert(__pyx_v_empty_docs); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 431, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_Invert(__pyx_v_empty_docs); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 419, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_22 = PyTuple_New(2); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 431, __pyx_L1_error)
+  __pyx_t_22 = PyTuple_New(2); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 419, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_22);
   __Pyx_GIVEREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_22, 0, __pyx_t_4);
@@ -8892,12 +8759,12 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_GIVEREF(__pyx_slice__17);
   PyTuple_SET_ITEM(__pyx_t_22, 1, __pyx_slice__17);
   __pyx_t_4 = 0;
-  __pyx_t_4 = PyObject_GetItem(__pyx_v_dtd, __pyx_t_22); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 431, __pyx_L1_error)
+  __pyx_t_4 = PyObject_GetItem(__pyx_v_dtd, __pyx_t_22); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 419, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
-  __pyx_t_22 = PyNumber_Invert(__pyx_v_empty_docs); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 431, __pyx_L1_error)
+  __pyx_t_22 = PyNumber_Invert(__pyx_v_empty_docs); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 419, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_22);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 431, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 419, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_22);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_22);
@@ -8905,16 +8772,16 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_GIVEREF(__pyx_slice__18);
   PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_slice__18);
   __pyx_t_22 = 0;
-  __pyx_t_22 = PyObject_GetItem(__pyx_v_n_d, __pyx_t_3); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 431, __pyx_L1_error)
+  __pyx_t_22 = PyObject_GetItem(__pyx_v_n_d, __pyx_t_3); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 419, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_22);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyNumber_Divide(__pyx_t_4, __pyx_t_22); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 431, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyNumber_Divide(__pyx_t_4, __pyx_t_22); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 419, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
-  __pyx_t_22 = PyNumber_Invert(__pyx_v_empty_docs); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 431, __pyx_L1_error)
+  __pyx_t_22 = PyNumber_Invert(__pyx_v_empty_docs); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 419, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_22);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 431, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 419, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_22);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_22);
@@ -8922,11 +8789,11 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __Pyx_GIVEREF(__pyx_slice__19);
   PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_slice__19);
   __pyx_t_22 = 0;
-  if (unlikely(PyObject_SetItem(__pyx_v_dtd, __pyx_t_4, __pyx_t_3) < 0)) __PYX_ERR(0, 431, __pyx_L1_error)
+  if (unlikely(PyObject_SetItem(__pyx_v_dtd, __pyx_t_4, __pyx_t_3) < 0)) __PYX_ERR(0, 419, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":432
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":420
  *         dtd[empty_docs,:] = 1.0 / self.n_topics
  *         dtd[~empty_docs,:] = dtd[~empty_docs,:] / n_d[~empty_docs,:]
  *         return dtd             # <<<<<<<<<<<<<<
@@ -8938,7 +8805,7 @@ static PyObject *__pyx_pf_7skbayes_20decomposition_models_16gibbs_lda_cython_8Gi
   __pyx_r = __pyx_v_dtd;
   goto __pyx_L0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":384
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":372
  * 
  * 
  *     def transform(self, X, n_iter = 5):             # <<<<<<<<<<<<<<
@@ -11204,8 +11071,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
   {&__pyx_n_s_init, __pyx_k_init, sizeof(__pyx_k_init), 0, 0, 1, 1},
   {&__pyx_n_s_init_params, __pyx_k_init_params, sizeof(__pyx_k_init_params), 0, 0, 1, 1},
-  {&__pyx_n_s_init_params_2, __pyx_k_init_params_2, sizeof(__pyx_k_init_params_2), 0, 0, 1, 1},
-  {&__pyx_n_s_init_parms, __pyx_k_init_parms, sizeof(__pyx_k_init_parms), 0, 0, 1, 1},
   {&__pyx_n_s_int, __pyx_k_int, sizeof(__pyx_k_int), 0, 0, 1, 1},
   {&__pyx_n_s_issparse, __pyx_k_issparse, sizeof(__pyx_k_issparse), 0, 0, 1, 1},
   {&__pyx_n_s_j, __pyx_k_j, sizeof(__pyx_k_j), 0, 0, 1, 1},
@@ -11290,8 +11155,8 @@ static int __Pyx_InitCachedBuiltins(void) {
   #else
   __pyx_builtin_xrange = __Pyx_GetBuiltinName(__pyx_n_s_xrange); if (!__pyx_builtin_xrange) __PYX_ERR(0, 30, __pyx_L1_error)
   #endif
-  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 136, __pyx_L1_error)
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 226, __pyx_L1_error)
+  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 126, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 214, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(1, 799, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
@@ -11302,156 +11167,156 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":143
- *                 raise ValueError(('gamma should be positive value, '
- *                                   'observed {0}').format(gamma))
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":131
+ *             raise ValueError(('gamma should be positive value, '
+ *                               'observed {0}').format(self.gamma))
  *         n_d = np.array(X.sum(1), dtype = np.int)             # <<<<<<<<<<<<<<
  *         corpus_size = np.sum(n_d)
  *         topic_assignment = np.random.randint(0,self.n_topics,corpus_size,dtype=np.int)
  */
-  __pyx_tuple_ = PyTuple_Pack(1, __pyx_int_1); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_tuple_ = PyTuple_Pack(1, __pyx_int_1); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 131, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":158
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":146
  *         arr = X.data if issparse(X) else X
  *         if np.sum(arr<0) > 0:
  *             raise ValueError('Document term matrix should not contain negative values')             # <<<<<<<<<<<<<<
  * 
  *         # if model was fitted before check that vocabulary size is the same
  */
-  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_Document_term_matrix_should_not); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 158, __pyx_L1_error)
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_Document_term_matrix_should_not); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 146, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":189
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":177
  *                                              self.word_topic_, self.doc_topic_, self.topics_,
  *                                              self._tf, self._n_d, self._n_words)
  *         empty_docs = self._n_d[:,0]==0             # <<<<<<<<<<<<<<
  *         dtd = np.array(dt,dtype = np.double)
  *         dtd[empty_docs,:] = 1.0 / self.n_topics
  */
-  __pyx_slice__3 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__3)) __PYX_ERR(0, 189, __pyx_L1_error)
+  __pyx_slice__3 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__3)) __PYX_ERR(0, 177, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__3);
   __Pyx_GIVEREF(__pyx_slice__3);
-  __pyx_tuple__4 = PyTuple_Pack(2, __pyx_slice__3, __pyx_int_0); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 189, __pyx_L1_error)
+  __pyx_tuple__4 = PyTuple_Pack(2, __pyx_slice__3, __pyx_int_0); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 177, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":191
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":179
  *         empty_docs = self._n_d[:,0]==0
  *         dtd = np.array(dt,dtype = np.double)
  *         dtd[empty_docs,:] = 1.0 / self.n_topics             # <<<<<<<<<<<<<<
  *         dtd[~empty_docs,:] = dtd[~empty_docs,:] / self._n_d[~empty_docs,:]
  *         return dtd
  */
-  __pyx_slice__5 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__5)) __PYX_ERR(0, 191, __pyx_L1_error)
+  __pyx_slice__5 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__5)) __PYX_ERR(0, 179, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__5);
   __Pyx_GIVEREF(__pyx_slice__5);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":192
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":180
  *         dtd = np.array(dt,dtype = np.double)
  *         dtd[empty_docs,:] = 1.0 / self.n_topics
  *         dtd[~empty_docs,:] = dtd[~empty_docs,:] / self._n_d[~empty_docs,:]             # <<<<<<<<<<<<<<
  *         return dtd
  * 
  */
-  __pyx_slice__6 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__6)) __PYX_ERR(0, 192, __pyx_L1_error)
+  __pyx_slice__6 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__6)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__6);
   __Pyx_GIVEREF(__pyx_slice__6);
-  __pyx_slice__7 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__7)) __PYX_ERR(0, 192, __pyx_L1_error)
+  __pyx_slice__7 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__7)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__7);
   __Pyx_GIVEREF(__pyx_slice__7);
-  __pyx_slice__8 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__8)) __PYX_ERR(0, 192, __pyx_L1_error)
+  __pyx_slice__8 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__8)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__8);
   __Pyx_GIVEREF(__pyx_slice__8);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":297
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":285
  *                # topic assignments) and by multiplying it to p(z_{n,d} = k| Z_{-n,d})
  *                # obtain unnormalised p(z_{n,d}| DATA)
  *                p_z *= (word_topic[wi,:] + gamma) / (gamma*n_words + topics)             # <<<<<<<<<<<<<<
  * 
  *                # normalise & handle any conversion issues
  */
-  __pyx_slice__9 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__9)) __PYX_ERR(0, 297, __pyx_L1_error)
+  __pyx_slice__9 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__9)) __PYX_ERR(0, 285, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__9);
   __Pyx_GIVEREF(__pyx_slice__9);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":335
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":323
  *         # integrating out topic distribution)
  *         ll += np.sum(gammaln(self.alpha + doc_topic))
  *         ll -= np.sum(gammaln(self.n_topics*self.alpha + n_d[:,0]))             # <<<<<<<<<<<<<<
  * 
  *         # log p( words | latent_var), obtained after integrating out word
  */
-  __pyx_slice__10 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__10)) __PYX_ERR(0, 335, __pyx_L1_error)
+  __pyx_slice__10 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__10)) __PYX_ERR(0, 323, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__10);
   __Pyx_GIVEREF(__pyx_slice__10);
-  __pyx_tuple__11 = PyTuple_Pack(2, __pyx_slice__10, __pyx_int_0); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 335, __pyx_L1_error)
+  __pyx_tuple__11 = PyTuple_Pack(2, __pyx_slice__10, __pyx_int_0); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 323, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__11);
   __Pyx_GIVEREF(__pyx_tuple__11);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":407
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":395
  *         docs,words,tf = vectorize(X)
  *         n_docs, n_words = X.shape
  *         n_d = np.array(X.sum(1))             # <<<<<<<<<<<<<<
  *         cdef np.ndarray[DTYPE_t, ndim=2] wt = np.zeros([n_words,self.n_topics],dtype = DTYPE)
  *         cdef np.ndarray[DTYPE_t, ndim=2] dt = np.zeros([n_docs,self.n_topics], dtype = DTYPE)
  */
-  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_int_1); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 407, __pyx_L1_error)
+  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_int_1); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 395, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__12);
   __Pyx_GIVEREF(__pyx_tuple__12);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":416
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":404
  *             wi = words[i]
  *             di = docs[i]
  *             ti = np.argmax(self.word_topic_[wi,:])             # <<<<<<<<<<<<<<
  *             for j in xrange(tf[i]):
  *                 ta[cumi] = ti
  */
-  __pyx_slice__13 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__13)) __PYX_ERR(0, 416, __pyx_L1_error)
+  __pyx_slice__13 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__13)) __PYX_ERR(0, 404, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__13);
   __Pyx_GIVEREF(__pyx_slice__13);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":428
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":416
  *             wt,dt,ta,ts = self._gibbs_sample_lda( words, docs, ta, wt, dt, self.topics_,
  *                                                   tf, n_d, n_words)
  *         empty_docs = n_d[:,0]==0             # <<<<<<<<<<<<<<
  *         dtd = np.array(dt,dtype = np.double)
  *         dtd[empty_docs,:] = 1.0 / self.n_topics
  */
-  __pyx_slice__14 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__14)) __PYX_ERR(0, 428, __pyx_L1_error)
+  __pyx_slice__14 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__14)) __PYX_ERR(0, 416, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__14);
   __Pyx_GIVEREF(__pyx_slice__14);
-  __pyx_tuple__15 = PyTuple_Pack(2, __pyx_slice__14, __pyx_int_0); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 428, __pyx_L1_error)
+  __pyx_tuple__15 = PyTuple_Pack(2, __pyx_slice__14, __pyx_int_0); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 416, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__15);
   __Pyx_GIVEREF(__pyx_tuple__15);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":430
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":418
  *         empty_docs = n_d[:,0]==0
  *         dtd = np.array(dt,dtype = np.double)
  *         dtd[empty_docs,:] = 1.0 / self.n_topics             # <<<<<<<<<<<<<<
  *         dtd[~empty_docs,:] = dtd[~empty_docs,:] / n_d[~empty_docs,:]
  *         return dtd
  */
-  __pyx_slice__16 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__16)) __PYX_ERR(0, 430, __pyx_L1_error)
+  __pyx_slice__16 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__16)) __PYX_ERR(0, 418, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__16);
   __Pyx_GIVEREF(__pyx_slice__16);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":431
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":419
  *         dtd = np.array(dt,dtype = np.double)
  *         dtd[empty_docs,:] = 1.0 / self.n_topics
  *         dtd[~empty_docs,:] = dtd[~empty_docs,:] / n_d[~empty_docs,:]             # <<<<<<<<<<<<<<
  *         return dtd
  * 
  */
-  __pyx_slice__17 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__17)) __PYX_ERR(0, 431, __pyx_L1_error)
+  __pyx_slice__17 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__17)) __PYX_ERR(0, 419, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__17);
   __Pyx_GIVEREF(__pyx_slice__17);
-  __pyx_slice__18 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__18)) __PYX_ERR(0, 431, __pyx_L1_error)
+  __pyx_slice__18 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__18)) __PYX_ERR(0, 419, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__18);
   __Pyx_GIVEREF(__pyx_slice__18);
-  __pyx_slice__19 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__19)) __PYX_ERR(0, 431, __pyx_L1_error)
+  __pyx_slice__19 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__19)) __PYX_ERR(0, 419, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__19);
   __Pyx_GIVEREF(__pyx_slice__19);
 
@@ -11545,120 +11410,120 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__28);
   __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(1, 0, 4, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_vectorize, 41, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) __PYX_ERR(0, 41, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":112
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":107
  *     K.Murphy, Machine Learning A Probabilistic Perspective (2012)
  *     '''
- *     def __init__(self, n_topics, n_burnin = 30, n_thin = 3, init_params = None,             # <<<<<<<<<<<<<<
- *                  compute_score = False, verbose = False):
+ *     def __init__(self, n_topics, n_burnin=30, n_thin=3, alpha=1, gamma=1,             # <<<<<<<<<<<<<<
+ *                  compute_score=False, verbose=False):
  *         self.n_topics      = n_topics
  */
-  __pyx_tuple__30 = PyTuple_Pack(7, __pyx_n_s_self, __pyx_n_s_n_topics, __pyx_n_s_n_burnin, __pyx_n_s_n_thin, __pyx_n_s_init_params, __pyx_n_s_compute_score, __pyx_n_s_verbose); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __pyx_tuple__30 = PyTuple_Pack(8, __pyx_n_s_self, __pyx_n_s_n_topics, __pyx_n_s_n_burnin, __pyx_n_s_n_thin, __pyx_n_s_alpha, __pyx_n_s_gamma, __pyx_n_s_compute_score, __pyx_n_s_verbose); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 107, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__30);
   __Pyx_GIVEREF(__pyx_tuple__30);
-  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(7, 0, 7, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_init, 112, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) __PYX_ERR(0, 112, __pyx_L1_error)
-  __pyx_tuple__32 = PyTuple_Pack(5, ((PyObject *)__pyx_int_30), ((PyObject *)__pyx_int_3), ((PyObject *)Py_None), ((PyObject *)Py_False), ((PyObject *)Py_False)); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(8, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_init, 107, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) __PYX_ERR(0, 107, __pyx_L1_error)
+  __pyx_tuple__32 = PyTuple_Pack(6, ((PyObject *)__pyx_int_30), ((PyObject *)__pyx_int_3), ((PyObject *)__pyx_int_1), ((PyObject *)__pyx_int_1), ((PyObject *)Py_False), ((PyObject *)Py_False)); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 107, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__32);
   __Pyx_GIVEREF(__pyx_tuple__32);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":124
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":119
  * 
  * 
  *     def _init_params(self,X):             # <<<<<<<<<<<<<<
  *         '''
  *         Initialise parameters
  */
-  __pyx_tuple__33 = PyTuple_Pack(7, __pyx_n_s_self, __pyx_n_s_X, __pyx_n_s_alpha, __pyx_n_s_gamma, __pyx_n_s_topic_assignment, __pyx_n_s_n_d_2, __pyx_n_s_corpus_size); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 124, __pyx_L1_error)
+  __pyx_tuple__33 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_X, __pyx_n_s_topic_assignment, __pyx_n_s_n_d_2, __pyx_n_s_corpus_size); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 119, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__33);
   __Pyx_GIVEREF(__pyx_tuple__33);
-  __pyx_codeobj__34 = (PyObject*)__Pyx_PyCode_New(2, 0, 7, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__33, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_init_params_2, 124, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__34)) __PYX_ERR(0, 124, __pyx_L1_error)
+  __pyx_codeobj__34 = (PyObject*)__Pyx_PyCode_New(2, 0, 5, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__33, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_init_params, 119, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__34)) __PYX_ERR(0, 119, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":149
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":137
  * 
  * 
  *     def _check_X(self,X):             # <<<<<<<<<<<<<<
  *         '''
  *         Validate input matrix
  */
-  __pyx_tuple__35 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_X, __pyx_n_s_arr); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(0, 149, __pyx_L1_error)
+  __pyx_tuple__35 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_X, __pyx_n_s_arr); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(0, 137, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__35);
   __Pyx_GIVEREF(__pyx_tuple__35);
-  __pyx_codeobj__36 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__35, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_check_X, 149, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__36)) __PYX_ERR(0, 149, __pyx_L1_error)
+  __pyx_codeobj__36 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__35, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_check_X, 137, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__36)) __PYX_ERR(0, 137, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":168
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":156
  * 
  * 
  *     def fit_transform(self,X):             # <<<<<<<<<<<<<<
  *         '''
  *         Fit model and transform
  */
-  __pyx_tuple__38 = PyTuple_Pack(9, __pyx_n_s_self, __pyx_n_s_X, __pyx_n_s__37, __pyx_n_s_wt, __pyx_n_s_dt, __pyx_n_s_ta, __pyx_n_s_ts, __pyx_n_s_empty_docs, __pyx_n_s_dtd); if (unlikely(!__pyx_tuple__38)) __PYX_ERR(0, 168, __pyx_L1_error)
+  __pyx_tuple__38 = PyTuple_Pack(9, __pyx_n_s_self, __pyx_n_s_X, __pyx_n_s__37, __pyx_n_s_wt, __pyx_n_s_dt, __pyx_n_s_ta, __pyx_n_s_ts, __pyx_n_s_empty_docs, __pyx_n_s_dtd); if (unlikely(!__pyx_tuple__38)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__38);
   __Pyx_GIVEREF(__pyx_tuple__38);
-  __pyx_codeobj__39 = (PyObject*)__Pyx_PyCode_New(2, 0, 9, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__38, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_fit_transform, 168, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__39)) __PYX_ERR(0, 168, __pyx_L1_error)
+  __pyx_codeobj__39 = (PyObject*)__Pyx_PyCode_New(2, 0, 9, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__38, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_fit_transform, 156, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__39)) __PYX_ERR(0, 156, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":196
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":184
  * 
  * 
  *     def fit(self,X):             # <<<<<<<<<<<<<<
  *         '''
  *         Runs burn-in stage of collapsed Gibbs sample for LDA model
  */
-  __pyx_tuple__40 = PyTuple_Pack(14, __pyx_n_s_self, __pyx_n_s_X, __pyx_n_s_docs, __pyx_n_s_words, __pyx_n_s_tf, __pyx_n_s_n_docs, __pyx_n_s_n_words, __pyx_n_s_topic_assignment, __pyx_n_s_n_d_2, __pyx_n_s_word_topic_2, __pyx_n_s_doc_topic_2, __pyx_n_s_topics_2, __pyx_n_s_j, __pyx_n_s_t0); if (unlikely(!__pyx_tuple__40)) __PYX_ERR(0, 196, __pyx_L1_error)
+  __pyx_tuple__40 = PyTuple_Pack(14, __pyx_n_s_self, __pyx_n_s_X, __pyx_n_s_docs, __pyx_n_s_words, __pyx_n_s_tf, __pyx_n_s_n_docs, __pyx_n_s_n_words, __pyx_n_s_topic_assignment, __pyx_n_s_n_d_2, __pyx_n_s_word_topic_2, __pyx_n_s_doc_topic_2, __pyx_n_s_topics_2, __pyx_n_s_j, __pyx_n_s_t0); if (unlikely(!__pyx_tuple__40)) __PYX_ERR(0, 184, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__40);
   __Pyx_GIVEREF(__pyx_tuple__40);
-  __pyx_codeobj__41 = (PyObject*)__Pyx_PyCode_New(2, 0, 14, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__40, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_fit, 196, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__41)) __PYX_ERR(0, 196, __pyx_L1_error)
+  __pyx_codeobj__41 = (PyObject*)__Pyx_PyCode_New(2, 0, 14, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__40, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_fit, 184, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__41)) __PYX_ERR(0, 184, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":263
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":251
  *     @cython.wraparound(False)
  *     @cython.boundscheck(False)
  *     def _gibbs_sample_lda(self,np.ndarray[DTYPE_t,ndim=1] words, np.ndarray[DTYPE_t,ndim=1] docs,             # <<<<<<<<<<<<<<
  *                      np.ndarray[DTYPE_t,ndim=1] topic_assignment, np.ndarray[DTYPE_t, ndim=2] word_topic,
  *                      np.ndarray[DTYPE_t,ndim=2] doc_topic, np.ndarray[DTYPE_t, ndim=1] topics,
  */
-  __pyx_tuple__42 = PyTuple_Pack(23, __pyx_n_s_self, __pyx_n_s_words, __pyx_n_s_docs, __pyx_n_s_topic_assignment, __pyx_n_s_word_topic_2, __pyx_n_s_doc_topic_2, __pyx_n_s_topics_2, __pyx_n_s_tf, __pyx_n_s_n_d_2, __pyx_n_s_n_words, __pyx_n_s_alpha, __pyx_n_s_gamma, __pyx_n_s_wi, __pyx_n_s_di, __pyx_n_s_ti, __pyx_n_s_i, __pyx_n_s_k, __pyx_n_s_j, __pyx_n_s_cum_i, __pyx_n_s_p_z, __pyx_n_s_n_topics, __pyx_n_s_partial_sum, __pyx_n_s_normalizer); if (unlikely(!__pyx_tuple__42)) __PYX_ERR(0, 263, __pyx_L1_error)
+  __pyx_tuple__42 = PyTuple_Pack(23, __pyx_n_s_self, __pyx_n_s_words, __pyx_n_s_docs, __pyx_n_s_topic_assignment, __pyx_n_s_word_topic_2, __pyx_n_s_doc_topic_2, __pyx_n_s_topics_2, __pyx_n_s_tf, __pyx_n_s_n_d_2, __pyx_n_s_n_words, __pyx_n_s_alpha, __pyx_n_s_gamma, __pyx_n_s_wi, __pyx_n_s_di, __pyx_n_s_ti, __pyx_n_s_i, __pyx_n_s_k, __pyx_n_s_j, __pyx_n_s_cum_i, __pyx_n_s_p_z, __pyx_n_s_n_topics, __pyx_n_s_partial_sum, __pyx_n_s_normalizer); if (unlikely(!__pyx_tuple__42)) __PYX_ERR(0, 251, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__42);
   __Pyx_GIVEREF(__pyx_tuple__42);
-  __pyx_codeobj__43 = (PyObject*)__Pyx_PyCode_New(10, 0, 23, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__42, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_gibbs_sample_lda, 263, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__43)) __PYX_ERR(0, 263, __pyx_L1_error)
+  __pyx_codeobj__43 = (PyObject*)__Pyx_PyCode_New(10, 0, 23, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__42, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_gibbs_sample_lda, 251, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__43)) __PYX_ERR(0, 251, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":320
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":308
  * 
  * 
  *     def _joint_loglike(self,n_d,n_words,n_docs,doc_topic,word_topic,topics):             # <<<<<<<<<<<<<<
  *         '''
  *         Computes joint log likelihood of latent and observed variables
  */
-  __pyx_tuple__44 = PyTuple_Pack(8, __pyx_n_s_self, __pyx_n_s_n_d_2, __pyx_n_s_n_words, __pyx_n_s_n_docs, __pyx_n_s_doc_topic_2, __pyx_n_s_word_topic_2, __pyx_n_s_topics_2, __pyx_n_s_ll); if (unlikely(!__pyx_tuple__44)) __PYX_ERR(0, 320, __pyx_L1_error)
+  __pyx_tuple__44 = PyTuple_Pack(8, __pyx_n_s_self, __pyx_n_s_n_d_2, __pyx_n_s_n_words, __pyx_n_s_n_docs, __pyx_n_s_doc_topic_2, __pyx_n_s_word_topic_2, __pyx_n_s_topics_2, __pyx_n_s_ll); if (unlikely(!__pyx_tuple__44)) __PYX_ERR(0, 308, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__44);
   __Pyx_GIVEREF(__pyx_tuple__44);
-  __pyx_codeobj__45 = (PyObject*)__Pyx_PyCode_New(7, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__44, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_joint_loglike, 320, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__45)) __PYX_ERR(0, 320, __pyx_L1_error)
+  __pyx_codeobj__45 = (PyObject*)__Pyx_PyCode_New(7, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__44, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_joint_loglike, 308, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__45)) __PYX_ERR(0, 308, __pyx_L1_error)
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":347
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":335
  *     @cython.wraparound(False)
  *     @cython.boundscheck(False)
  *     def sample(self, n_samples = 5):             # <<<<<<<<<<<<<<
  *         '''
  *         Compute samples from posterior distribution
  */
-  __pyx_tuple__46 = PyTuple_Pack(8, __pyx_n_s_self, __pyx_n_s_n_samples, __pyx_n_s_samples, __pyx_n_s_i, __pyx_n_s_wt, __pyx_n_s_dt, __pyx_n_s_ta, __pyx_n_s_ts); if (unlikely(!__pyx_tuple__46)) __PYX_ERR(0, 347, __pyx_L1_error)
+  __pyx_tuple__46 = PyTuple_Pack(8, __pyx_n_s_self, __pyx_n_s_n_samples, __pyx_n_s_samples, __pyx_n_s_i, __pyx_n_s_wt, __pyx_n_s_dt, __pyx_n_s_ta, __pyx_n_s_ts); if (unlikely(!__pyx_tuple__46)) __PYX_ERR(0, 335, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__46);
   __Pyx_GIVEREF(__pyx_tuple__46);
-  __pyx_codeobj__47 = (PyObject*)__Pyx_PyCode_New(2, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__46, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_sample, 347, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__47)) __PYX_ERR(0, 347, __pyx_L1_error)
-  __pyx_tuple__48 = PyTuple_Pack(1, ((PyObject *)__pyx_int_5)); if (unlikely(!__pyx_tuple__48)) __PYX_ERR(0, 347, __pyx_L1_error)
+  __pyx_codeobj__47 = (PyObject*)__Pyx_PyCode_New(2, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__46, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_sample, 335, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__47)) __PYX_ERR(0, 335, __pyx_L1_error)
+  __pyx_tuple__48 = PyTuple_Pack(1, ((PyObject *)__pyx_int_5)); if (unlikely(!__pyx_tuple__48)) __PYX_ERR(0, 335, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__48);
   __Pyx_GIVEREF(__pyx_tuple__48);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":384
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":372
  * 
  * 
  *     def transform(self, X, n_iter = 5):             # <<<<<<<<<<<<<<
  *         '''
  *         Transforms data matrix X (finds lower dimensional representation)
  */
-  __pyx_tuple__49 = PyTuple_Pack(22, __pyx_n_s_self, __pyx_n_s_X, __pyx_n_s_n_iter, __pyx_n_s_docs, __pyx_n_s_words, __pyx_n_s_tf, __pyx_n_s_n_docs, __pyx_n_s_n_words, __pyx_n_s_n_d_2, __pyx_n_s_wt, __pyx_n_s_dt, __pyx_n_s_ta, __pyx_n_s_cumi, __pyx_n_s_i, __pyx_n_s_wi, __pyx_n_s_di, __pyx_n_s_j, __pyx_n_s_ti, __pyx_n_s_k, __pyx_n_s_ts, __pyx_n_s_empty_docs, __pyx_n_s_dtd); if (unlikely(!__pyx_tuple__49)) __PYX_ERR(0, 384, __pyx_L1_error)
+  __pyx_tuple__49 = PyTuple_Pack(22, __pyx_n_s_self, __pyx_n_s_X, __pyx_n_s_n_iter, __pyx_n_s_docs, __pyx_n_s_words, __pyx_n_s_tf, __pyx_n_s_n_docs, __pyx_n_s_n_words, __pyx_n_s_n_d_2, __pyx_n_s_wt, __pyx_n_s_dt, __pyx_n_s_ta, __pyx_n_s_cumi, __pyx_n_s_i, __pyx_n_s_wi, __pyx_n_s_di, __pyx_n_s_j, __pyx_n_s_ti, __pyx_n_s_k, __pyx_n_s_ts, __pyx_n_s_empty_docs, __pyx_n_s_dtd); if (unlikely(!__pyx_tuple__49)) __PYX_ERR(0, 372, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__49);
   __Pyx_GIVEREF(__pyx_tuple__49);
-  __pyx_codeobj__50 = (PyObject*)__Pyx_PyCode_New(3, 0, 22, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__49, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_transform, 384, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__50)) __PYX_ERR(0, 384, __pyx_L1_error)
-  __pyx_tuple__51 = PyTuple_Pack(1, ((PyObject *)__pyx_int_5)); if (unlikely(!__pyx_tuple__51)) __PYX_ERR(0, 384, __pyx_L1_error)
+  __pyx_codeobj__50 = (PyObject*)__Pyx_PyCode_New(3, 0, 22, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__49, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_amazaspshaumyan_Desktop_s, __pyx_n_s_transform, 372, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__50)) __PYX_ERR(0, 372, __pyx_L1_error)
+  __pyx_tuple__51 = PyTuple_Pack(1, ((PyObject *)__pyx_int_5)); if (unlikely(!__pyx_tuple__51)) __PYX_ERR(0, 372, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__51);
   __Pyx_GIVEREF(__pyx_tuple__51);
   __Pyx_RefNannyFinishContext();
@@ -12047,115 +11912,115 @@ PyMODINIT_FUNC PyInit_gibbs_lda_cython(void)
   __pyx_t_1 = __Pyx_Py3MetaclassPrepare(__pyx_t_2, __pyx_t_3, __pyx_n_s_GibbsLDA, __pyx_n_s_GibbsLDA, (PyObject *) NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_kp_s_Collapsed_Gibbs_Sampler_for_Lat); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 54, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":112
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":107
  *     K.Murphy, Machine Learning A Probabilistic Perspective (2012)
  *     '''
- *     def __init__(self, n_topics, n_burnin = 30, n_thin = 3, init_params = None,             # <<<<<<<<<<<<<<
- *                  compute_score = False, verbose = False):
+ *     def __init__(self, n_topics, n_burnin=30, n_thin=3, alpha=1, gamma=1,             # <<<<<<<<<<<<<<
+ *                  compute_score=False, verbose=False):
  *         self.n_topics      = n_topics
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_1__init__, 0, __pyx_n_s_GibbsLDA___init, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__31)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_1__init__, 0, __pyx_n_s_GibbsLDA___init, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__31)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 107, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_tuple__32);
-  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_init, __pyx_t_4) < 0) __PYX_ERR(0, 112, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_init, __pyx_t_4) < 0) __PYX_ERR(0, 107, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":124
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":119
  * 
  * 
  *     def _init_params(self,X):             # <<<<<<<<<<<<<<
  *         '''
  *         Initialise parameters
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_3_init_params, 0, __pyx_n_s_GibbsLDA__init_params, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__34)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 124, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_3_init_params, 0, __pyx_n_s_GibbsLDA__init_params, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__34)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 119, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_init_params_2, __pyx_t_4) < 0) __PYX_ERR(0, 124, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_init_params, __pyx_t_4) < 0) __PYX_ERR(0, 119, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":149
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":137
  * 
  * 
  *     def _check_X(self,X):             # <<<<<<<<<<<<<<
  *         '''
  *         Validate input matrix
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_5_check_X, 0, __pyx_n_s_GibbsLDA__check_X, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__36)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 149, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_5_check_X, 0, __pyx_n_s_GibbsLDA__check_X, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__36)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 137, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_check_X, __pyx_t_4) < 0) __PYX_ERR(0, 149, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_check_X, __pyx_t_4) < 0) __PYX_ERR(0, 137, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":168
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":156
  * 
  * 
  *     def fit_transform(self,X):             # <<<<<<<<<<<<<<
  *         '''
  *         Fit model and transform
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_7fit_transform, 0, __pyx_n_s_GibbsLDA_fit_transform, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__39)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 168, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_7fit_transform, 0, __pyx_n_s_GibbsLDA_fit_transform, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__39)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_fit_transform, __pyx_t_4) < 0) __PYX_ERR(0, 168, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_fit_transform, __pyx_t_4) < 0) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":196
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":184
  * 
  * 
  *     def fit(self,X):             # <<<<<<<<<<<<<<
  *         '''
  *         Runs burn-in stage of collapsed Gibbs sample for LDA model
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_9fit, 0, __pyx_n_s_GibbsLDA_fit, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__41)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 196, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_9fit, 0, __pyx_n_s_GibbsLDA_fit, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__41)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 184, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_fit, __pyx_t_4) < 0) __PYX_ERR(0, 196, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_fit, __pyx_t_4) < 0) __PYX_ERR(0, 184, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":263
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":251
  *     @cython.wraparound(False)
  *     @cython.boundscheck(False)
  *     def _gibbs_sample_lda(self,np.ndarray[DTYPE_t,ndim=1] words, np.ndarray[DTYPE_t,ndim=1] docs,             # <<<<<<<<<<<<<<
  *                      np.ndarray[DTYPE_t,ndim=1] topic_assignment, np.ndarray[DTYPE_t, ndim=2] word_topic,
  *                      np.ndarray[DTYPE_t,ndim=2] doc_topic, np.ndarray[DTYPE_t, ndim=1] topics,
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_11_gibbs_sample_lda, 0, __pyx_n_s_GibbsLDA__gibbs_sample_lda, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__43)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 263, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_11_gibbs_sample_lda, 0, __pyx_n_s_GibbsLDA__gibbs_sample_lda, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__43)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 251, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_gibbs_sample_lda, __pyx_t_4) < 0) __PYX_ERR(0, 263, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_gibbs_sample_lda, __pyx_t_4) < 0) __PYX_ERR(0, 251, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":320
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":308
  * 
  * 
  *     def _joint_loglike(self,n_d,n_words,n_docs,doc_topic,word_topic,topics):             # <<<<<<<<<<<<<<
  *         '''
  *         Computes joint log likelihood of latent and observed variables
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_13_joint_loglike, 0, __pyx_n_s_GibbsLDA__joint_loglike, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__45)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 320, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_13_joint_loglike, 0, __pyx_n_s_GibbsLDA__joint_loglike, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__45)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 308, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_joint_loglike, __pyx_t_4) < 0) __PYX_ERR(0, 320, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_joint_loglike, __pyx_t_4) < 0) __PYX_ERR(0, 308, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":347
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":335
  *     @cython.wraparound(False)
  *     @cython.boundscheck(False)
  *     def sample(self, n_samples = 5):             # <<<<<<<<<<<<<<
  *         '''
  *         Compute samples from posterior distribution
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_15sample, 0, __pyx_n_s_GibbsLDA_sample, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__47)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 347, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_15sample, 0, __pyx_n_s_GibbsLDA_sample, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__47)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 335, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_tuple__48);
-  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_sample, __pyx_t_4) < 0) __PYX_ERR(0, 347, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_sample, __pyx_t_4) < 0) __PYX_ERR(0, 335, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":384
+  /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":372
  * 
  * 
  *     def transform(self, X, n_iter = 5):             # <<<<<<<<<<<<<<
  *         '''
  *         Transforms data matrix X (finds lower dimensional representation)
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_17transform, 0, __pyx_n_s_GibbsLDA_transform, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__50)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 384, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7skbayes_20decomposition_models_16gibbs_lda_cython_8GibbsLDA_17transform, 0, __pyx_n_s_GibbsLDA_transform, NULL, __pyx_n_s_skbayes_decomposition_models_gib, __pyx_d, ((PyObject *)__pyx_codeobj__50)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 372, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_tuple__51);
-  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_transform, __pyx_t_4) < 0) __PYX_ERR(0, 384, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_transform, __pyx_t_4) < 0) __PYX_ERR(0, 372, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "skbayes/decomposition_models/gibbs_lda_cython.pyx":54

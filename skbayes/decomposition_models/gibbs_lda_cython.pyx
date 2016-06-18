@@ -67,18 +67,13 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
     n_thin: int, optional (DEFAULT = 3)
         Number of iterators between samples (to avoid autocorrelation between
         consecutive samples), thining is implemented after burnin.
+
+    alpha: float, optional (DEFAULT = 1)
+        Concentration parameter for Dirichlet prior on topic distribution
         
-    init_params: dict, optional (DEFAULT = {})
-        Dictionary containing all relevant parameters
-        
-        - alpha: float, optional (DEFAULT = 1)
-                 concentration parameter for Dirichlet prior on topic distribution
-        
-        - gamma: float, optional (DEFAULT = 1)
-                 concentration parameter for Dirichlet prior on word distribution
-                 
-        - topic_assignment: 
-            
+    gamma: float, optional (DEFAULT = 1)
+        Concentration parameter for Dirichlet prior on word distribution
+                             
     compute_score: bool, optional (DEFAULT = False)
        If True computes joint log likelihood
        
@@ -109,16 +104,16 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
     Griffiths and Steyers, Finding Scientific Topics (2004)
     K.Murphy, Machine Learning A Probabilistic Perspective (2012)
     '''
-    def __init__(self, n_topics, n_burnin = 30, n_thin = 3, init_params = None,
-                 compute_score = False, verbose = False):
+    def __init__(self, n_topics, n_burnin=30, n_thin=3, alpha=1, gamma=1,
+                 compute_score=False, verbose=False):
         self.n_topics      = n_topics
         self.n_burnin      = n_burnin
         self.n_thin        = n_thin
-        self.init_parms    = init_params
+        self.alpha         = alpha
+        self.gamma         = gamma
         self.compute_score = compute_score
         self.scores_       = []
         self.verbose       = verbose
-        self.init_params   = init_params
 
                 
     def _init_params(self,X):
@@ -126,24 +121,17 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         Initialise parameters
         '''
         # parameters of Dirichlet priors for topic & word distribution
-        alpha = 1; gamma = 1
         topic_assignment = 0
-        if self.init_params is None:
-            self.init_params = {}
-        if 'alpha' in self.init_params:
-            alpha = self.init_params['alpha']
-            if alpha <= 0:
-                raise ValueError(('alpha should be positive value, '
-                                  'observed {0}').format(alpha))
-        if 'gamma' in self.init_params:
-            gamma = self.init_params['gamma']
-            if gamma <= 0:
-                raise ValueError(('gamma should be positive value, '
-                                  'observed {0}').format(gamma))
+        if self.alpha <= 0:
+            raise ValueError(('alpha should be positive value, '
+                              'observed {0}').format(self.alpha))
+        if self.gamma <= 0:
+            raise ValueError(('gamma should be positive value, '
+                              'observed {0}').format(self.gamma))
         n_d = np.array(X.sum(1), dtype = np.int)
         corpus_size = np.sum(n_d)
         topic_assignment = np.random.randint(0,self.n_topics,corpus_size,dtype=np.int)
-        return alpha,gamma,topic_assignment,n_d
+        return topic_assignment,n_d
         
         
     def _check_X(self,X):
@@ -217,7 +205,7 @@ class GibbsLDA(BaseEstimator,TransformerMixin):
         n_docs,n_words = X.shape
 
         # initialise topic assignments & parameters of prior distribution
-        self.alpha, self.gamma, topic_assignment, n_d = self._init_params(X)
+        topic_assignment, n_d = self._init_params(X)
         
         # compute initial word topic and document topic matrices
         word_topic,doc_topic,topics = word_doc_topic(words,docs,tf,topic_assignment,
