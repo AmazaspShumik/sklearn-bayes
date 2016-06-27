@@ -1,4 +1,4 @@
-from scipy.special import psi
+from scipy.special import psi,gammaln
 from scipy.misc import logsumexp
 from scipy.linalg import pinvh
 from sklearn.utils.extmath import safe_sparse_dot
@@ -6,11 +6,12 @@ from sklearn.base import BaseEstimator
 from sklearn.utils.validation import check_is_fitted
 from sklearn.utils import check_array
 from sklearn.cluster import KMeans
-from scipy.sparse import csr_matrix,isspmatrix
 from copy import deepcopy
 import numpy as np
-
-# TODO: Lower Bound calculation & several restarts with lower bound comparison
+cimport cython
+cimport numpy as np
+DTYPE = np.double
+ctypedef np.double_t DTYPE_t
 
 
 #----------------------------- Helper Methods ----------------------------------------
@@ -42,36 +43,8 @@ def _logouter(a,b):
     np.log(c, out=c)
     c += max_a + max_b
     return c
+        
     
-    
-# TODO: using types is not really good practice (advice from Stan and Jim)
-#       !!! Improve !!! Bad code.
-def _get_chain(X,index = None):
-    ''' Generates separate chains'''
-    if index is None:
-        index = []
-    from_idx = 0
-    if len(index)==0:
-        if type(X)==list:
-           yield [x[from_idx:,:] for x in X] # only for multinoulli emission probs
-        else:
-           yield X[from_idx:,:]
-    else:
-        for idx in index:
-            if type(X)==list:
-                yield [x[from_idx:idx,:] for x in X] # again for multinoulli distribution
-            else:
-                yield X[from_idx:idx,:]
-            from_idx = idx
-        if type(X)==list:
-            if from_idx != X[0].shape[0]-1:
-                yield [x[from_idx:(X[0].shape[0]-1),:] for x in X]
-        else:
-            if from_idx != X.shape[0]-1:
-                yield X[from_idx:(X.shape[0]-1),:]
-            
-     
-                   
 def _check_shape_sign(x,shape,shape_message, sign_message):
     ''' Checks shape and sign of input, raises error'''
     if x.shape != shape:
@@ -79,23 +52,23 @@ def _check_shape_sign(x,shape,shape_message, sign_message):
     if np.sum( x < 0 ) > 0:
         raise ValueError(sign_message)
         
-        
-        
-def _get_classes(X):
-    '''Finds number of unique elements in matrix'''
-    if isspmatrix(X):
-        v = X.data
-        if len(v) < X.shape[0]*X.shape[1]:
-            v = np.hstack((v,np.zeros(1)))
-        V     = np.unique(v)
+
+def _get_chain(X,index = None):
+    ''' Generates separate chains'''
+    if index is None:
+        index = []
+    from_idx = 0
+    if len(index)==0:
+        yield X[from_idx:,:]
     else:
-        V     = np.unique(X)
-    return V
-    
-    
+        for idx in index:
+            yield X[from_idx:idx,:]
+            from_idx = idx
+        if from_idx != X.shape[0]-1:
+            yield X[from_idx:(X.shape[0]-1),:]
+   
    
 #--------------------------------- Hidden Markov Models ------------------------------               
-
 
 
 class VBHMM(BaseEstimator):
@@ -108,7 +81,7 @@ class VBHMM(BaseEstimator):
     '''
     
     def __init__(self, n_hidden = 2, n_iter = 100, init_params = None, tol = 1e-3,
-                 alpha_start = 10, alpha_trans = 10, verbose = False):
+                 n_init = 3, alpha_start = 0.9, alpha_trans = 0.9, verbose = False):
         self.n_hidden    = n_hidden
         self.n_iter      = n_iter
         self.init_params = init_params
@@ -116,6 +89,7 @@ class VBHMM(BaseEstimator):
         self.verbose     = verbose
         self.alpha_start = alpha_start
         self.alpha_trans = alpha_trans
+        self.n_init      = n_init
         
     
     def _init_params(self):
@@ -182,26 +156,18 @@ class VBHMM(BaseEstimator):
 
 
                     
-    def _fit(self, X, chain_indices = None):
+    def _fit_vb(self, X, chain_indices = None):
         '''
-        Fits Hidden Markov Model with unspecified emission probability
+        Fits single Hidden Markov Model with unspecified emission probability
         '''
-        if chain_indices is None:
-            chain_indices = []
-        if type(X)==list:
-            n_samples, n_features = X[0].shape
-        else:
-            n_samples, n_features = X.shape
-            
-        print "Size"
-        print n_samples, n_features
+        n_samples, n_features = X.shape
 
         # initialise parameters (log-scale!!!)
         start_params, trans_params, emission_params = self._init_params(n_features,X)
         trans_params_prior = np.copy(trans_params)
         start_params_prior = np.copy(start_params)
         emission_params_prior = deepcopy(emission_params)
-        
+        scores = [np.NINF]
         for i in range(self.n_iter):
             
             # statistics that accumulate data for m-step
@@ -213,11 +179,10 @@ class VBHMM(BaseEstimator):
             log_pr_start, log_pr_trans, log_pr_x = self._log_probs_params(start_params, 
                                                                   trans_params,
                                                                   emission_params, X)
-        
+            score = 0
             for zx in _get_chain(X,chain_indices):
-                
-                log_alpha, log_scaler = self._forward_single_chain( log_pr_start, 
-                                                                    log_pr_trans, log_pr_x)
+                log_alpha, log_scaler=self._forward_single_chain(log_pr_start,log_pr_trans,log_pr_x)
+                score += np.sum(log_scaler)
                 trans, start, sf_stats = self._vbe_step_single_chain(zx,log_alpha,log_scaler,
                                                           log_pr_trans,log_pr_x,sf_stats, 
                                                           trans, start)
@@ -228,9 +193,33 @@ class VBHMM(BaseEstimator):
                                                           trans_params_prior,
                                                           emission_params_prior,
                                                           start_params_prior) 
-            if self._check_convergence(emission_params,i):
+            scores.append(score)
+            if len(scores) > 1 and scores[-1] - scores[-2] < self.tol:
                 break
-                
+         
+        return start_params, trans_params, emission_params, scores
+
+        
+               
+    def _fit(self,X, chain_index = None):
+        '''
+        Fits several Hidden Markov Models and chooses the one that has larger 
+        lower bound value at convergence point
+        '''
+        if chain_index is None:
+            chain_index = []       
+        start_params = None
+        trans_params = None
+        emission_params = None
+        scores_ = [np.NINF]
+        for i in xrange(self.n_init):
+            sp, tp, ep, scores = self._fit_vb(X,chain_index)
+            if scores_[-1] < scores[-1]:
+                start_params = sp
+                trans_params = tp
+                emission_params = ep
+                scores_ = scores
+        self.scores_  = scores_       
         self._start_params_    = start_params
         self._trans_params_    = trans_params
         self._emission_params_ = emission_params
@@ -255,20 +244,21 @@ class VBHMM(BaseEstimator):
         
         
 
-    def _vbe_step_single_chain(self, X, log_alpha, log_scaler,log_pr_trans, log_pr_x, 
-                               suff_stats, trans, start):
+    def _vbe_step_single_chain(self, np.ndarray[DTYPE_t, ndim=2] X, np.ndarray[DTYPE_t, ndim=2] log_alpha,
+                               np.ndarray[DTYPE_t, ndim=1] log_scaler, np.ndarray[DTYPE_t, ndim=2] log_pr_trans,
+                               np.ndarray[DTYPE_t,ndim=2] log_pr_x, suff_stats, np.ndarray[DTYPE_t,ndim=2] trans,
+                               np.ndarray[DTYPE_t,ndim=1] start):
         '''
         Performs backward pass, at the same time computes marginal & joint marginal
         and updates sufficient statistics for VBM step
         '''
-        beta_before   = np.zeros(self.n_hidden)
-        if type(X)==list:
-            n_samples = X[0].shape[0]
-        else:
-            n_samples = X.shape[0]
-           
+        cdef np.ndarray[DTYPE_t,ndim=1] beta_before = np.zeros(self.n_hidden, dtype = DTYPE)
+        cdef int n_samples = X.shape[0]
+        cdef int j,i
+        
         # backward pass, single & joint marginal calculation, sufficient stats
-        for i in np.linspace(n_samples-1,0,n_samples):
+        for j in xrange(1,n_samples):
+            i = n_samples - j
             
             # recursively compute beta (start from the end of sequence, where beta = 1)
             beta_after = _logdot(log_pr_trans,beta_before + log_pr_x[i,:])
@@ -276,7 +266,6 @@ class VBHMM(BaseEstimator):
             # marginal distribution of latent variable, given observed variables
             marginal = log_alpha[i,:] + beta_before
             marginal = np.exp(marginal)
-            #print "iteration {0}, {1},{2}".format(i,marginal,np.sum(marginal))              
             
             if i > 0:
                 # joint marginal of two latent variables, given observed ones
@@ -289,29 +278,27 @@ class VBHMM(BaseEstimator):
             else:
                 # update for posterior of intial latent variable
                 start += marginal
-
-            # iterative update of sufficient statistics for emission probs
-            if type(X) == list:
-                suff_stats = self._suff_stats_update(suff_stats,X,i,marginal) # multinoulli case
-            else:
-                suff_stats = self._suff_stats_update(suff_stats,X[i,:],marginal)
+            suff_stats = self._suff_stats_update(suff_stats,X[i,:],marginal)
             beta_before    = beta_after - log_scaler[i]
             
         return trans, start, suff_stats
         
           
-        
-    def _forward_single_chain(self, log_pr_start, log_pr_trans, log_pr_x):
+                        
+    def _forward_single_chain(self, np.ndarray[DTYPE_t, ndim=1] log_pr_start, 
+                              np.ndarray[DTYPE_t,ndim=2] log_pr_trans, 
+                              np.ndarray[DTYPE_t,ndim=2] log_pr_x):
         '''
         Performs forward pass ('filter') on single Hidden Markov Model chain
         '''
-        n_samples  = log_pr_x.shape[0] 
-        log_scaler     = np.zeros(n_samples)
-        log_alpha      = np.zeros([n_samples, self.n_hidden])
+        cdef int n_samples  = log_pr_x.shape[0] 
+        cdef int i
+        cdef np.ndarray[DTYPE_t,ndim=1] log_scaler = np.zeros(n_samples, dtype = DTYPE)
+        cdef np.ndarray[DTYPE_t,ndim=2] log_alpha  = np.zeros([n_samples, self.n_hidden], dtype = DTYPE)
         log_alpha[0,:] = log_pr_x[0,:] + log_pr_start
         log_scaler[0]  = logsumexp(log_alpha[0,:])
         log_alpha[0,:] = log_alpha[0,:] - log_scaler[0]
-        for i in range(1,n_samples):
+        for i in xrange(1,n_samples):
             log_alpha[i,:] = _logdot(log_pr_trans.T,log_alpha[i-1,:]) 
             log_alpha[i,:] = log_alpha[i,:] + log_pr_x[i,:] 
             log_scaler[i]  = logsumexp(log_alpha[i,:])
@@ -320,10 +307,14 @@ class VBHMM(BaseEstimator):
         
         
         
-    def _viterbi(self, log_pr_x, log_pr_trans, log_pr_start, X):
+    def _viterbi(self, log_pr_x, log_pr_trans, log_pr_start):
         '''
         Computes most probable sequence of states using viterbi algorithm
         '''
+        print "viterbi"
+        print "log_pr_start : dtype = {0}, ndim = {1}".format(log_pr_start.dtype, log_pr_start.ndim)
+        print "log_pr_trans : dtype = {0}, ndim = {1}".format(log_pr_trans.dtype, log_pr_trans.ndim)
+        print "log_pr_x: dtype = {0}, ndim = {1}".format(log_pr_x.dtype, log_pr_x.ndim)
         n_samples     = log_pr_x.shape[0]
         best_states   = np.zeros(n_samples)
         max_prob      = np.zeros([n_samples,self.n_hidden])
@@ -350,12 +341,13 @@ class VBHMM(BaseEstimator):
             
         return best_states
 
-        
+
         
     def filter(self,X):
         '''
         Computes probability that observation is generated by particular hidden
-        state after observing observations till current one (i.e. future)Performs filtering on matrix of observations
+        state after observing observations till current one. 
+        Performs filtering on matrix of observations.
         
         Parameters
         ----------
@@ -396,7 +388,7 @@ class VBHMM(BaseEstimator):
         ''' 
         check_is_fitted(self,"_start_params_")
         n_samples     = X.shape[0]
-        X = self._check_X_test(X)
+        X = self._check_X(X)
 
         # forward pass
         log_pr_x = self._emission_log_probs_params(self._emission_params_, X)
@@ -407,8 +399,8 @@ class VBHMM(BaseEstimator):
         marginal      = np.zeros([n_samples,self.n_hidden])
            
         # backward pass, single & joint marginal calculation, sufficient stats
-        for i in np.linspace(n_samples-1,0,n_samples):
-            
+        for j in xrange(1,n_samples+1):
+            i = n_samples - j
             # recursively compute beta (start from the end of sequence, where beta = 1)
             beta_after     = _logdot(self._log_pr_trans_,beta_before + log_pr_x[i,:])
             
@@ -419,14 +411,13 @@ class VBHMM(BaseEstimator):
         return np.exp(marginal)
         
         
-        
     def predict(self,X):
         '''
-        Predicts cluster for test data
+        Predicts hidden state for test data
         
         Parameters
         ----------
-        X: array-like or csr_matrix of size (n_samples, n_features)
+        X: array-like of size (n_samples, n_features)
            Data Matrix
            
         Returns
@@ -435,13 +426,14 @@ class VBHMM(BaseEstimator):
            Hidden state index
         '''
         check_is_fitted(self,'_start_params_')
-        X = self._check_X_test(X)
+        X = self._check_X(X)
         log_pr_x     = self._emission_log_probs_params(self._emission_params_, X)
-        return self._viterbi(log_pr_x, self._log_pr_trans_, self._log_pr_start_, X)
-
+        return self._viterbi(log_pr_x, self._log_pr_trans_, self._log_pr_start_)
+             
+             
     # Some abstract methods
-
-    def _check_X_test(self, X):
+    
+    def _check_X(self, X):
         raise NotImplementedError
 
     def _emission_log_probs_params(self, _emission_params_, X):
@@ -452,9 +444,6 @@ class VBHMM(BaseEstimator):
 
     def _vbm_emission_params(self, emission_params_prior, emission_params,
                                                     sf_stats):
-        raise NotImplementedError
-
-    def _check_convergence(self, emission_params,i):
         raise NotImplementedError
 
     def _init_suff_stats(self, n_features):
@@ -475,6 +464,9 @@ class VBBernoulliHMM(VBHMM):
        
     tol: float, optional (DEFAULT = 1e-3)
        Convergence threshold
+       
+    n_init: int, optional (DEFAULT = 3)
+       Number of restarts (due to non convex optimization)
        
     init_params: dictionary, optional (DEFAULT = {} )
        
@@ -512,13 +504,13 @@ class VBBernoulliHMM(VBHMM):
        Transition probabilities
 
     ''' 
-    def __init__(self, n_hidden = 2, n_iter = 100, tol = 1e-3, init_params = None,
+    def __init__(self, n_hidden = 2, n_iter = 100, tol = 1e-3, n_init = 3, init_params = None,
                  alpha_start = 10, alpha_trans = 10 , alpha_succes = 5, alpha_fail = 5,
                  verbose = False):
         if init_params is None:
             init_params = {}
-        super(VBBernoulliHMM,self).__init__(n_hidden, n_iter, init_params, tol,
-                                            alpha_start, alpha_trans, verbose)
+        super(VBBernoulliHMM,self).__init__(n_hidden, n_iter, init_params, tol, n_init,
+                                           alpha_start, alpha_trans, verbose)
         self.alpha_succes = alpha_succes
         self.alpha_fail   = alpha_fail
          
@@ -555,37 +547,24 @@ class VBBernoulliHMM(VBHMM):
         
         
     
-    def _check_X_train(self,X):
+    def _check_X(self,X):
         ''' Preprocesses & check validity of training data'''
-        X = check_array(X, accept_sparse = 'csr')
-        self.classes_     = _get_classes(X)
-        n                 = len(self.classes_)
-        # check that there are only two categories in data
-        if n != 2:
-            raise ValueError(('There are {0} categorical values in data, '
-                               'model accepts data with only 2'.format(n)))
-        return 1*(X==self.classes_[1])
-        
-        
-        
-    def _check_X_test(self,X):
-        ''' Preprocesses & check validity of test data'''
-        X = check_array(X, accept_sparse = ['csr'])
-        classes_   = _get_classes(X)
-        n          = len(classes_)
-        # check number of classes 
-        if n != 2:
-            raise ValueError(('There are {0} categorical values in data, '
-                               'model accepts data with only 2'.format(n))) 
-        # check whether these are the same classes as in training
-        if classes_[0]==self.classes_[0] and classes_[1] == self.classes_[1]:
-            return 1*(X==self.classes_[1])
-        else:
-            raise ValueError(('Classes in training and test set are different, '
-                              '{0} in training, {1} in test'.format(self.classes_,
-                              classes_)))
-                         
-                                   
+        X = check_array(X,ensure_2d=True)
+        try:
+            check_is_fitted(self,'means_')
+            classes = np.unique(X)
+            if len(classes)!=2:
+                raise ValueError('There should be only 2 possible values in data')            
+            if classes[0]==self.classes_[0] and classes[1] == self.classes_[1]:
+                return np.array(1*(X==self.classes_[1]), dtype = np.double)
+            else:
+                raise ValueError("Values of categorical varaible in training and test differ")
+        except:
+            self.classes_ = np.unique(X)
+            if len(self.classes_)!= 2:
+               raise ValueError('There should be only 2 possible values in data')
+            return np.array(1*(X==self.classes_[1]), dtype = np.double)
+      
                               
     def _emission_log_probs_params(self, emission_params, X):
         '''
@@ -627,30 +606,6 @@ class VBBernoulliHMM(VBHMM):
         sf_stats[0] += np.outer(marginal,x)
         sf_stats[1] += marginal
         return sf_stats
-              
-
-
-    def _check_convergence(self,params,iteration):
-        '''
-        Checks convergence for Bayesian Bernoulli HMM
-        '''
-        if iteration == 0:
-            self.means_old = np.copy(params['success_prob'])
-        else:
-            print self.means_old
-            diff = self.means_old - params['success_prob']
-            if self.verbose:
-                n_params = self.means_old.shape[0] * self.means_old.shape[1]
-                print(("Iteration {0} completed, average change in succes probs "
-                       "is {1}".format(iteration,np.sum(np.abs(diff))/n_params)))
-            if np.sum(diff > self.tol) == 0:
-                if self.verbose:
-                    print("Convergence achieved on {0} iteration".format(iteration))
-                return True
-            else:
-                self.means_old = np.copy(params['success_prob'])
-                return False
-             
                  
     
     def fit(self,X,chain_index = None):
@@ -667,9 +622,7 @@ class VBBernoulliHMM(VBHMM):
         object: self
           self
         '''
-        if chain_index is None:
-            chain_index = []
-        X = self._check_X_train(X)
+        X = self._check_X(X)
         super(VBBernoulliHMM,self)._fit(X, chain_index)
         self.means_ = self._emission_params_['success_prob']
         return self
@@ -691,6 +644,9 @@ class VBGaussianHMM(VBHMM):
        
     tol: float, optional (DEFAULT = 1e-3)
        Convergence threshold
+       
+    n_init: int, optional (DEFAULT = 3)
+       Number of restarts (due to non convex optimization)
        
     init_params: dict, optional (DEFAULT = {})
        Initial parameters for model (keys = ['dof','covar','weights'])
@@ -738,11 +694,11 @@ class VBGaussianHMM(VBHMM):
        Transition probabilities matrix
 
     '''
-    def __init__(self, n_hidden = 2, n_iter = 100, tol = 1e-3, init_params = None,
+    def __init__(self, n_hidden = 2, n_iter = 100, tol = 1e-3, n_init = 3, init_params = None,
                  alpha_start = 2, alpha_trans = 2 , verbose = False):
         if init_params is None:
             init_params = {}
-        super(VBGaussianHMM,self).__init__(n_hidden, n_iter, init_params, tol,
+        super(VBGaussianHMM,self).__init__(n_hidden, n_iter, init_params, tol, n_init,
                                            alpha_start, alpha_trans, verbose)
      
     
@@ -800,15 +756,10 @@ class VBGaussianHMM(VBHMM):
                                     'dof':dof,'scale_inv0':scale_inv0}
         
                 
-    def _check_X_train(self,X):
+    def _check_X(self,X):
         ''' Preprocesses & check validity of training data'''
-        return check_array(X)
-        
-               
-    def _check_X_test(self,X):
-        ''' Preprocesses & check validity of test data'''
-        return check_array(X)
-                                                                
+        return check_array(X, dtype=np.double, ensure_2d=True)
+                                     
                                                                                                                                             
     def _init_suff_stats(self,n_features):
         ''' 
@@ -844,10 +795,10 @@ class VBGaussianHMM(VBHMM):
         emission_params['dof']   = emission_params_prior['dof'] + Nk + 1
         scale_inv0               = emission_params_prior['scale_inv0']
         for k in range(self.n_hidden):
-            emission_params['scale'][k] = pinvh( scale_inv0 + (beta0*Sk[k] + Nk[k]*Sk[k] - 
+            emission_params['scale'][k] = pinvh( scale_inv0 + (beta0[0]*Sk[k] + Nk[k]*Sk[k] - 
                                        np.outer(Xk[k],Xk[k]) - 
-                                       beta0*np.outer(means0[k] - Xk[k],means0[k])) /
-                                       (beta0 + Nk[k]) )            
+                                       beta0[0]*np.outer(means0[k] - Xk[k],means0[k])) /
+                                       (beta0[0] + Nk[k]) )            
         return emission_params        
             
         
@@ -880,48 +831,24 @@ class VBGaussianHMM(VBHMM):
         
         return log_probs
         
-        
-        
-    def _check_convergence(self, params, iteration):
-        '''
-        Checks convergence for Bayesian Gaussian HMM
-        '''
-        if iteration == 0:
-            self.means_old = np.copy(params['means'])
-        else:
-            diff = self.means_old - params['means']
-            if self.verbose:
-                n_params = self.means_old.shape[0] * self.means_old.shape[1]
-                print(("Iteration {0} completed, average change in means of hidden states "
-                       "is {1}".format(iteration,np.sum(np.abs(diff))/n_params)))
-            if np.sum(diff > self.tol) == 0:
-                if self.verbose:
-                    print("Convergence achieved on {0} iteration".format(iteration))
-                return True
-            else:
-                self.means_old = np.copy(params['means'])
-                return False
-             
-        
-        
+  
+
     def fit(self,X,chain_index = None):
         '''
         Fits Bayesian Hidden Markov Model with Gaussian emission probabilities
         
+
         Parameters
         ----------
-        X: array-like or csr_matrix of size (n_samples, n_features)
-           Data Matrix
+        X: array-like  of size (n_samples, n_features)
+           Data Matrix (NOTE! Sparse matrices are not accepted due to slow slicing)
            
         Returns
         -------
         object: self
           self
         '''
-        if chain_index is None:
-            chain_index = []
-        # preprocess data, 
-        X = self._check_X_train(X)
+        X = self._check_X(X)
         super(VBGaussianHMM,self)._fit(X, chain_index)
         self.means_ = self._emission_params_['means']
         scale, dof  = self._emission_params_['scale'], self._emission_params_['dof'] 
@@ -931,9 +858,9 @@ class VBGaussianHMM(VBHMM):
         
      
            
-class VBMultinoulliHMM(VBHMM):
+class VBPoissonHMM(VBHMM):
     '''
-    Variational Bayesian Hidden Markov Model with Multinoulli emission probabilities
+    Variational Bayesian Hidden Markov Model with Poisson emission probabilities
     
     Parameters
     ----------
@@ -946,6 +873,9 @@ class VBMultinoulliHMM(VBHMM):
     tol: float, optional (DEFAULT = 1e-3)
        Convergence threshold
        
+    n_init: int, optional (DEFAULT = 3)
+       Number of restarts (due to non convex optimization)
+       
     init_params: dict, optional (DEFAULT = {})
        Initial parameters for model (keys = ['concentration'])
        
@@ -954,22 +884,18 @@ class VBMultinoulliHMM(VBHMM):
         
            'transition': numpy array of size (n_hidden,n_hidden)
                   Parameters of prior of transition matrix distribution
-       
-           'concentraton': concentration parameters for Dirichlet prior of Multinoulli
-                  List of length n_hidden, each element of list is numpy array 
-                  of size (n_features, number of classes) 
-                          
-    precompute_X: bool, optional (DEFAULT = True)
-       If True precomputes binary matrix for each class in Multinoulli distribution
-       
+                                 
     alpha_start: float, optional (DEFAULT = 2.0)
        Concentration parameter for distibution of starting point of HMM
        
     alpha_trans: float, optional (DEFAULT = 2.0)
        Concentration parmater for transition probability matrix parameters
        
-    alpha_emission: float, optional (DEFAULT = 2.0)
-       Single concentration parmater for Dirichlet prior of Multinoulli emission probability.
+    alpha: float, optional (DEFAULT = 1e-2)
+       Shape parameter for Gamma prior of Poisson rate
+       
+    beta: float, optional (DEFAULT = 1e-2)
+       Rate parmater for Gamma prior of Poisson rate
               
     verbose: bool, optional (DEFAULT = False)
        If True prints intermediate results and progress report at each iteration
@@ -985,177 +911,76 @@ class VBMultinoulliHMM(VBHMM):
        Transition probabilities matrix
 
     '''
-    def __init__(self, n_hidden = 2, n_iter = 100, tol = 1e-5, init_params = None,
-                 precompute_X = True, alpha_start = 2, alpha_trans = 2 , alpha_emission = 20,
-                 verbose = False):
+    def __init__(self, n_hidden = 2, n_iter = 100, tol = 1e-5, n_init = 3, init_params = None,
+                 precompute_X=True, alpha_start=2, alpha_trans=2, alpha=1e-2,
+                 beta = 1e-2, verbose = False):
         if init_params is None:
             init_params = []
-        super(VBMultinoulliHMM,self).__init__(n_hidden, n_iter, init_params, tol,
+        super(VBPoissonHMM,self).__init__(n_hidden, n_iter, init_params, tol, n_init,
                                            alpha_start, alpha_trans, verbose)
-        self.alpha_emission = alpha_emission
-        self.precompute_X   = precompute_X
-        
+        self.alpha = alpha
+        self.beta = beta
         
         
     def _init_params(self,*args):
-        ''' 
-        Initialise parameters of Bayesian Bernoulli HMM
-        '''
-        n_features,X       = args
-        pr_start, pr_trans = super(VBMultinoulliHMM,self)._init_params()
-        
-        # check user defined parameters for prior, if not provided generate your own
-        shape         = (n_features,len(self.classes_))
-        
-        shape_message = ('Parameters for Dirichlet prior of Multinoulli probabilities should have shape '
-                         '{0}').format(shape)
-        sign_message  = 'Parameters of Dirichlet distriboution can not be negative'
-        
-        # parameter for Dirichlet prior of Multinoulli Distribution
-        if 'concentration' in self.init_params:
-            concentration = self.init_params['concentration']
-            if type(concentration) != list:
-                raise TypeError("User defined concentration params for Multinoulli should be of type 'list'")
-            if len(concentration) != self.n_hidden:
-                raise ValueError( ("User defined concentration params should be list of "
-                                   "size {0}, while observed size is {1}").format(self.n_hidden,
-                                   len(concentration)) )
-            for dirichlet_params in concentration:
-                _check_shape_sign(dirichlet_params,shape, shape_message, sign_message)            
-        else:
-            concentration = [np.random.random(shape)*self.alpha_emission for i in range(self.n_hidden)]
-            
-        return pr_start, pr_trans , {'concentration': concentration} 
-        
-     
-        
-    def _check_X_train(self,X):
-       ''' Preprocess & check validity of training data'''
-       return check_array(X, accept_sparse = ['csr'])
+        n_features = args[0]
+        pr_start, pr_trans = super(VBPoissonHMM,self)._init_params()
+        return pr_start, pr_trans, {'alpha':self.alpha*np.ones([self.n_hidden,n_features]),
+                                    'beta':self.beta*np.ones([self.n_hidden,n_features])}
         
         
-        
-    def _check_X_test(self,X):
-        ''' Preprocesses & check validity of test data'''
-        X = check_array(X, accept_sparse = ['csr'])
-        classes_   = _get_classes(X)
-        n          = len(classes_)
-        # check number of unique elements in training and test is the same
-        if n != len(self.classes_):
-            raise ValueError(('Number of unique elements in training  '
-                               'data is {0}, number unique elements in test '
-                               'set is {1}'.format(len(self.classes_),n))) 
-        # check whether these are the same unique elements as in test data
-        if np.prod(self.classes_==classes_)==1:
-            return self._precompute_X(X)
-        else:
-            raise ValueError(('Classes in training and test set are different, '
-                              '{0} in training, {1} in test'.format(self.classes_,
-                              classes_)))
-        
-        
-    def _precompute_X(self,X):
-        '''Precomputes binary matrices '''
-        zero_class = csr_matrix(np.ones(X.shape))
-        precomputed_X = [0]*len(self.classes_) 
-        for i,class_ in enumerate(self.classes_[1:]):
-            if isspmatrix(X):
-                precomputed_X[i+1] = 1*(X==class_)
-            else:
-                precomputed_X[i+1] = csr_matrix(1*(X==class_))
-            zero_class -= precomputed_X[i+1]
-        precomputed_X[0] = zero_class
-        return precomputed_X
+    def _check_X(self,X):
+        ''' Preprocesses & check validity of training data'''
+        X = check_array(X, dtype=np.double, ensure_2d=True)
+        if np.sum(np.abs( X - np.floor(X))) > 0:
+            raise ValueError('Fractional part should be zero for all data points')
+        if np.sum(X<0):
+            raise ValueError('Negative value in data')
+        return X
 
 
-    def _get_class(self,X,j = None):
-        '''Generator for binary matrix [True,False] for each class'''
-        # TODO: This is really inefficient for 
-        for i,class_ in enumerate(self.classes_):
-            if self.precompute_X:
-                if j is None:
-                    yield X[i]
-                else:
-                    yield X[i][j,:]
-            else:
-                if isspmatrix(X):
-                    if j is None:
-                        yield 1*(X==class_)
-                    else:
-                        yield 1*(X[j,:]==class_)
-                else:
-                    if j is None:
-                        yield csr_matrix(1*(X==class_)) 
-                    else:
-                        yield csr_matrix(1*(X[j,:]==class_))     
-
-     
     def _init_suff_stats(self,n_features):
-         '''
-         Initialise sufficient statistics for Bayesian Multionoulli HMM
-         '''
-         return np.zeros([self.n_hidden,n_features,len(self.classes_)])
- 
- 
-    def _suff_stats_update(self,sf_stats, X, i, marginal):
+        ''' 
+        Initialise sufficient statistics for Poisson HMM
+        '''
+        return [ np.zeros(self.n_hidden),
+                 np.zeros( [self.n_hidden, n_features] ) ]
+                 
+                 
+    def _suff_stats_update(self,sf_stats, x, marginal):
         '''
         Updates sufficient statistics within backward pass in HMM
         '''
-        for j,x_binarised in enumerate(self._get_class(X,i)):
-            for k in range(self.n_hidden):
-                sf_stats[k][:,j] += x_binarised*marginal[k] 
+        sf_stats[1] += np.outer(marginal,x)
+        sf_stats[0] += marginal 
         return sf_stats
-         
-         
+        
+        
     def _vbm_emission_params(self,emission_params_prior, emission_params, sf_stats):
         '''
-        Performs vbm step for parameters of emission probabilities using accumulated
-        sufficient statistics
+        Performs vbm step for parameters of emission probabilities
         '''
-        for k in range(self.n_hidden):
-            emission_params['concentration'][k] = emission_params_prior['concentration'][k] + sf_stats[k]
-        return emission_params        
-            
+        emission_params['alpha'] = emission_params_prior['alpha'] + sf_stats[1]
+        emission_params['beta'] = (sf_stats[0] + emission_params_prior['beta'].T).T
+        return emission_params
+        
         
     def _emission_log_probs_params(self, emission_params, X):
         '''
-        Computes log of Gaussian emission probs for approximating distribution
+        Computes log of Poisson emission probs for approximating distribution
         '''
-        # retrieve releavant parameters from emission_params
-        C     = emission_params['concentration'] 
-        log_probs = np.zeros([X[0].shape[0],self.n_hidden])
-        for k in range(self.n_hidden):
-            elog_dirichlet_k = psi(C[k]) - psi(np.sum(C[k],1))
-            for j,Xbin in enumerate(self._get_class(X)):
-                log_probs[:,k] += safe_sparse_dot( Xbin, elog_dirichlet_k[:,j] )
+        alpha = emission_params['alpha']
+        beta = emission_params['beta']
+        e_log_lambda = psi(alpha) - np.log(beta)
+        e_lambda = alpha / beta
+        log_probs = np.dot(X,e_log_lambda.T) - np.sum(e_lambda,1,keepdims = True).T
+        log_probs -= np.sum(gammaln(X+1),1, keepdims = True)
         return log_probs
-        
-        
-    def _check_convergence(self, params, iteration):
+       
+    
+    def fit(self,X,chain_index = None):
         '''
-        Checks convergence for Bayesian Gaussian HMM
-        '''
-        if iteration == 0:
-            self.means_old = deepcopy(params['concentration'])
-        else:
-            diff = np.array(self.means_old) - np.array(params['concentration'])
-            if self.verbose:
-                n_params = self.means_old[0].shape[0] * self.means_old[0].shape[1] * self.n_hidden
-                print(("Iteration {0} completed, average change in means of hidden states "
-                       "is {1}".format(iteration,np.sum(np.abs(diff))/n_params)))
-            if np.sum(diff > self.tol) == 0:
-                print diff
-                if self.verbose:
-                    print("Convergence achieved on {0} iteration".format(iteration))
-                return True
-            else:
-                self.means_old = np.copy(params['concentration'])
-                return False
-                           
-                  
-    def fit(self,X, chain_index = None):
-        '''
-        Fits Bayesian Hidden Markov Model with Multinoulli emission probabilities
+        Fits Bayesian Hidden Markov Model with Bernoulli emission probabilities
         
         Parameters
         ----------
@@ -1167,13 +992,7 @@ class VBMultinoulliHMM(VBHMM):
         object: self
           self
         '''
-        if chain_index is None:
-            chain_index = []
-        X = self._check_X_train(X)
-        self.classes_  = _get_classes(X)
-        if self.precompute_X:
-           X  = self._precompute_X(X)
-        super(VBMultinoulliHMM,self)._fit(X, chain_index)
-        self.means_ = [c/np.sum(c,1, ) for c in self._emission_params_['concentration']]
+        X = self._check_X(X)
+        super(VBPoissonHMM,self)._fit(X, chain_index)
+        self.rate_ = self._emission_params_['alpha'] / self._emission_params_['beta'] 
         return self
-

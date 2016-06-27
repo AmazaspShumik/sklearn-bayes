@@ -7,6 +7,6 @@
    Multinoulli emission probs: VBMultinoulliHMM 
 '''
 
-from .hmm import VBMultinoulliHMM ,VBGaussianHMM,VBBernoulliHMM
+from .hmm import VBPoissonHMM ,VBGaussianHMM,VBBernoulliHMM
 
-__all__ = ['VBBernoulliHMM','VBGaussianHMM','VBMultinoulliHMM']
+__all__ = ['VBBernoulliHMM','VBGaussianHMM','VBPoissonHMM']
