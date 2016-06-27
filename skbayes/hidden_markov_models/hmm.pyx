@@ -10,6 +10,8 @@ from copy import deepcopy
 import numpy as np
 cimport cython
 cimport numpy as np
+from cpython cimport array
+import array
 DTYPE = np.double
 ctypedef np.double_t DTYPE_t
 
@@ -26,7 +28,7 @@ def _logdot(a, b):
     np.exp(exp_a, out=exp_a)
     np.exp(exp_b, out=exp_b)
     c = np.dot(exp_a, exp_b)
-    np.log(c, out=c)
+    c = np.log(c)
     c += max_a + max_b
     return c
     
@@ -307,40 +309,54 @@ class VBHMM(BaseEstimator):
         
         
         
-    def _viterbi(self, log_pr_x, log_pr_trans, log_pr_start):
+    def _backward_single_chain(self, int n_samples, np.ndarray[DTYPE_t,ndim=2] log_pr_trans, 
+                               np.ndarray[DTYPE_t,ndim=2] log_pr_x, np.ndarray[DTYPE_t,ndim=2] log_alpha,
+                               np.ndarray[DTYPE_t,ndim=1] log_scaler):
+        cdef np.ndarray[DTYPE_t, ndim=1] beta_before = np.zeros(self.n_hidden, dtype = DTYPE)
+        cdef np.ndarray[DTYPE_t, ndim=2] marginal = np.zeros([n_samples,self.n_hidden], dtype = DTYPE)
+        cdef int i,j
+        # backward pass & marhinal calculation
+        for j in xrange(1,n_samples+1):
+            i = n_samples - j
+            # recursively compute beta (start from the end of sequence, where beta = 1)
+            beta_after = _logdot(self._log_pr_trans_,beta_before + log_pr_x[i,:])
+            
+            # marginal distribution of latent variable, given observed variables
+            marginal[i,:]  = log_alpha[i,:] + beta_before
+            beta_before = beta_after - log_scaler[i]
+        return np.exp(marginal)
+        
+        
+        
+    def _viterbi(self, np.ndarray[DTYPE_t,ndim=2] log_pr_x, np.ndarray[DTYPE_t,ndim=2] log_pr_trans,
+                np.ndarray[DTYPE_t, ndim=1] log_pr_start):
         '''
         Computes most probable sequence of states using viterbi algorithm
         '''
-        print "viterbi"
-        print "log_pr_start : dtype = {0}, ndim = {1}".format(log_pr_start.dtype, log_pr_start.ndim)
-        print "log_pr_trans : dtype = {0}, ndim = {1}".format(log_pr_trans.dtype, log_pr_trans.ndim)
-        print "log_pr_x: dtype = {0}, ndim = {1}".format(log_pr_x.dtype, log_pr_x.ndim)
-        n_samples     = log_pr_x.shape[0]
-        best_states   = np.zeros(n_samples)
-        max_prob      = np.zeros([n_samples,self.n_hidden])
-        argmax_state  = np.zeros([n_samples,self.n_hidden])
+        cdef int n_samples = log_pr_x.shape[0]
+        cdef array.array best_states = array.array('i',[0]*n_samples)
+        cdef np.ndarray[DTYPE_t,ndim=2] max_prob = np.zeros([n_samples,self.n_hidden],dtype=DTYPE)
+        cdef np.ndarray[DTYPE_t,ndim=2] argmax_state = np.zeros([n_samples,self.n_hidden],dtype=DTYPE)
+        cdef int t,j,maxidx
         max_prob[0,:] = log_pr_x[0,:] + log_pr_start
         
         # forward pass of viterbi algorithm
         for t in xrange(1,n_samples):
             
-            # precompute some values
-            delta = max_prob[t-1,:] + log_pr_trans
-            
             # compute log probs (not normalised) for sequence of states
+            delta = max_prob[t-1,:] + log_pr_trans
             max_prob[t,:] = log_pr_x[t,:] + np.max(delta,1)
             
             # most likely previous state on the most probable path
             argmax_state[t,:] = np.argmax((log_pr_x[t,:] + delta.T).T,0)
             
-        # backtrack
-        best_states[n_samples-1] = np.argmax(max_prob[n_samples-1,:])
+        # TODO: rewrite backtrack part! Casting to int ???
+        # backtrack 
+        best_states[n_samples-1] = int(np.argmax(max_prob[n_samples-1,:]))
         for j in xrange(1,n_samples):
             t = n_samples - j - 1
-            best_states[t] = argmax_state[t,best_states[t+1]]
-            
-        return best_states
-
+            best_states[t] = int(argmax_state[t,best_states[t+1]])
+        return np.array(best_states)
 
         
     def filter(self,X):
@@ -394,21 +410,9 @@ class VBHMM(BaseEstimator):
         log_pr_x = self._emission_log_probs_params(self._emission_params_, X)
         log_alpha, log_scaler = self._forward_single_chain( self._log_pr_start_, self._log_pr_trans_,
                                                             log_pr_x) 
-        # backward pass (combined with calculation of marginal distribution) 
-        beta_before   = np.zeros(self.n_hidden)
-        marginal      = np.zeros([n_samples,self.n_hidden])
-           
-        # backward pass, single & joint marginal calculation, sufficient stats
-        for j in xrange(1,n_samples+1):
-            i = n_samples - j
-            # recursively compute beta (start from the end of sequence, where beta = 1)
-            beta_after     = _logdot(self._log_pr_trans_,beta_before + log_pr_x[i,:])
-            
-            # marginal distribution of latent variable, given observed variables
-            marginal[i,:]  = log_alpha[i,:] + beta_before
-            beta_before    = beta_after - log_scaler[i]
-
-        return np.exp(marginal)
+        # backward pass
+        return self._backward_single_chain(n_samples,self._log_pr_trans_, log_pr_x, 
+                                         log_alpha, log_scaler)
         
         
     def predict(self,X):
