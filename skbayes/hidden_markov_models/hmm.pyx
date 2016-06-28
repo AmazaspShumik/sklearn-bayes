@@ -828,8 +828,8 @@ class VBGaussianHMM(VBHMM):
          
         for k in range(self.n_hidden):
             
-            # calculate expectation of logdet of precision matrix
-            scale_logdet   = np.linalg.slogdet(scale[k])[1]
+            # calculate expectation of logdet of precision matrix 
+            scale_logdet   = np.linalg.slogdet(scale[k] + np.finfo(np.double).eps)[1]
             e_logdet_prec  = sum([psi(0.5*(dof[k]+1-i)) for i in range(1,d+1)])
             e_logdet_prec += scale_logdet + d*np.log(2)
            
