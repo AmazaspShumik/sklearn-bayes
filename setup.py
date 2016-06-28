@@ -15,7 +15,13 @@ ext_modules = [ Extension("skbayes.decomposition_models.gibbs_lda_cython",
                           ["skbayes/decomposition_models/gibbs_lda_cython.c"], 
                           #include_dirs = [np.get_include()],
                           extra_compile_args=["-O3"],
-                          **get_info("npymath"))]
+                          **get_info("npymath")),
+                Extension("skbayes.hidden_markov_models.hmm",
+                         ['skbayes/hidden_markov_models/hmm.c'],
+                          extra_compile_args=["-O3"],
+                          **get_info("npymath"))
+              ]
+
 import skbayes
 
  
@@ -42,6 +48,6 @@ if __name__=='__main__':
           'Development Status :: 3 - Alpha',
           'Operating System :: Mac OS X',
           'Programming Language :: Python :: 2.7'],
-       ext_modules = ext_modules
+       ext_modules = cythonize(ext_modules)
    )
 
