@@ -28,7 +28,7 @@ def _logdot(a, b):
     np.exp(exp_a, out=exp_a)
     np.exp(exp_b, out=exp_b)
     c = np.dot(exp_a, exp_b)
-    c = np.log(c)
+    np.log(c, out=c)
     c += max_a + max_b
     return c
     
@@ -337,7 +337,7 @@ class VBHMM(BaseEstimator):
         cdef array.array best_states = array.array('i',[0]*n_samples)
         cdef np.ndarray[DTYPE_t,ndim=2] max_prob = np.zeros([n_samples,self.n_hidden],dtype=DTYPE)
         cdef np.ndarray[DTYPE_t,ndim=2] argmax_state = np.zeros([n_samples,self.n_hidden],dtype=DTYPE)
-        cdef int t,j,maxidx
+        cdef int t,j
         max_prob[0,:] = log_pr_x[0,:] + log_pr_start
         
         # forward pass of viterbi algorithm
@@ -348,14 +348,13 @@ class VBHMM(BaseEstimator):
             max_prob[t,:] = log_pr_x[t,:] + np.max(delta,1)
             
             # most likely previous state on the most probable path
-            argmax_state[t,:] = np.argmax((log_pr_x[t,:] + delta.T).T,0)
-            
-        # TODO: rewrite backtrack part! Casting to int ???
-        # backtrack 
+            argmax_state[t,:] = np.argmax((log_pr_x[t,:] + delta.T),1)
+          
+        # TODO: rewrite backtrack part! Casting to int ??? there shuld be a better way!
         best_states[n_samples-1] = int(np.argmax(max_prob[n_samples-1,:]))
         for j in xrange(1,n_samples):
             t = n_samples - j - 1
-            best_states[t] = int(argmax_state[t,best_states[t+1]])
+            best_states[t] = int(argmax_state[t+1,best_states[t+1]])
         return np.array(best_states)
 
         
@@ -415,7 +414,7 @@ class VBHMM(BaseEstimator):
                                          log_alpha, log_scaler)
         
         
-    def predict(self,X):
+    def predict(self,X, method = 'joint_map'):
         '''
         Predicts hidden state for test data
         
@@ -424,6 +423,9 @@ class VBHMM(BaseEstimator):
         X: array-like of size (n_samples, n_features)
            Data Matrix
            
+        method: str, optional (DEFAULT = 'joint_map')
+           Method of prediction  1) 'joint_map' - most probable sequence of states 
+                                 2) 'mpm' - maximizer of posterior marginals
         Returns
         -------
         : numpy array of size (n_samples,)
@@ -431,8 +433,13 @@ class VBHMM(BaseEstimator):
         '''
         check_is_fitted(self,'_start_params_')
         X = self._check_X(X)
-        log_pr_x     = self._emission_log_probs_params(self._emission_params_, X)
-        return self._viterbi(log_pr_x, self._log_pr_trans_, self._log_pr_start_)
+        if method == 'mpm':
+            return np.argmax(self.predict_proba(X),1)
+        elif method == 'joint_map':
+            log_pr_x     = self._emission_log_probs_params(self._emission_params_, X)
+            return self._viterbi(log_pr_x, self._log_pr_trans_, self._log_pr_start_)
+        else:
+            raise ValueError('Undefined method for state prediction {0}'.format(method))
              
              
     # Some abstract methods
