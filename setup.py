@@ -22,6 +22,7 @@ ext_modules = [ Extension("skbayes.decomposition_models.gibbs_lda_cython",
                           **get_info("npymath"))
               ]
 
+
 import skbayes
 
  
@@ -48,6 +49,6 @@ if __name__=='__main__':
           'Development Status :: 3 - Alpha',
           'Operating System :: Mac OS X',
           'Programming Language :: Python :: 2.7'],
-       ext_modules = cythonize(ext_modules)
+       ext_modules = ext_modules
    )
 
