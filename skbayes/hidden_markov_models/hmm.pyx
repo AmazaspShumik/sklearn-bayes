@@ -195,10 +195,11 @@ class VBHMM(BaseEstimator):
                                                           trans_params_prior,
                                                           emission_params_prior,
                                                           start_params_prior) 
-            scores.append(score)
-            if len(scores) > 1 and scores[-1] - scores[-2] < self.tol:
+            
+            if len(scores) > 1 and score - scores[-1] < self.tol:
                 break
-         
+            scores.append(score)
+            
         return start_params, trans_params, emission_params, scores
 
         
