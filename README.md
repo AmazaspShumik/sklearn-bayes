@@ -8,6 +8,17 @@
 
 ### NOTE:
 I am currently updating some algorithms (RVM,HMM) and writing new ipython notebooks, updated version of package should be ready by the end of June 2016. I will also add Latent Dirichlet Allocation to package.
+
+### Updates
+Update 1: LDA (using collapsed Gibbs Sample) is included in package along with ipython notebooks. LDA is written in Cython, C extension is included.
+Update 2: HMM code is updated. Forward-Max and Forward-Backwars algorithms are implemented in Cython, C extension is included.
+
+### Further Work:
+ - Dirichlet Process Mixture Models (Bernoulli, Poisson, Gaussian) using Variational Inference (should be finished by the end   of August).
+ - Hierarchical Dirichlet Process (Stochastic Variational Inference, Variational Inference) (should be finished by the end of   August)
+ - Still working on improving RVR stability (should finish it by the end of Spetember)
+ - More tests
+
    
 ### Algorithms
  
