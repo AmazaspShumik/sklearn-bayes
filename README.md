@@ -6,8 +6,13 @@
     pip install https://github.com/AmazaspShumik/sklearn_bayes/archive/master.zip
     pip install --upgrade https://github.com/AmazaspShumik/sklearn_bayes/archive/master.zip
 
-### NOTE:
-I am currently updating some algorithms (RVM,HMM) and writing new ipython notebooks, updated version of package should be ready by the end of June 2016. I will also add Latent Dirichlet Allocation to package.
+
+### Further Work:
+ - Dirichlet Process Mixture Models (Bernoulli, Poisson, Gaussian) using Variational Inference (should be finished by the end   of August).
+ - Hierarchical Dirichlet Process (Stochastic Variational Inference, Variational Inference) (should be finished by the end of   August)
+ - Still working on improving RVR stability (should finish it by the end of Spetember)
+ - More tests
+
    
 ### Algorithms
  
@@ -28,9 +33,9 @@ I am currently updating some algorithms (RVM,HMM) and writing new ipython notebo
      * Variational Bayes Bernoulli Mixture Model [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/mixture_models/mixture.py), [tutorial](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/ipython_notebooks_tutorials/mixture_models/example_bernoulli_mixture.ipynb)
      * Variational Multinoulli Mixture Model [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/mixture_models/mixture.py)
 * [Hidden Markov Models](https://github.com/AmazaspShumik/sklearn-bayes/tree/master/skbayes/hidden_markov_models)
+     * Variational Bayes Poisson Hidden Markov Model [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/hidden_markov_models/hmm.py), [demo](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/ipython_notebooks_tutorials/hidden_markov_models/examples_hmm.ipynb)
      * Variational Bayes Bernoulli Hidden Markov Model [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/hidden_markov_models/hmm.py)
-     * Variational Bayes Multinoulli Hidden Markov Model [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/hidden_markov_models/hmm.py)
-     * Variational Bayes Gaussian Hidden Markov Model [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/hidden_markov_models/hmm.py)
+     * Variational Bayes Gaussian Hidden Markov Model [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/hidden_markov_models/hmm.py), [demo](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/ipython_notebooks_tutorials/hidden_markov_models/examples_hmm.ipynb)
 * [Decomposition Models](https://github.com/AmazaspShumik/sklearn-bayes/tree/master/skbayes/decomposition_models)
      * Latent Dirichlet Allocation (collapsed Gibbs Sampler) [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/decomposition_models/gibbs_lda_cython.pyx), [tutorial](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/ipython_notebooks_tutorials/decomposition_models/example_lda.ipynb)
 
