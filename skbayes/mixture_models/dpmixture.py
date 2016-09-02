@@ -1,11 +1,13 @@
+import numpy as np
 from scipy.special import psi, gammaln
 from scipy.misc import logsumexp
 from sklearn.base import BaseEstimator
 from sklearn.utils.extmath import safe_sparse_dot
 from sklearn.utils.validation import check_is_fitted
-import numpy as np
 from utils import (BernoulliMixture, GaussianMixture, PoissonMixture, 
                   _e_log_beta, _gamma_entropy)
+from sklearn.cluster import KMeans
+from scipy.linalg import pinvh
 
 
 
@@ -14,7 +16,7 @@ class DPExponentialMixture(BaseEstimator):
     Base class for Dirichlet Process Mixture (conjugate exponential family) 
     '''
     
-    def __init__(self,n_components,alpha,n_iter,tol, n_init):
+    def __init__(self,n_components,alpha,n_iter,tol,n_init):
         self.n_components = n_components
         self.alpha   = alpha
         self.n_iter  = n_iter
@@ -30,7 +32,6 @@ class DPExponentialMixture(BaseEstimator):
         a = 1 + Nk
         qz_cum = np.sum(resps,axis = 1, keepdims = True) - np.cumsum(resps,1) 
         b = self.alpha + np.sum(qz_cum,0)
-        print b.shape
         return a,b
         
         
@@ -56,16 +57,15 @@ class DPExponentialMixture(BaseEstimator):
         Fit Dirichlet Process Mixture Model for Exponential Family Distribution
         '''
         # initialise parameters
-        # parameters 
         params = self._init_params(X)
         # parameters of beta distribution in stick breaking process
         a = np.ones(self.n_components)
         b = self.alpha * np.ones(self.n_components)
         a0,b0 = np.copy(a), np.copy(b)
-        scores = []
+        scores = [np.NINF]
         
         for i in xrange(self.n_iter):
-            
+
             log_pr_x = self._log_prob_x(X,params)
             
             # compute q(Z) - approximation of posterior for latent variable
@@ -78,7 +78,11 @@ class DPExponentialMixture(BaseEstimator):
             # lower bound for difference between prior and approx dist of
             # stick breaking process
             lower_bound_sbp = e_logPV - e_logQV
-            scores.append(self._lower_bound(X,delta_ll,params, lower_bound_sbp))
+            last_score = self._lower_bound(X,delta_ll,params, lower_bound_sbp)
+            # check convergence 
+            if last_score - scores[-1] < self.tol:
+                return a,b,params,scores
+            scores.append(last_score)
             
             # compute q(V) - approximation of posterior for Stick Breaking Process
             a,b = self._update_sbp(resps,Nk)
@@ -86,13 +90,13 @@ class DPExponentialMixture(BaseEstimator):
             # compute q(PARAMS) - approximation of posterior for parameters of 
             # likelihood
             params = self._update_params(X,Nk,resps,params)
-            
+    
         return a,b,params,scores
             
             
     def _fit(self,X):
         '''
-        Fit parameters
+        Fit parameters of mixture distribution
         '''   
         X = self._check_X(X)
         a_,b_,params_ = None,None,None
@@ -270,14 +274,33 @@ class DPBMM(DPExponentialMixture, BernoulliMixture):
         
         
               
-class DPPMM(DPExponentialMixture):
+class DPPMM(DPExponentialMixture, PoissonMixture):
     '''
     Dirichlet Process Poisson Mixture Model
+    
+    Parameters
+    ----------
+    n_components : int
+        Number of mixture components
+        
+    alpha: float, optional (DEFAULT = 0.1)
+        Concentration parameter for Dirichlet Process Prior
+        
+    n_iter: int, optional (DEFAULT = 100)
+        Number of iterations
+        
+    tol: float, optional (DEFAULT = 1e-3)
+        Convergence threshold (tolerance)
+        
+    n_init: int, optional (DEFAULT = 3)
+         Number of reinitialisations
+         
+    init_params: 
     '''
     
     def __init__(self, n_components, alpha = 0.1, n_iter = 100, tol = 1e-3, n_init = 3,
                  init_params = None, c = 1, d = 1):
-        super(DPBMM,self).__init__(n_components,alpha,n_iter,tol,n_init)
+        super(DPPMM,self).__init__(n_components,alpha,n_iter,tol,n_init)
         if init_params is None:
             init_params = {}
         self.init_params = init_params
@@ -292,7 +315,9 @@ class DPPMM(DPExponentialMixture):
         '''
         c = params['c']
         d = params['d']
-        log_probs = np.dot(X,_gamma_entropy(c,d)) + gammaln(X+1) - c / d
+        log_probs  = np.dot(X, psi(c) - np.log(d)) + np.sum(gammaln(X+1),1,keepdims = True)
+        log_probs -= np.sum(c/d,0)
+        print log_probs.shape
         return log_probs
         
         
@@ -311,21 +336,32 @@ class DPPMM(DPExponentialMixture):
         Computes lower bound
         '''
         c0,d0,c,d = params['c_init'], params['d_init'], params['c'], params['d']
-        e_logPLambda = _e_log_beta(c0,d0,c,d)
-        e_logQLambda = _e_log_beta(c,d,c,d)
-        ll = delta_ll + lower_bound_sbp + e_logPM - e_logQM
+        e_logPLambda = np.sum(_gamma_entropy(c0,d0,c,d))
+        e_logQLambda = np.sum(_gamma_entropy(c,d,c,d))
+        ll = delta_ll + lower_bound_sbp + e_logPLambda - e_logQLambda
         return ll      
         
         
     def fit(self,X):
         '''
+        Fit Dirichlet Process Poisson Mixture Model
         
+        Parameters
+        ----------
+        X : array_like, shape (n_samples, n_features)
+            Count Data
+            
+        Returns
+        -------
+        object: self
+            self
         '''
         X = self._check_X(X)
         a_, b_, params_, self.scores_ = self._fit(X)
         # parameters of stick breaking process
         self._sbp_params_ = (a_,b_)
         self._model_params_ = params_
+        self.means_ = params_['c'] / params_['d']
         return self        
         
         
@@ -348,22 +384,70 @@ class DPGMM(DPExponentialMixture):
         pass
     
     
-    def 
-        
-        
+    def _update_params(self, X, Nk, resps, params):
+        '''
+        Update parameters of prior distribution for Bernoulli Succes Probabilities
+        '''
+        XR = np.dot(X.T,resps)
+        params['c']  = params['c_init'] + XR
+        params['d']  = params['d_init'] + Nk
+        return params    
 
-                
+    def _lower_bound(self, X, delta_ll, params, lower_bound_sbp):
+        ''' 
+        Computes lower bound
+        '''
+        c0,d0,c,d = params['c_init'], params['d_init'], params['c'], params['d']
+        #e_logPLambda = _e_log_beta(c0,d0,c,d)
+        #e_logQLambda = _e_log_beta(c,d,c,d)
+        ll = delta_ll + lower_bound_sbp + e_logPM - e_logQM
+        return ll      
+        
+        
+    def fit(self,X):
+        '''
+        Fit Dirichlet Process Gaussian Mixture Model
+        
+        Parameters
+        ----------
+        X : array_like, shape (n_samples, n_features)
+            Count Data
+            
+        Returns
+        -------
+        object: self
+            self
+        '''
+        X = self._check_X(X)
+        a_, b_, params_, self.scores_ = self._fit(X)
+        # parameters of stick breaking process
+        self._sbp_params_ = (a_,b_)
+        self._model_params_ = params_
+        return self        
+        
+                        
   
       
 if __name__ == "__main__":
     dpbmm = DPBMM(n_components = 20, n_iter = 100, alpha = 1)#, init_params = {'a':np.random.random([3,2]),
                                    #                'b':np.random.random([3,2])})
     X = np.zeros([200,3])
+    
+    ## bernoulli data
     X[0:100,0] = 1
     X[100:200,1] = 1
-    #a,b,params, scores = dpbmm._fit(X)
     dpbmm.fit(X)
     y_prob = dpbmm.predict_proba(X)
     y_hat = dpbmm.predict(X)
+    
+    ## poisson data
+#    X[0:100,:] = np.random.poisson(np.array([1,4,10]),[100,3])
+#    X[100:200,:] = np.random.poisson(np.array([10,4,1]),[100,3])      
+#    dppmm = DPPMM(n_components = 20, alpha = 1, n_iter = 100)
+#    dppmm.fit(X)
+#    y_prob = dppmm.predict_proba(X)
+#    y_hat = dppmm.predict(X)
+    
+
     #means = params['c'] / ( params['c'] + params['d'] )  
     
