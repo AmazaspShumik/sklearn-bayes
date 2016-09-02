@@ -1,11 +1,11 @@
-from scipy.special import psi
+from scipy.special import psi, gammaln
 from scipy.misc import logsumexp
 from sklearn.base import BaseEstimator
 from sklearn.utils.extmath import safe_sparse_dot
 from sklearn.utils.validation import check_is_fitted
 import numpy as np
 from utils import (BernoulliMixture, GaussianMixture, PoissonMixture, 
-                  _e_log_beta)
+                  _e_log_beta, _gamma_entropy)
 
 
 
@@ -182,14 +182,24 @@ class DPBMM(DPExponentialMixture, BernoulliMixture):
     '''
     Dirichlet Process Bernoulli Mixture Model
     
-    
     Parameters
     ----------
     n_components : int
         Number of mixture components
         
     alpha: float, optional (DEFAULT = 0.1)
-        Concentration parameter for Dirichlet Process prior
+        Concentration parameter for Dirichlet Process Prior
+        
+    n_iter: int, optional (DEFAULT = 100)
+        Number of iterations
+        
+    tol: float, optional (DEFAULT = 1e-3)
+        Convergence threshold (tolerance)
+        
+    n_init: int, optional (DEFAULT = 3)
+         Number of reinitialisations
+         
+    init_params: 
     '''
     
     def __init__(self, n_components, alpha = 0.1, n_iter = 100, tol = 1e-3, n_init = 3,
@@ -200,9 +210,6 @@ class DPBMM(DPExponentialMixture, BernoulliMixture):
         self.init_params = init_params
         self.a   = a
         self.b   = b
-        self.delta_ll = []
-        self.lower_bound_sbp = []
-        self.logPM = []
 
         
     def _log_prob_x(self,X,params):
@@ -236,13 +243,23 @@ class DPBMM(DPExponentialMixture, BernoulliMixture):
         e_logPM = _e_log_beta(c0,d0,c,d)
         e_logQM = _e_log_beta(c,d,c,d)
         ll = delta_ll + lower_bound_sbp + e_logPM - e_logQM
-        self.delta_ll.append(delta_ll)
-        self.lower_bound_sbp.append(lower_bound_sbp)
-        self.logPM.append(e_logPM - e_logQM)
         return ll
         
         
     def fit(self,X):
+        '''
+        Fit Dirichlet Process Bernoulli Mixture Model
+        
+        Parameters
+        ----------
+        X : array_like, shape (n_samples, n_features)
+            Count Data
+            
+        Returns
+        -------
+        object: self
+            self
+        '''
         X = self._check_X(X)
         a_, b_, params_, self.scores_ = self._fit(X)
         # parameters of stick breaking process
@@ -259,11 +276,59 @@ class DPPMM(DPExponentialMixture):
     '''
     
     def __init__(self, n_components, alpha = 0.1, n_iter = 100, tol = 1e-3, n_init = 3,
-                 init_params = None, a = 1, b = 1):
+                 init_params = None, c = 1, d = 1):
         super(DPBMM,self).__init__(n_components,alpha,n_iter,tol,n_init)
         if init_params is None:
             init_params = {}
         self.init_params = init_params
+        self.c = c # parameters of gamma prior
+        self.d = d
+        
+    
+    def _log_prob_x(self,X,params):
+        '''
+        Expectation of log p(X|Z,Theta) with respect to approximating
+        distribution of Theta
+        '''
+        c = params['c']
+        d = params['d']
+        log_probs = np.dot(X,_gamma_entropy(c,d)) + gammaln(X+1) - c / d
+        return log_probs
+        
+        
+    def _update_params(self, X, Nk, resps, params):
+        '''
+        Update parameters of prior distribution for Bernoulli Succes Probabilities
+        '''
+        XR = np.dot(X.T,resps)
+        params['c']  = params['c_init'] + XR
+        params['d']  = params['d_init'] + Nk
+        return params        
+        
+        
+    def _lower_bound(self, X, delta_ll, params, lower_bound_sbp):
+        ''' 
+        Computes lower bound
+        '''
+        c0,d0,c,d = params['c_init'], params['d_init'], params['c'], params['d']
+        e_logPLambda = _e_log_beta(c0,d0,c,d)
+        e_logQLambda = _e_log_beta(c,d,c,d)
+        ll = delta_ll + lower_bound_sbp + e_logPM - e_logQM
+        return ll      
+        
+        
+    def fit(self,X):
+        '''
+        
+        '''
+        X = self._check_X(X)
+        a_, b_, params_, self.scores_ = self._fit(X)
+        # parameters of stick breaking process
+        self._sbp_params_ = (a_,b_)
+        self._model_params_ = params_
+        return self        
+        
+        
         
         
 class DPGMM(DPExponentialMixture):
@@ -272,10 +337,21 @@ class DPGMM(DPExponentialMixture):
     '''
     
     def __init__(self, n_components, alpha = 0.1, n_iter = 100, tol = 1e-3, n_init = 3,
-                 init_params = None):
-        super(DPGMM, self).__init__()
-    
+                 init_params = None, a = 1, b = 1):
+        super(DPBMM,self).__init__(n_components,alpha,n_iter,tol,n_init)
+        if init_params is None:
+            init_params = {}
+        self.init_params = init_params
         
+        
+    def _log_prob_x(self,X,params):
+        pass
+    
+    
+    def 
+        
+        
+
                 
   
       
