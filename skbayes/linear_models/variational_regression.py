@@ -131,7 +131,7 @@ class VBLinearRegression(RegressorMixin,LinearModel):
             # --------- Convergence Check ---------
             
             if self.verbose is True:
-                print "Iteration {0} is completed".format(i)
+                print("Iteration {0} is completed".format(i))
                 
             # check convergence 
             converged = self._check_convergence(Mw,Mw_old)

@@ -155,11 +155,11 @@ class VariationalRegressionARD(LinearModel,RegressorMixin):
             
             # print progress report if required
             if self.verbose is True:
-               print "Iteration {0} is completed, lower bound equals {1}".format(i,self.lower_bound[-1])
+               print("Iteration {0} is completed, lower bound equals {1}".format(i,self.lower_bound[-1]))
                 
             if np.sum( abs(Mw - Mw0) > self.tol) == 0 or i == self.n_iter - 1:
                 if self.verbose is True:
-                        print "Mean Field Approximation completed"
+                        print("Mean Field Approximation completed")
                 break
             Mw0 = Mw
             
