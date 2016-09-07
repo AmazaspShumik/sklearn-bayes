@@ -7,7 +7,6 @@ from scipy.linalg import eigvalsh
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.linear_model.base import LinearClassifierMixin, BaseEstimator
 from sklearn.utils import check_X_y
-#from sklearn.preprocessing import LabelBinariser
 from sklearn.linear_model.logistic import ( _logistic_loss_and_grad, _logistic_loss, 
                                             _logistic_grad_hess,)
 
@@ -15,8 +14,9 @@ from sklearn.linear_model.logistic import ( _logistic_loss_and_grad, _logistic_l
 
 class EBLogisticRegression(LinearClassifierMixin,BaseEstimator):
     '''
-    Implements Bayesian Logistic Regression with type II maximum likelihood, uses
-    Gaussian (Laplace) method for approximation of evidence function.
+    Implements Bayesian Logistic Regression with type II maximum likelihood 
+    (sometimes it is called Empirical Bayes), uses Gaussian (Laplace) method 
+    for approximation of evidence function.
     
 
     Parameters
