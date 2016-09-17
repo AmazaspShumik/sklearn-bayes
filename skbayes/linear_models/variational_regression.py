@@ -51,8 +51,12 @@ class VBLinearRegression(RegressorMixin,LinearModel):
     intercept_: float
         Value of bias term (if fit_intercept is False, then intercept_ = 0)
 
-    sigma_ : array, shape = (n_features, n_features)
-        Estimated covariance matrix of the coefficients
+    eigvals_ : array, shape = (n_features, )
+        Eigenvalues of covariance matrix (from posterior distribution of weights)
+        
+    eigvecs_ : array, shape = (n_features, n_featues)
+        Eigenvectors of covariance matrix (from posterior distribution of weights)
+
     '''
     
     def __init__(self, n_iter = 300, tol =1e-4, fit_intercept = True, 
