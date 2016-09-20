@@ -62,7 +62,7 @@ class EBLinearRegression(RegressorMixin,LinearModel):
     '''
     
     def __init__(self,n_iter = 300, tol = 1e-3, optimizer = 'fp', fit_intercept = True,
-                 perfect_fit_tol = 1e-6, lamda = 1e-6, alpha = 1, copy_X = True, verbose = False):
+                 perfect_fit_tol = 1e-6, alpha = 1, copy_X = True, verbose = False):
         self.n_iter        =  n_iter
         self.tol           =  tol
         if optimizer not in ['em','fp']:
@@ -70,7 +70,6 @@ class EBLinearRegression(RegressorMixin,LinearModel):
         self.optimizer     =  optimizer 
         self.fit_intercept =  fit_intercept
         self.alpha         =  alpha 
-        self.lamda         =  lamda    
         self.perfect_fit   =  False
         self.copy_X        =  copy_X
         self.verbose       =  verbose
@@ -144,8 +143,9 @@ class EBLinearRegression(RegressorMixin,LinearModel):
             if self.optimizer == "fp":           
                 gamma      =  np.sum(beta*dsq/(beta*dsq + alpha))
                 # use updated mu and gamma parameters to update alpha and beta
-                alpha      =   gamma  / (np.sum(mu**2) + self.lamda )
-                beta       =  ( n_samples - gamma ) / (sqdErr + self.lamda )
+                # !!! made computation numerically stable for perfect fit case
+                alpha      =   gamma  / (np.sum(mu**2) + np.finfo(np.float32).eps )
+                beta       =  ( n_samples - gamma ) / (sqdErr + np.finfo(np.float32).eps )
             else:             
                 # M-step, update parameters alpha and beta to maximize ML TYPE II
                 eigvals    = 1/(beta * dsq + alpha)
