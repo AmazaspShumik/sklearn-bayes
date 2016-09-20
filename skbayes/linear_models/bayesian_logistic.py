@@ -17,7 +17,6 @@ class EBLogisticRegression(LinearClassifierMixin,BaseEstimator):
     Implements Bayesian Logistic Regression with type II maximum likelihood 
     (sometimes it is called Empirical Bayes), uses Gaussian (Laplace) method 
     for approximation of evidence function.
-    
 
     Parameters
     ----------
@@ -32,7 +31,7 @@ class EBLogisticRegression(LinearClassifierMixin,BaseEstimator):
         Optimization method that is used for finding parameters of posterior
         distribution ['lbfgs_b','newton_cg']
         
-    n_iter_solver: int, optional (DEFAULT = 10)
+    n_iter_solver: int, optional (DEFAULT = 15)
         Maximum number of iterations before termination of solver
         
     tol_solver: float, optional (DEFAULT = 1e-3)
@@ -58,6 +57,9 @@ class EBLogisticRegression(LinearClassifierMixin,BaseEstimator):
     sigma_ : array, shape = (n_features, n_features)
         estimated covariance matrix of the weights, computed only
         for non-zero coefficients
+        
+    alpha_: float
+        Precision parameter of weight distribution
     
     intercept_: array, shape = (n_features)
         intercepts
@@ -65,12 +67,10 @@ class EBLogisticRegression(LinearClassifierMixin,BaseEstimator):
     
     References:
     -----------
-    1) Pattern Recognition and Machine Learning, Bishop (2006) (pages 293 - 294)
-    2) Storcheus Dmitry, Mehryar Mohri, Afshin Rostamizadeh. "Foundations of Coupled Nonlinear Dimensionality Reduction."
-       arXiv preprint arXiv:1509.08880 (2015).
+    Pattern Recognition and Machine Learning, Bishop (2006) (pages 293 - 294)
     '''
     
-    def __init__(self, n_iter = 30, tol = 1e-3,solver = 'lbfgs_b',n_iter_solver = 10,
+    def __init__(self, n_iter = 30, tol = 1e-3,solver = 'lbfgs_b',n_iter_solver = 15,
                  tol_solver = 1e-3, fit_intercept = True, alpha = 1e-5,  verbose = False):
         self.n_iter            = n_iter
         self.tol               = tol
@@ -119,7 +119,10 @@ class EBLogisticRegression(LinearClassifierMixin,BaseEstimator):
             self.intercept_         = [0]*n_classes
         else:
             self.coef_, self.sigma_, self.intercept_ = [0],[0],[0]
-
+        
+        if self.fit_intercept:
+            X = np.hstack((X,np.ones([n_samples,1])))
+            
         for i in range(len(self.coef_)):
             w0 = np.zeros(n_features)
             if n_classes == 2:
@@ -129,11 +132,12 @@ class EBLogisticRegression(LinearClassifierMixin,BaseEstimator):
             mask = (y == pos_class)
             y_bin = np.ones(y.shape, dtype=np.float64)
             y_bin[~mask] = -1.
-            coef, sigma_ = self._fit(X,y_bin,w0, self.alpha)
+            coef_, sigma_ = self._fit(X,y_bin,w0, self.alpha)
             if self.fit_intercept:
-                self.intercept_[i] = coef[-1]
-                coef_              = coef[:-1]
-            self.coef_[i]  = coef_
+                self.intercept_[i] = coef_[-1]
+                self.coef_[i]      = coef_[:-1]
+            else:
+                self.coef_[i]      = coef_
             self.sigma_[i] = sigma_
             
         self.coef_  = np.asarray(self.coef_)
@@ -156,9 +160,17 @@ class EBLogisticRegression(LinearClassifierMixin,BaseEstimator):
            Estimated probabilities of target classes
         '''
         scores = self.decision_function(X)
-        sigma = np.asarray([np.sum(np.dot(X,s)*X,axis = 1) for s in self.sigma_])
+        
+        # take care of intercept term
+        if self.fit_intercept:
+            X  = np.hstack((X,np.ones([X.shape[0],1])))     
+            
+        # probit approximation to predictive distribution
+        sigma = np.asarray([ np.sum(np.dot(X,s)*X,axis = 1) for s in self.sigma_])
         ks = 1. / ( 1. + np.pi*sigma / 8)**0.5
         probs = expit(scores.T*ks).T
+        
+        # handle several class cases
         if probs.shape[1] == 1:
             probs =  np.hstack([1 - probs, probs])
         else:
@@ -166,7 +178,7 @@ class EBLogisticRegression(LinearClassifierMixin,BaseEstimator):
         return probs
         
         
-    def _fit(self,X,y,w0, alpha0):
+    def _fit(self,X,y,w0,alpha0):
         '''
         Maximizes evidence function (type II maximum likelihood) 
         '''
@@ -176,10 +188,13 @@ class EBLogisticRegression(LinearClassifierMixin,BaseEstimator):
                         
             # find mean & covariance of Laplace approximation to posterior
             w, d   = self._posterior(X, y, alpha, w0) 
-            mu_sq  = np.dot(w,w)
+            mu_sq  = np.sum(w**2)
             
-            # use EM  to update parameters            
-            alpha = X.shape[1] / (mu_sq + np.sum(d)) 
+            # use Iterative updates for Bayesian Logistic Regression
+            # Note in Bayesian Logistic Gull-MacKay fixed point updates 
+            # and Expectation - Maximization algorithm give the same update
+            # rule
+            alpha = X.shape[1] / (mu_sq + np.sum(d))
             
             # check convergence
             delta_alpha = abs(alpha - alpha0)
@@ -190,46 +205,49 @@ class EBLogisticRegression(LinearClassifierMixin,BaseEstimator):
         # after convergence we need to find updated MAP vector of parameters
         # and covariance matrix of Laplace approximation
         coef_, sigma_ = self._posterior(X, y, alpha , w, True)
+        self.alpha_ = alpha
         return coef_, sigma_
             
             
             
     def _posterior(self, X, Y, alpha0, w0, full_covar = False):
         '''
-        Iteratively refitted least squares method using l_bfgs_b.
+        Iteratively refitted least squares method using l_bfgs_b or newton_cg.
         Finds MAP estimates for weights and Hessian at convergence point
         '''
+        n_samples,n_features  = X.shape
         if self.solver == 'lbfgs_b':
-            f = lambda w: _logistic_loss_and_grad(w,X,Y,alpha0)
+            f = lambda w: _logistic_loss_and_grad(w,X[:,:-1],Y,alpha0)
             w = fmin_l_bfgs_b(f, x0 = w0, pgtol = self.tol_solver,
                               maxiter = self.n_iter_solver)[0]
         elif self.solver == 'newton_cg':
             f    = _logistic_loss
             grad = lambda w,*args: _logistic_loss_and_grad(w,*args)[1]
             hess = _logistic_grad_hess               
-            args = (X,Y,alpha0)
+            args = (X[:,:-1],Y,alpha0)
             w    = newton_cg(hess, f, grad, w0, args=args,
                              maxiter=self.n_iter, tol=self.tol)[0]
         else:
             raise NotImplementedError('Liblinear solver is not yet implemented')
             
         # calculate negative of Hessian at w
-        if self.fit_intercept:
-            XW = np.dot(X,w[:-1]) + w[-1]
-        else:
-            XW = np.dot(X,w)
-        s          = expit(XW)
+        xw         = np.dot(X,w)
+        s          = expit(xw)
         R          = s * (1 - s)
-        negHessian = np.dot(X.T*R,X)
+        Hess       = np.dot(X.T*R,X)    
+        Alpha  = np.ones(n_features)*alpha0
         
-        # do not regularise constant
-        alpha_vec     = np.zeros(negHessian.shape[0])
-        alpha_vec     = alpha0   
-        np.fill_diagonal(negHessian,np.diag(negHessian) + alpha_vec)
+        # for numerical stability in case of multicollinearity of inputs
+        # (this corresponds to extremely broad prior)
+        if self.fit_intercept:
+            Alpha[-1] = np.finfo(np.float32).eps
+            
+        np.fill_diagonal(Hess, np.diag(Hess) + Alpha)
         if full_covar is False:
-            eigs = 1./eigvalsh(negHessian)
+            eigs = 1./eigvalsh(Hess)
             return [w,eigs]
         else:
-            inv = pinvh(negHessian)
+            inv = pinvh(Hess)
             return [w, inv]
-
+            
+            
