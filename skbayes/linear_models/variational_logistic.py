@@ -1,26 +1,24 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from scipy.special import expit
-from scipy.linalg import pinvh
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.linear_model.base import LinearClassifierMixin, BaseEstimator
 from sklearn.utils import check_X_y
 from scipy.linalg import solve_triangular
 
 
-#----------------------- Helper functions ----------------------------------
 
 
 def lam(eps):
-    ''' Calculates lambda eps '''
+    ''' Calculates lambda eps (used for Jaakola & Jordan local bound) '''
     return 0.5 / eps * ( expit(eps) - 0.5 )
     
-#---------------------------------------------------------------------------
 
 
 class VBLogisticRegression(LinearClassifierMixin, BaseEstimator):
     '''
-    Variational Bayesian Logistic Regression 
+    Variational Bayesian Logistic Regression with local variational approximation.
+    
     
     Parameters:
     -----------
@@ -74,7 +72,7 @@ class VBLogisticRegression(LinearClassifierMixin, BaseEstimator):
         
     def fit(self,X,y):
         '''
-        Fits variational Bayesian Logistic Regression
+        Fits variational Bayesian Logistic Regression with local variational bound
         
         Parameters
         ----------
@@ -110,7 +108,7 @@ class VBLogisticRegression(LinearClassifierMixin, BaseEstimator):
         else:
             self.coef_, self.sigma_, self.intercept_ = [0],[0],[0]
         
-        # huperparameters of 
+        # hyperparameters of q(alpha) (approx dist of  precision parameter of weights)
         a  = self.a + 0.5 * n_features
         b  = self.b
         
@@ -134,7 +132,7 @@ class VBLogisticRegression(LinearClassifierMixin, BaseEstimator):
         return self
         
 
-    def predict_proba(self,x):
+    def predict_proba(self,X):
         '''
         Predicts probabilities of targets for test set
         
@@ -148,10 +146,10 @@ class VBLogisticRegression(LinearClassifierMixin, BaseEstimator):
         probs: numpy array of size [n_samples_test]
            Estimated probabilities of target classes
         '''
-        scores = self.decision_function(x)
+        scores = self.decision_function(X)
         if self.fit_intercept:
-            x = np.hstack( (np.ones([x.shape[0],1]),x))
-        sigma  = np.asarray([np.sum(np.dot(x,s)*x,axis = 1) for s in self.sigma_])
+            X = np.hstack( (np.ones([X.shape[0],1]),X))
+        sigma  = np.asarray([np.sum(np.dot(X,s)*X,axis = 1) for s in self.sigma_])
         ks = 1. / ( 1. + np.pi*sigma / 8)**0.5
         probs = expit(scores.T*ks).T
         if probs.shape[1] == 1:
@@ -160,6 +158,7 @@ class VBLogisticRegression(LinearClassifierMixin, BaseEstimator):
             probs /= np.reshape(np.sum(probs, axis = 1), (probs.shape[0],1))
         return probs
 
+            
             
     def _fit(self,X,y,a,b):
         '''
@@ -170,7 +169,7 @@ class VBLogisticRegression(LinearClassifierMixin, BaseEstimator):
         w0  = np.zeros(X.shape[1])
   
         for i in range(self.n_iter):
-            # In the E-stpe we update approximation of 
+            # In the E-step we update approximation of 
             # posterior distribution q(w,alpha) = q(w)*q(alpha)
             
             # --------- update q(w) ------------------
@@ -179,10 +178,14 @@ class VBLogisticRegression(LinearClassifierMixin, BaseEstimator):
                         
             # -------- update q(alpha) ---------------
             
-            b = self.b + np.sum(w**2) + np.sum(Ri**2)
-
+            if self.fit_intercept:
+                b = self.b + 0.5*(np.sum(w[1:]**2) + np.sum(Ri[1:,:]**2))
+            else:
+                b = self.b + 0.5*(np.sum(w**2) + np.sum(Ri**2))
+            
+            # -------- update eps  ------------
             # In the M-step we update parameter eps which controls 
-            # accuracy of local variational approximation
+            # accuracy of local variational approximation to lower bound
             XMX = np.dot(X,w)**2
             XSX = np.sum( np.dot(X,Ri.T)**2, axis = 1)
             eps = np.sqrt( XMX + XSX )
@@ -193,26 +196,31 @@ class VBLogisticRegression(LinearClassifierMixin, BaseEstimator):
             w0 = w
             
         l  = lam(eps)
-        coef_, sigma_  = self._posterior_dist(X,l,a,b,XY,True)
+        coef_, sigma_  = self._posterior_dist(X,l,a,b,XY, True)
         return coef_, sigma_
+
 
 
     def _posterior_dist(self,X,l,a,b,XY,full_covar = False):
         '''
-        Finds gaussian approximation to posterior of coefficients
+        Finds gaussian approximation to posterior of coefficients using
+        local variational approximation of Jaakola & Jordan
         '''
         sigma_inv  = 2*np.dot(X.T*l,X)
         alpha_vec  = np.ones(X.shape[1])*float(a) / b
         if self.fit_intercept:
-            alpha_vec[0] = 0
+            alpha_vec[0] = np.finfo(np.float64).eps
         np.fill_diagonal(sigma_inv, np.diag(sigma_inv) + alpha_vec)
         R     = np.linalg.cholesky(sigma_inv)
         Z     = solve_triangular(R,XY, lower = True)
-        mean_ = solve_triangular(R.T,Z,lower = False)
+        mean  = solve_triangular(R.T,Z,lower = False)
+        
+        # is there any specific function in scipy that efficently inverts
+        # low triangular matrix ????
         Ri    = solve_triangular(R,np.eye(X.shape[1]), lower = True)
         if full_covar:
-            sigma_   = np.dot(Ri.T,Ri)
-            return mean_ , sigma_
+            sigma   = np.dot(Ri.T,Ri)
+            return mean, sigma
         else:
-            return mean_ , Ri
+            return mean , Ri
 
