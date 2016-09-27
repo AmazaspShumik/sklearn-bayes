@@ -9,11 +9,11 @@ Fast Relevance Vector Machine & ARD ( Tipping and Faul (2003) )
     Classification ARD          : ClassificationARD
     Regression ARD              : RegressionARD
     Variational Regression ARD  : VariationalRegressionARD
-    Variational Relevance Vector
-                     Regression : VRVR
+    Variational Logistic 
+                 Regression ARD : VRVR
 '''
 from .fast_rvm import RVR,RVC,ClassificationARD,RegressionARD
-from .vrvm import VariationalRegressionARD, VRVR
+from .vrvm import VBRegressionARD, VBClassificationARD
 
 __all__ = ['RVR','RVC','ClassificationARD','RegressionARD','VariationalRegressionARD',
            'VRVR']
