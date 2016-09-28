@@ -596,7 +596,7 @@ class ClassificationARD(BaseEstimator,LinearClassifierMixin):
         ----------
         X: array-like of size [n_samples_test,n_features]
            Matrix of explanatory variables (test set)
-           
+
         Returns
         -------
         probs: numpy array of size [n_samples_test]
@@ -618,7 +618,7 @@ class ClassificationARD(BaseEstimator,LinearClassifierMixin):
             prob = pr / np.reshape(np.sum(pr, axis = 1), (pr.shape[0],1))
         return prob
 
-        
+
     def _predict_proba(self,X,y_hat,sigma):
         '''
         Calculates predictive distribution
@@ -627,26 +627,34 @@ class ClassificationARD(BaseEstimator,LinearClassifierMixin):
         ks  = 1. / ( 1. + np.pi * var/ 8)**0.5
         pr  = expit(y_hat * ks)
         return pr
-        
 
-    def _sparsity_quality(self,X,Xa,y,B,A,Aa,active,Sn):
-        '''
-        Calculates sparsity & quality parameters for each feature
-        '''
-        XB    = X.T*B
-        YB    = y*B
-        XSX   = np.dot(np.dot(Xa,Sn),Xa.T)
-        bxy   = np.dot(XB,y)        
-        Q     = bxy - np.dot( np.dot(XB,XSX), YB)
-        S     = np.sum( XB*X.T,1 ) - np.sum( np.dot( XB,XSX )*XB,1 )
-        qi    = np.copy(Q)
-        si    = np.copy(S) 
-        Qa,Sa      = Q[active], S[active]
-        qi[active] = Aa * Qa / (Aa - Sa )
-        si[active] = Aa * Sa / (Aa - Sa )
-        return [si,qi,S,Q]
-        
-    
+
+    def _sparsity_quality(self, X, Xa, y, B, A, Aa, active, Sn):
+        '''Calculates sparsity & quality parameters for each feature.'''
+        XB = X.T*B
+        XSX = np.dot(Xa, Sn)
+        XSX = np.dot(XSX, Xa.T)
+
+        S = np.dot(XB, XSX)
+        del XSX
+
+        Q = -np.dot(S, y*B)
+        Q += np.dot(XB, y)
+
+        S *= XB
+        S = -np.sum(S, 1)
+        S += np.sum(XB*X.T, 1)
+        del XB
+
+        qi = np.copy(Q)
+        si = np.copy(S)
+        Qa, Sa = Q[active], S[active]
+        qi[active] = Aa * Qa / (Aa - Sa)
+        si[active] = Aa * Sa / (Aa - Sa)
+
+        return [si, qi, S, Q]
+
+
     def _posterior_dist(self,X,y,A,intercept_prior):
         '''
         Uses Laplace approximation for calculating posterior distribution
