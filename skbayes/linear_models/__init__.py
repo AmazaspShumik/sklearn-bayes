@@ -4,15 +4,19 @@ This module implements Type II ML Linear Regression , Variational Linear Regress
 
     IMPLEMENTED ALGORITHMS:
     =======================
-    Variational Linear Regression : VariationalLinearRegression
-    Type II ML Linear Regression  : BayesianRegression
+    1. Variational Bayes Linear Regression     : VBLinearRegression
+    2. Empirical Bayes Linear Regression       : EBLinearRegression
+    3. Variational Bayes Logistic Regression
+       with Jaakola Jordan local variational
+       bound                                   : VBLogisticRegression
+    4. Empirical Bayes Logistic Regression 
+       with Laplace Approximation              : EBLogisticRegression
 
 """
 
 from .bayesian_logistic import EBLogisticRegression
-from .bayesian_regression import EBLinearRegression
+from .bayes_linear import EBLinearRegression, VBLinearRegression
 from .variational_logistic import VBLogisticRegression
-from .variational_regression import VBLinearRegression
 
 
 __all__ = ['EBLogisticRegression','VBLogisticRegression','EBLinearRegression',
