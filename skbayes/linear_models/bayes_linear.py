@@ -367,7 +367,7 @@ class VBLinearRegression(BayesianLinearRegression):
             # check convergence 
             converged = self._check_convergence(mu,mu_old)
             if self.verbose is True:
-                print "Iteration {0} is completed".format(i)
+                print("Iteration {0} is completed".format(i))
                 if converged is True:
                     print("Algorithm converged after {0} iterations".format(i))
                
