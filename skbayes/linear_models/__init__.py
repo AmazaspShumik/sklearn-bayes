@@ -14,9 +14,8 @@ This module implements Type II ML Linear Regression , Variational Linear Regress
 
 """
 
-from .bayesian_logistic import EBLogisticRegression
+from .bayes_logistic import EBLogisticRegression,VBLogisticRegression
 from .bayes_linear import EBLinearRegression, VBLinearRegression
-from .variational_logistic import VBLogisticRegression
 
 
 __all__ = ['EBLogisticRegression','VBLogisticRegression','EBLinearRegression',
