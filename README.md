@@ -6,28 +6,25 @@
     pip install https://github.com/AmazaspShumik/sklearn_bayes/archive/master.zip
     pip install --upgrade https://github.com/AmazaspShumik/sklearn_bayes/archive/master.zip
 
-
-### Further Work:
- - Dirichlet Process Mixture Models (Bernoulli, Poisson, Gaussian) using Variational Inference (should be finished by the end   of August).
- - Hierarchical Dirichlet Process (Stochastic Variational Inference, Variational Inference) (should be finished by the end of   August)
- - Still working on improving RVR stability (should finish it by the end of Spetember)
- - More tests
-
    
 ### Algorithms
  
 * [Linear Models](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/linear_models)
-     * Type II Maximum Likelihood Bayesian Linear Regression [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/linear_models/bayesian_regression.py)
-     * Type II Maximum Likelihood Bayesian Logistic Regression (uses Laplace Approximation)  [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/linear_models/bayesian_logistic.py)
-     * Variational Bayes Linear Regression  [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/linear_models/variational_regression.py)
-     * Variational Bayes Logististic Regression (uses local variational bounds) [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/linear_models/variational_logistic.py) 
+     * Empirical Bayes Linear Regression [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/linear_models/bayes_linear.py)
+     * Empirical Bayes Logistic Regression (uses Laplace Approximation)  [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/linear_models/bayes_logistic.py)
+     * Variational Bayes Linear Regression  [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/linear_models/bayes_linear.py)
+     * Variational Bayes Logististic Regression (uses Jordan local variational bound) [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/linear_models/bayes_logistic.py)
+* [Decomposition Models](https://github.com/AmazaspShumik/sklearn-bayes/tree/master/skbayes/decomposition_models)
+     * Latent Dirichlet Allocation (collapsed Gibbs Sampler) [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/decomposition_models/gibbs_lda_cython.pyx), [tutorial](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/ipython_notebooks_tutorials/decomposition_models/example_lda.ipynb)
+     * Restricted Boltzman Machines (PCD / CD, with L2 regularization)[code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/decomposition_models/rbm.py)
+     * Replicated Softmax Model (Categorical RBM for topic modeling)[code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/decomposition_models/rbm.py)
 * [ARD Models](https://github.com/AmazaspShumik/sklearn-bayes/tree/master/skbayes/rvm_ard_models)
      * Relevance Vector Regression (version 2.0) [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/rvm_ard_models/fast_rvm.py)
      * Relevance Vector Classifier (version 2.0) [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/rvm_ard_models/fast_rvm.py)
      * Type II Maximum Likelihood ARD Linear Regression  [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/rvm_ard_models/fast_rvm.py)
      * Type II Maximum Likelihood ARD Logistic Regression  [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/rvm_ard_models/fast_rvm.py)
      * Variational Relevance Vector Regression [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/skbayes/rvm_ard_models/vrvm.py)
-     * Variational Relevance Vector Regression [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/skbayes/rvm_ard_models/vrvm.py)
+     * Variational Relevance Vector Classification [code](https://github.com/AmazaspShumik/sklearn_bayes/blob/master/skbayes/rvm_ard_models/vrvm.py)
 * [Mixture Models](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/mixture_models)
      * Variational Bayes Gaussian Mixture Model with Automatic Model Selection [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/mixture_models/mixture.py), [tutorial](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/ipython_notebooks_tutorials/mixture_models/example_gaussian_mixture_with_ard.ipynb)
      * Variational Bayes Bernoulli Mixture Model [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/mixture_models/mixture.py), [tutorial](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/ipython_notebooks_tutorials/mixture_models/example_bernoulli_mixture.ipynb)
@@ -36,8 +33,6 @@
      * Variational Bayes Poisson Hidden Markov Model [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/hidden_markov_models/hmm.py), [demo](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/ipython_notebooks_tutorials/hidden_markov_models/examples_hmm.ipynb)
      * Variational Bayes Bernoulli Hidden Markov Model [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/hidden_markov_models/hmm.py)
      * Variational Bayes Gaussian Hidden Markov Model [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/hidden_markov_models/hmm.py), [demo](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/ipython_notebooks_tutorials/hidden_markov_models/examples_hmm.ipynb)
-* [Decomposition Models](https://github.com/AmazaspShumik/sklearn-bayes/tree/master/skbayes/decomposition_models)
-     * Latent Dirichlet Allocation (collapsed Gibbs Sampler) [code](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/skbayes/decomposition_models/gibbs_lda_cython.pyx), [tutorial](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/ipython_notebooks_tutorials/decomposition_models/example_lda.ipynb)
 
 ### Contributions:
 
