@@ -211,7 +211,7 @@ class BernoulliRBM(BaseRBM):
     n_components: int 
        Number of neurons in hidden layer
        
-    n_iter: int
+    n_iter: int, optional (DEFAULT = 5)
        Number of iterations (relevant only in case of using fit method, ignore
        if you are using partial_fit)
        
@@ -230,11 +230,9 @@ class BernoulliRBM(BaseRBM):
                                                     decreasing function of iterations
 
     momentum: float, optional (DEFAULT = 0.5, as is advised in [2]) 
-       
-             
+       Momentum for gradient descent update. Should be between 0 and 1.
 
-
-    batch_size: int, optional (DRFAULT = 100)
+    batch_size: int, optional (DEFAULT = 100)
        Number of examples per mini-batch (It is advised to set batch_size between
        10 and 100, do not make mini-batchs too large , see [2] for details)    
     
@@ -262,7 +260,7 @@ class BernoulliRBM(BaseRBM):
     
     '''
     
-    def __init__(self, n_components, n_iter=10, optimizer = 'pcd', learning_rate= 1e-2,
+    def __init__(self, n_components, n_iter=5, optimizer = 'pcd', learning_rate= 1e-2,
                  momentum = 0.5, batch_size=100, l2_penalty = 1e-3, n_gibbs_samples = 1,
                  verbose = False):
         # initialise through superclass
@@ -326,8 +324,8 @@ class BernoulliRBM(BaseRBM):
         
     def partial_fit(self,X):
         '''
-        Fit RBM to part of data. Use this method when you can not fit whole
-        dataset 
+        Fit RBM to part of data. Use this method when you can not fit the whole
+        dataset.
         
         Parameters
         ----------
@@ -414,19 +412,52 @@ class ReplicatedSoftmax(BaseRBM):
     
     Parameters
     ----------
+    n_components: int 
+       Number of neurons in hidden layer (Can be interpreted as number of topics)
+       
+    n_iter: int, optional (DEFAULT = 5)
+       Number of iterations (relevant only in case of using fit method, ignore
+       if you are using partial_fit)
+
+    learning_rate: float, optional (DEFAULT = 1e-2)
+       Scaling factor for gradient in momentum updates. Implementation It is not advised
+       to set large learning rate. Note that algorithm will automatically decrease
+       learning rate used in learning (so you provide only starting point)
+
+       v = momentum * v + f(learning_rate) * gradient
+       new_parameters = old_parameters + velocity 
+
+    momentum: float, optional (DEFAULT = 0.9, as is advised in [2]) 
+       Momentum for gradient descent update. Should be between 0 and 1.
+
+    batch_size: int, optional (DRFAULT = 100)
+       Number of examples per mini-batch (It is advised to set batch_size between
+       10 and 100, do not make mini-batchs too large , see [2] for details)    
+    
+    l2_penalty: float, optional (DEFAULT = 1e-5)
+       Standard L2 penalization, helps to avoid overfitting and improves mixing
+       rate for Gibbs Sampler (see [2] for details)
+    
+    n_gibbs_samples: int, optional (DEFAULT = 1)
+       Number of iteratins that gibbs sampler runs before update of parameters
     
     
     References
     ----------
+    [1] Replicated Softmax Model: an Undirected Topic Model 
+        ( Salakhutdinov and Hinton 2010 )
+        
+    [2] A Practical Guide to Training Restricted Boltzman Machines (Hinton 2010)
+        http://www.cs.toronto.edu/%7Ehinton/absps/guideTR.pdf
     
     '''
     
-    def __init__(self,n_components, n_iter=10, learning_rate=1e-2, momentum=0.9,
+    def __init__(self,n_components, n_iter=5, learning_rate=1e-2, momentum=0.9,
                  batch_size=100, l2_penalty=1e-3, n_gibbs_samples=1, verbose=False):
         super(ReplicatedSoftmax,self).__init__(n_components, n_iter, learning_rate, momentum,
                                           batch_size, l2_penalty, n_gibbs_samples, 
                                           verbose)
-
+    
     
     def _pv_h(self,H):
         ''' Computes conditional probability of visible layer given hidden '''
@@ -442,7 +473,7 @@ class ReplicatedSoftmax(BaseRBM):
         
         
     def _fit(self,X):
-        ''' '''
+        ''' Fit Replicated Softmax Model'''
         n_samples, n_features = X.shape
         self.n_words_ = np.asarray(X.sum(1)).squeeze()
         
@@ -460,13 +491,14 @@ class ReplicatedSoftmax(BaseRBM):
 
     def partial_fit(self,X):
         '''
-        Fit RBM to part of data. Use this method when you can not fit whole
-        dataset.
+        Fit Replicated Softmax Model to part of data. Use this method in case
+        you can not fit the whole dataset.
         
         Parameters
         ----------
-        X: {array-like or sparse matrix} of size (n_samples, n_features)
-           Data Matrix
+        X: {array-like or sparse matrix} of size (n_samples,n_features)
+           Term frequency matrix (i.e. X[i,j] - number of times word j appears
+           in document i)
            
         Returns
         -------
@@ -478,12 +510,13 @@ class ReplicatedSoftmax(BaseRBM):
         
     def fit(self,X):
         '''
-        Fit Restricted Boltzman Machines.
+        Fit Replicated Softmax Model.
         
         Parameters
         ----------
-        X: {array-like or sparse matrix} of size (n_samples, n_features)
-           Data Matrix
+        X: {array-like or sparse matrix} of size (n_samples,n_features)
+           Term frequency matrix (i.e. X[i,j] - number of times word j appears
+           in document i) 
            
         Returns
         -------
@@ -500,14 +533,15 @@ class ReplicatedSoftmax(BaseRBM):
         Parameteres
         -----------
         X: {array-like or sparse matrix} of size (n_samples,n_features)
-           term frequency matrix 
+           Term frequency matrix (i.e. X[i,j] - number of times word j appears
+           in document i)
            
         Returns
         -------
-        V: numpy array of size (n_samples,n_features)
-           Reconstruction of data (encoded to and then decoded from latent space)
+        : numpy array of size (n_samples,n_features)
+           Expected term frequency matrix (TF matrix obtain after reconstruction)
         '''
-        probs = super(ReplicatedSoftmax,self).reconstruct(X)
+        probs = super(ReplicatedSoftmax,self)._reconstruct_probs(X)
         if issparse(X):
             return probs*np.asarray(X.sum(1))
         return probs * np.sum(X,1,keepdims = True)
@@ -518,23 +552,23 @@ if __name__ == "__main__":
     import pandas as pd
     data = np.asarray(pd.read_csv('digits.csv'))
     
-#    rbm = BernoulliRBM(n_components = 900, batch_size = 10, optimizer = 'cd')
-#    for i in xrange(20):
-#        x = data[np.random.randint(0,299,100),:]
-#        rbm.partial_fit(x)
-#    
-#    v = rbm.reconstruct(data[0:3,:])
-#    
-#    import matplotlib.pyplot as plt
-#    from matplotlib import cm
-#    import matplotlib
-#    
-#    fig, axes = plt.subplots(nrows=3, ncols=1, figsize = (40,16))
-#    for i,ax in enumerate(axes):
-#        im = ax.imshow(np.reshape(v[i,:],(28,28)), vmin=0, vmax=1, cmap = cm.coolwarm)
-#        cax,kw = matplotlib.colorbar.make_axes(ax)
-#        plt.colorbar(im, cax = cax)
-#    plt.show()
+    rbm = BernoulliRBM(n_components = 900, batch_size = 10, optimizer = 'cd')
+    for i in xrange(20):
+        x = data[np.random.randint(0,299,100),:]
+        rbm.partial_fit(x)
+    
+    v = rbm.reconstruct(data[0:3,:])
+    
+    import matplotlib.pyplot as plt
+    from matplotlib import cm
+    import matplotlib
+    
+    fig, axes = plt.subplots(nrows=3, ncols=1, figsize = (40,16))
+    for i,ax in enumerate(axes):
+        im = ax.imshow(np.reshape(v[i,:],(28,28)), vmin=0, vmax=1, cmap = cm.coolwarm)
+        cax,kw = matplotlib.colorbar.make_axes(ax)
+        plt.colorbar(im, cax = cax)
+    plt.show()
     
     
     topic_one   = [0.05,0.05,0.05,0.05,0.4,0.4]
@@ -566,8 +600,8 @@ if __name__ == "__main__":
     from sklearn.datasets import fetch_20newsgroups
     from sklearn.feature_extraction.text import CountVectorizer
     from sklearn.decomposition import LatentDirichletAllocation
-    #dataset = fetch_20newsgroups(shuffle=True, random_state=1,
-    #                         remove=('headers', 'footers', 'quotes'))
+    dataset = fetch_20newsgroups(shuffle=True, random_state=1,
+                             remove=('headers', 'footers', 'quotes'))
     data_samples = dataset.data[:n_samples]
     data_targets = dataset.target[:n_samples]
     #data_target_names = dataset.target_names[data_targets]
