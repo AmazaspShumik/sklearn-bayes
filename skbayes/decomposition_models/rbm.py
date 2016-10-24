@@ -169,11 +169,11 @@ class BaseRBM(BaseEstimator,TransformerMixin):
         return self
         
         
-    def _reconstruct_probs(self,X):
-        ''' Perfroms following computation: X -> ph_v -> pv_h'''
+    def _reconstruct_probs(self,H):
+        ''' Perfroms following computation: ph_v -> pv_h'''
         check_is_fitted(self,'weights_')
-        X = check_array(X,accept_sparse=['csr'])
-        H = self._ph_v(X) >= 0.5
+        H = check_array(H,accept_sparse=['csr'])
+        H = (H >= 0.5) * 1
         V = self._pv_h(H)
         return V
     
@@ -357,16 +357,16 @@ class BernoulliRBM(BaseRBM):
         return self._general_fit(X)
         
         
-    def reconstruct(self,X):
+    def reconstruct(self,H):
         '''
-        Deterministic method of reconstructing input data. Data are at first 
-        propagated to hidden layer and then propagated back to visible layer.
-        X --> p( Hidden | Visible ) --> p(Visible | Hidden)
+        Deterministic method of reconstructing input data from latent space 
+        represenatation.
+        p( Hidden | Visible ) -->  Binary Hidden --> p(Visible | Hidden)
         
         Parameteres
         -----------
-        X: {array-like or sparse matrix} of size (n_samples,n_features)
-           Data Matrix
+        H: {array-like or sparse matrix} of size (n_samples,n_components)
+           Latent space representation of data
            
         Returns
         -------
@@ -374,7 +374,7 @@ class BernoulliRBM(BaseRBM):
            Probability of activation for each visible neuron after decoding
            from hidden layer representation.
         '''
-        return self._reconstruct_probs(X)
+        return self._reconstruct_probs(H)
         
     
     def sample(self, X, k = 1):
@@ -526,23 +526,24 @@ class ReplicatedSoftmax(BaseRBM):
         return self._general_fit(X)
 
         
-    def reconstruct(self,X):
+    def reconstruct(self,H):
         '''
         Deterministic method of reconstructing document word matrix
         
         Parameteres
         -----------
-        X: {array-like or sparse matrix} of size (n_samples,n_features)
-           Term frequency matrix (i.e. X[i,j] - number of times word j appears
-           in document i)
+        H: {array-like or sparse matrix} of size (n_samples,n_features)
+           Latent space representation of term frequency matrix
            
         Returns
         -------
         : numpy array of size (n_samples,n_features)
-           Expected term frequency matrix (TF matrix obtain after reconstruction)
+           Matrix of probabilities for words in each document (so element [i,j] of 
+           returned matrix represents proportion of word j in document i). In order
+           to obtain expected term frequency matrix, you will  need to multiply each
+           row of obtained matrix by document length.
         '''
-        probs = super(ReplicatedSoftmax,self)._reconstruct_probs(X)
-        if issparse(X):
-            return probs*np.asarray(X.sum(1))
-        return probs * np.sum(X,1,keepdims = True)
+        probs = super(ReplicatedSoftmax,self)._reconstruct_probs(H)
+        return probs
         
+
