@@ -204,7 +204,7 @@ class BaseRBM(BaseEstimator,TransformerMixin):
         
 class BernoulliRBM(BaseRBM):
     '''
-    Restricted Boltzman Machine with Bernoulli visible units
+    Restricted Boltzmann Machine with Bernoulli visible units
     
     Parameters
     ----------
@@ -246,13 +246,13 @@ class BernoulliRBM(BaseRBM):
      
     References
     ----------
-    [1] Training Restricted Boltzman Machines Using Approximation to Likelihood
+    [1] Training Restricted Boltzmann Machines Using Approximation to Likelihood
         Gradient (Tieleman 2008)
     
-    [2] A Practical Guide to Training Restricted Boltzman Machines (Hinton 2010)
+    [2] A Practical Guide to Training Restricted Boltzmann Machines (Hinton 2010)
         http://www.cs.toronto.edu/%7Ehinton/absps/guideTR.pdf
         
-    [3] Introduction to Restricted Boltzman Machines (Fishcer & Igel 2010)
+    [3] Introduction to Restricted Boltzmann Machines (Fishcer & Igel 2010)
         http://image.diku.dk/igel/paper/AItRBM-proof.pdf
     
     [4] Machine Learning A Probabilistic View (Kevin Murphy 2012)
@@ -342,7 +342,7 @@ class BernoulliRBM(BaseRBM):
         
     def fit(self,X):
         '''
-        Fit Restricted Boltzman Machines.
+        Fit Restricted Boltzmann Machines.
         
         Parameters
         ----------
@@ -407,7 +407,7 @@ class ReplicatedSoftmax(BaseRBM):
     '''
     Replicated Softmax Model (Undirected Topic Model)
     
-    Categorical Restricted Boltzman Machine with shared weights for each 
+    Categorical Restricted Boltzmann Machine with shared weights for each 
     hidden unit.
     
     Parameters
