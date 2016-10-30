@@ -1,7 +1,8 @@
 import numpy as np
 from sklearn.base import RegressorMixin
 from sklearn.linear_model.base import LinearModel
-from sklearn.utils import check_X_y
+from sklearn.utils import check_X_y, check_array, as_float_array
+from sklearn.utils.validation import check_is_fitted
 from scipy.linalg import svd
 import warnings
 
@@ -9,23 +10,9 @@ import warnings
 
 class BayesianLinearRegression(RegressorMixin,LinearModel):
     '''
-    Base class for Bayesian Linear Regression
-    
-    Parameters:
-    -----------
-    n_iter: int, optional (DEFAULT = 100)
-       Maximum number of iterations for KL minimization
-
-    tol: float, optional (DEFAULT = 1e-3)
-       Convergence threshold
-       
-    fit_intercept: bool, optional (DEFAULT = True)
-       If True will use bias term in model fitting
-       
-    verbose: bool, optional (Default = False)
-       If True at each iteration progress report is printed out
+    Superclass for Empirical Bayes and Variational Bayes implementations of 
+    Bayesian Linear Regression Model
     '''
-    
     def __init__(self, n_iter, tol, fit_intercept,copy_X, verbose):
         self.n_iter        = n_iter
         self.fit_intercept = fit_intercept
@@ -40,6 +27,22 @@ class BayesianLinearRegression(RegressorMixin,LinearModel):
         distribution of weights
         '''
         return np.sum(abs(mu-mu_old)>self.tol) == 0
+        
+        
+    def _center_data(self,X,y):
+        ''' Centers data'''
+        X     = as_float_array(X,self.copy_X)
+        # normalisation should be done in preprocessing!
+        X_std = np.ones(X.shape[1], dtype = X.dtype)
+        if self.fit_intercept:
+            X_mean = np.average(X,axis = 0)
+            y_mean = np.average(y,axis = 0)
+            X     -= X_mean
+            y      = y - y_mean
+        else:
+            X_mean = np.zeros(X.shape[1],dtype = X.dtype)
+            y_mean = 0. if y.ndim == 1 else np.zeros(y.shape[1], dtype=X.dtype)
+        return X,y, X_mean, y_mean, X_std
         
         
     def predict_dist(self,X):
@@ -63,6 +66,7 @@ class BayesianLinearRegression(RegressorMixin,LinearModel):
             var_pred: numpy array of size (n_test_samples,)
                       Variance of predictive distribution        
         '''
+        # Note check_array and check_is_fitted are done within self._decision_function(X)
         mu_pred     = self._decision_function(X)
         data_noise  = 1./self.beta_
         model_noise = np.sum(np.dot(X,self.eigvecs_)**2 * self.eigvals_,1)
@@ -101,6 +105,9 @@ class EBLinearRegression(BayesianLinearRegression):
        Initial value of precision paramter for coefficients ( by default we define 
        very broad distribution )
        
+    copy_X : boolean, optional (DEFAULT = True)
+        If True, X will be copied, otherwise will be 
+        
     verbose: bool, optional (Default = False)
        If True at each iteration progress report is printed out
     
@@ -128,7 +135,7 @@ class EBLinearRegression(BayesianLinearRegression):
     
     def __init__(self,n_iter = 300, tol = 1e-3, optimizer = 'fp', fit_intercept = True,
                  perfect_fit_tol = 1e-6, alpha = 1, copy_X = True, verbose = False):
-        super(EBLinearRegression,self).__init__(n_iter, tol, fit_intercept,copy_X, verbose)
+        super(EBLinearRegression,self).__init__(n_iter, tol, fit_intercept, copy_X, verbose)
         if optimizer not in ['em','fp']:
             raise ValueError('Optimizer can be either "em" of "fp" ')
         self.optimizer     =  optimizer 
@@ -159,8 +166,7 @@ class EBLinearRegression(BayesianLinearRegression):
         # preprocess data
         X, y = check_X_y(X, y, dtype=np.float64, y_numeric=True)
         n_samples, n_features = X.shape
-        X, y, X_mean, y_mean, X_std = self._center_data(X, y, self.fit_intercept,
-                                                        False, self.copy_X)
+        X, y, X_mean, y_mean, X_std = self._center_data(X, y)
         #  precision of noise & and coefficients
         alpha   =  self.alpha
         var_y  = np.var(y)
@@ -206,7 +212,7 @@ class EBLinearRegression(BayesianLinearRegression):
                 beta       =  ( n_samples - gamma ) / (sqdErr + np.finfo(np.float32).eps )
             else:             
                 # M-step, update parameters alpha and beta to maximize ML TYPE II
-                eigvals    = 1/(beta * dsq + alpha)
+                eigvals    = 1. / (beta * dsq + alpha)
                 alpha      = n_features / ( np.sum(mu**2) + np.sum(1/eigvals) )
                 beta       = n_samples / ( sqdErr + np.sum(dsq/eigvals) )
 
@@ -333,8 +339,7 @@ class VBLinearRegression(BayesianLinearRegression):
         # preprocess data
         X, y = check_X_y(X, y, dtype=np.float64, y_numeric=True)
         n_samples, n_features = X.shape
-        X, y, X_mean, y_mean, X_std = self._center_data(X, y, self.fit_intercept,
-                                                        False,self.copy_X)        
+        X, y, X_mean, y_mean, X_std = self._center_data(X, y)        
         # SVD decomposition, done once , reused at each iteration
         u,D,vt = svd(X, full_matrices = False)
         dsq    = D**2
@@ -354,7 +359,7 @@ class VBLinearRegression(BayesianLinearRegression):
             e_beta       = gamma_mean(c,d)
             e_alpha      = gamma_mean(a,b)
             mu_old       = np.copy(mu)
-            mu,eigvals   = self._posterior_weights(e_beta, e_alpha,UY,dsq,u,vt,D,X)
+            mu,eigvals   = self._posterior_weights(e_beta,e_alpha,UY,dsq,u,vt,D,X)
             
             # update parameters of distribution Q(precision of weights) 
             b            = self.b + 0.5*( np.sum(mu**2) + np.sum(eigvals))
@@ -396,9 +401,10 @@ class VBLinearRegression(BayesianLinearRegression):
         # mean of approximate posterior distribution
         n_samples, n_features = X.shape
         if n_samples > n_features:
-             mu =  vt.T *  d/(dsq+e_alpha/e_beta) 
+             mu =  vt.T *  d/(dsq + e_alpha/e_beta)# + np.finfo(np.float64).eps) 
         else:
-             mu =  u * 1./(dsq + e_alpha/e_beta)
+             mu =  u * 1./(dsq + e_alpha/e_beta)# + np.finfo(np.float64).eps)
              mu =  np.dot(X.T,mu)
         mu =  np.dot(mu,UY)
         return mu,sigma
+        
