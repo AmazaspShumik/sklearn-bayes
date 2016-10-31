@@ -70,7 +70,7 @@ class VBRegressionARD(LinearModel,RegressorMixin):
     [3] Bishop (2006) Pattern Recognition and Machine Learning (ch. 7)
     '''
     def __init__(self,  n_iter = 100, tol = 1e-3, fit_intercept = True,
-                 a = 1e-6, b = 1e-6, c = 1e-6, d = 1e-6, copy_X = True, 
+                 a = 1e-5, b = 1e-5, c = 1e-5, d = 1e-5, copy_X = True, 
                  prune_thresh = 1e-3, verbose = False):
         self.n_iter          = n_iter
         self.tol             = tol
@@ -299,7 +299,7 @@ class VBClassificationARD(LinearClassifierMixin, BaseEstimator):
     b: float, optional (DEFAULT = 1e-6)
        Shape parameter for Gamma prior on precision parameter of coefficients
        
-    prune_thresh: float, optional (DEFAULT = 1e-5)
+    prune_thresh: float, optional (DEFAULT = 1e-4)
        Threshold for pruning out variable (applied after model is fitted)
     
     verbose: bool, optional (DEFAULT = False)
@@ -324,9 +324,9 @@ class VBClassificationARD(LinearClassifierMixin, BaseEstimator):
 
     References:
     -----------
-    Bishop 2006, Pattern Recognition and Machine Learning ( Chapter 7,10 )
-    Murphy 2012, Machine Learning A Probabilistic Perspective ( Chapter 14,21 )
-    Bishop & Tipping 2000, Variational Releveance Vector Machine
+    [1] Bishop 2006, Pattern Recognition and Machine Learning ( Chapter 7,10 )
+    [2] Murphy 2012, Machine Learning A Probabilistic Perspective ( Chapter 14,21 )
+    [3] Bishop & Tipping 2000, Variational Relevance Vector Machine
     '''
     def __init__(self,  n_iter = 100, tol = 1e-3, fit_intercept = True,
                  a = 1e-5, b = 1e-5, prune_thresh = 1e-4, verbose = True):
