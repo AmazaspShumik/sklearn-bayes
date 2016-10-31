@@ -8,7 +8,7 @@ from sklearn.utils import check_X_y,check_array
 from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.utils.validation import check_is_fitted
 from sklearn.utils.multiclass import check_classification_targets
-
+from sklearn.utils import as_float_array
 import warnings
 
 
@@ -22,16 +22,14 @@ class VBRegressionARD(LinearModel,RegressorMixin):
         Maximum number of iterations
 
     fit_intercept : boolean, optional (DEFAULT = True)
-        whether to calculate the intercept for this model. If set
-        to false, no intercept will be used in calculations
-        (e.g. data is expected to be already centered)
+        If True, intercept will be used in computation
         
     tol: float, optional (DEFAULT = 1e-3)
         If absolute change in precision parameter for weights is below threshold
         algorithm terminates.
         
     copy_X : boolean, optional (DEFAULT = True)
-        If True, X will be copied; else, it may be overwritten.
+        If True, X will be copied, otherwise it will be overwritten.
         
     verbose : boolean, optional (DEFAULT = True)
         Verbose mode when fitting the model 
@@ -63,27 +61,41 @@ class VBRegressionARD(LinearModel,RegressorMixin):
     sigma_ : array, shape = (n_features, n_features)
         Estimated covariance matrix of the weights, computed only
          for non-zero coefficients
-    
        
     Reference:
     ----------
-    Bishop & Tipping (2000), Variational Relevance Vector Machines
-    Jan Drugowitch (2014), Variational Bayesian Inference for Bayesian Linear 
+    [1] Bishop & Tipping (2000), Variational Relevance Vector Machine
+    [2] Jan Drugowitch (2014), Variational Bayesian Inference for Bayesian Linear 
                            and Logistic Regression
-    Bishop & Tipping 2000, Variational Releveance Vector Machine    
+    [3] Bishop (2006) Pattern Recognition and Machine Learning (ch. 7)
     '''
-    def __init__(self,  n_iter = 100, tol = 1e-3, fit_intercept = True, normalize = False,
-                 a = 1e-5, b = 1e-5, c = 1e-5, d = 1e-5, copy_X = True, prune_thresh = 1e-3,
-                 verbose = False):
+    def __init__(self,  n_iter = 100, tol = 1e-3, fit_intercept = True,
+                 a = 1e-6, b = 1e-6, c = 1e-6, d = 1e-6, copy_X = True, 
+                 prune_thresh = 1e-3, verbose = False):
         self.n_iter          = n_iter
         self.tol             = tol
         self.fit_intercept   = fit_intercept
         self.a,self.b        = a,b
         self.c,self.d        = c,d
-        self.normalize       = normalize
         self.copy_X          = copy_X
         self.verbose         = verbose
         self.prune_thresh    = prune_thresh
+        
+        
+    def _center_data(self,X,y):
+        ''' Centers data'''
+        X     = as_float_array(X,self.copy_X)
+        # normalisation should be done in preprocessing!
+        X_std = np.ones(X.shape[1], dtype = X.dtype)
+        if self.fit_intercept:
+            X_mean = np.average(X,axis = 0)
+            y_mean = np.average(y,axis = 0)
+            X     -= X_mean
+            y      = y - y_mean
+        else:
+            X_mean = np.zeros(X.shape[1],dtype = X.dtype)
+            y_mean = 0. if y.ndim == 1 else np.zeros(y.shape[1], dtype=X.dtype)
+        return X,y, X_mean, y_mean, X_std
         
         
     def fit(self,X,y):
@@ -106,24 +118,22 @@ class VBRegressionARD(LinearModel,RegressorMixin):
         # precompute some values for faster iterations 
         X, y = check_X_y(X, y, dtype=np.float64, y_numeric=True)
         n_samples, n_features = X.shape
-        X, y, X_mean, y_mean, X_std = self._center_data(X, y, self.fit_intercept,
-                                                        self.normalize, self.copy_X)
+        X, y, X_mean, y_mean, X_std = self._center_data(X, y)
         XX               = np.dot(X.T,X)
         XY               = np.dot(X.T,y)
         Y2               = np.sum(y**2)
         
         # final update for a and c
         a        = (self.a + 0.5) * np.ones(n_features, dtype = np.float)
-        c        = (self.c + 0.5 * n_samples) * np.ones(n_features, dtype = np.float)
+        c        = (self.c + 0.5 * n_samples) #* np.ones(n_features, dtype = np.float)
         # initial values of b,d before mean field approximation
-        d        = self.d * np.ones(n_features, dtype = np.float)
+        d        = self.d #* np.ones(n_features, dtype = np.float)
         b        = self.b * np.ones(n_features, dtype = np.float)
         active   = np.ones(n_features, dtype = np.bool)
         w0       = np.zeros(n_features) 
         w        = np.copy(w0)
         
         for i in range(self.n_iter):
-            
             # ----------------------  update q(w) -----------------------
             
             # calculate expectations for precision of noise & precision of weights
@@ -133,7 +143,7 @@ class VBRegressionARD(LinearModel,RegressorMixin):
             XYa     = XY[active]
             Xa      = X[:,active]
             # parameters of updated posterior distribution
-            w[active],Ri  = self._posterior_weights(XXa,XYa,e_tau[active],e_A[active])
+            w[active],Ri  = self._posterior_weights(XXa,XYa,e_tau,e_A[active])
                 
             # --------------------- update q(tau) ------------------------
             # update rate parameter for Gamma distributed precision of noise 
@@ -172,7 +182,7 @@ class VBRegressionARD(LinearModel,RegressorMixin):
         e_A           = a / b 
         XXa           = XX[active,:][:,active]
         XYa           = XY[active]
-        w[active], self.sigma_ = self._posterior_weights(XXa,XYa,e_tau[active],e_A[active],True)
+        w[active], self.sigma_ = self._posterior_weights(XXa,XYa,e_tau,e_A[active],True)
         self._e_tau_  = e_tau        
         self.coef_    = w
         self._set_intercept(X_mean,y_mean,X_std)
@@ -508,3 +518,4 @@ class VBClassificationARD(LinearClassifierMixin, BaseEstimator):
             return mean_ , sigma_
         else:
             return mean_ , Ri
+
