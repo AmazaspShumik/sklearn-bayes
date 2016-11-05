@@ -1,5 +1,4 @@
-##                                 Python package for Bayesian Machine Learning 
-##                                           with scikit-learn API
+##                        Python package for Bayesian Machine Learning with scikit-learn API
 
 
 ### Installing & Upgrading package
