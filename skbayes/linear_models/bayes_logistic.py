@@ -14,25 +14,8 @@ from sklearn.linear_model.logistic import ( _logistic_loss_and_grad, _logistic_l
 
 class BayesianLogisticRegression(LinearClassifierMixin, BaseEstimator):
     '''
-    Bayesian Logistic Regression
-    
-    Parameters
-    ----------
-    n_iter: int, optional (DEFAULT = 300)
-        Maximum number of iterations before termination
-        
-    tol: float, optional (DEFAULT = 1e-3)
-        If absolute change in precision parameter for weights is below threshold
-        algorithm terminates.
-
-    fit_intercept : bool, optional ( DEFAULT = True )
-        If True will use intercept in the model. If set
-        to false, no intercept will be used in calculations
-        
-    verbose : boolean, optional (DEFAULT = True)
-        Verbose mode when fitting the model
-    '''
-    
+    Superclass for two different implementations of Bayesian Logistic Regression
+    ''' 
     def __init__(self, n_iter, tol, fit_intercept, verbose):
         self.n_iter        = n_iter
         self.tol           = tol
@@ -202,7 +185,7 @@ class EBLogisticRegression(BayesianLogisticRegression):
     
     References:
     -----------
-    Pattern Recognition and Machine Learning, Bishop (2006) (pages 293 - 294)
+    [1] Pattern Recognition and Machine Learning, Bishop (2006) (pages 293 - 294)
     '''
     
     def __init__(self, n_iter = 50, tol = 1e-3,solver = 'lbfgs_b',n_iter_solver = 15,
@@ -300,8 +283,8 @@ class EBLogisticRegression(BayesianLogisticRegression):
         R     = s * (1 - s)
         Hess  = np.dot(X.T*R,X)    
         Alpha = np.ones(n_features)*alpha0
-        #if self.fit_intercept:
-        #    Alpha[-1] = np.finfo(np.float64).eps
+        if self.fit_intercept:
+            Alpha[-1] = np.finfo(np.float16).eps
         np.fill_diagonal(Hess, np.diag(Hess) + Alpha)
         e  =  eigvalsh(Hess)        
         return w,1./e
@@ -359,8 +342,8 @@ class VBLogisticRegression(BayesianLogisticRegression):
 
     References:
     -----------
-    Bishop 2006, Pattern Recognition and Machine Learning ( Chapter 10 )
-    Murphy 2012, Machine Learning A Probabilistic Perspective ( Chapter 21 )
+   [1] Bishop 2006, Pattern Recognition and Machine Learning ( Chapter 10 )
+   [2] Murphy 2012, Machine Learning A Probabilistic Perspective ( Chapter 21 )
     '''
     def __init__(self,  n_iter = 50, tol = 1e-3, fit_intercept = True,
                  a = 1e-4, b = 1e-4, verbose = True):
@@ -438,7 +421,7 @@ class VBLogisticRegression(BayesianLogisticRegression):
         sigma_inv  = 2*np.dot(X.T*l,X)
         alpha_vec  = np.ones(X.shape[1])*float(a) / b
         if self.fit_intercept:
-            alpha_vec[0] = np.finfo(np.float64).eps
+            alpha_vec[0] = np.finfo(np.float16).eps
         np.fill_diagonal(sigma_inv, np.diag(sigma_inv) + alpha_vec)
         R     = np.linalg.cholesky(sigma_inv)
         Z     = solve_triangular(R,XY, lower = True)
