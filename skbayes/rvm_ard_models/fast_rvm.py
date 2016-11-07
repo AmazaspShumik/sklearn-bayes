@@ -1,23 +1,23 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 from sklearn.base import RegressorMixin, BaseEstimator
 from sklearn.linear_model.base import LinearModel, LinearClassifierMixin
-from sklearn.utils import check_X_y,check_array
+from sklearn.utils import check_X_y,check_array,as_float_array
 from sklearn.utils.multiclass import check_classification_targets
-from sklearn.utils.extmath import pinvh,log_logistic
+from sklearn.utils.extmath import pinvh,log_logistic,safe_sparse_dot 
 from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.utils.validation import check_is_fitted
 from scipy.special import expit
 from scipy.optimize import fmin_l_bfgs_b
 from scipy.linalg import solve_triangular
 from scipy.stats import logistic
-from sklearn.utils.optimize import newton_cg
+from numpy.linalg import LinAlgError
 import scipy.sparse
 import warnings
 
+#TODO: predict_proba for RVC with Laplace Approximation
 
-def update_precisions(Q,S,q,s,A,active,tol, clf_bias = True):
+
+def update_precisions(Q,S,q,s,A,active,tol,n_samples,clf_bias):
     '''
     Selects one feature to be added/recomputed/deleted to model based on 
     effect it will have on value of log marginal likelihood.
@@ -39,14 +39,14 @@ def update_precisions(Q,S,q,s,A,active,tol, clf_bias = True):
     
     # compute new alpha's (precision parameters) for features that are 
     # currently in model and will be recomputed
-    Anew           = s[recompute]**2/theta[recompute]
+    Anew           = s[recompute]**2/ ( theta[recompute] + np.finfo(np.float32).eps)
     delta_alpha    = (1./Anew - 1./Arec)
     
     # compute change in log marginal likelihood 
     deltaL[add]       = ( Qadd**2 - Sadd ) / Sadd + np.log(Sadd/Qadd**2 )
     deltaL[recompute] = Qrec**2 / (Srec + 1. / delta_alpha) - np.log(1 + Srec*delta_alpha)
     deltaL[delete]    = Qdel**2 / (Sdel - Adel) - np.log(1 - Sdel / Adel)
-    
+    deltaL            = deltaL  / n_samples
     
     # find feature which caused largest change in likelihood
     feature_index = np.argmax(deltaL)
@@ -57,9 +57,9 @@ def update_precisions(Q,S,q,s,A,active,tol, clf_bias = True):
     # changes in precision for features already in model is below threshold
     no_delta       = np.sum( abs( Anew - Arec ) > tol ) == 0
     
-    # check convergence: if features to add or delete and small change in 
+    # check convergence: if no features to add or delete and small change in 
     #                    precision for current features then terminate
-    converged      = False
+    converged = False
     if same_features and no_delta:
         converged = True
         return [A,converged]
@@ -70,13 +70,15 @@ def update_precisions(Q,S,q,s,A,active,tol, clf_bias = True):
         if active[feature_index] == False:
             active[feature_index] = True
     else:
-        if not clf_bias:
-            active_min = 1
+        if clf_bias:
+            active_min = 2
         else:
             active_min = 2
-        if active[feature_index] == True and np.sum(active) > active_min:
-            active[feature_index] = False
-            A[feature_index]      = np.PINF
+        if active[feature_index] == True and np.sum(active) >= active_min:
+            if not (feature_index == 0 and clf_bias):
+               active[feature_index] = False
+               A[feature_index]      = np.PINF
+                
     return [A,converged]
 
 
@@ -90,8 +92,8 @@ def update_precisions(Q,S,q,s,A,active,tol, clf_bias = True):
 
 class RegressionARD(LinearModel,RegressorMixin):
     '''
-    Regression with Automatic Relevance Determination. 
-    
+    Regression with Automatic Relevance Determination (Fast Version uses 
+    Sparse Bayesian Learning)
     
     Parameters
     ----------
@@ -101,19 +103,11 @@ class RegressionARD(LinearModel,RegressorMixin):
     tol: float, optional (DEFAULT = 1e-3)
         If absolute change in precision parameter for weights is below threshold
         algorithm terminates.
-    
-    perfect_fit_tol: float, optional (DEFAULT = 1e-4)
-        Algortihm terminates in case MSE on training set is below perfect_fit_tol.
-        Helps to prevent overflow of precision parameter for noise in case of
-        nearly perfect fit.
-
+        
     fit_intercept : boolean, optional (DEFAULT = True)
         whether to calculate the intercept for this model. If set
         to false, no intercept will be used in calculations
         (e.g. data is expected to be already centered).
-        
-    normalize : boolean, optional (DEFAULT = False)
-        If True, the regressors X will be normalized before regression
         
     copy_X : boolean, optional (DEFAULT = True)
         If True, X will be copied; else, it may be overwritten.
@@ -138,33 +132,43 @@ class RegressionARD(LinearModel,RegressorMixin):
        
     sigma_ : array, shape = (n_features, n_features)
         estimated covariance matrix of the weights, computed only
-        for non-zero coefficients      
-
-
-    Examples
-    --------
-    >>> clf = RegressionARD()
-    >>> clf.fit([[0,0], [1, 1], [2, 2]], [0, 1, 2])
-    ... # doctest: +NORMALIZE_WHITESPACE
-    RegressionARD(compute_score=False, copy_X=True, fit_intercept=True, n_iter=100,
-       normalize=False, perfect_fit_tol=0.001, verbose=False)
-    >>> clf.predict([[1, 1]])
-    array([ 1.])
+        for non-zero coefficients  
+       
+       
+    References
+    ----------
+    [1] Fast marginal likelihood maximisation for sparse Bayesian models (Tipping & Faul 2003)
+        (http://www.miketipping.com/papers/met-fastsbl.pdf)
+    [2] Analysis of sparse Bayesian learning (Tipping & Faul 2001)
+        (http://www.miketipping.com/abstracts.htm#Faul:NIPS01)
         
     '''
     
-    def __init__( self, n_iter = 300, tol = 1e-1, perfect_fit_tol = 1e-3, 
-                  fit_intercept = True, normalize = False, copy_X = True,
-                  verbose = False):
+    def __init__( self, n_iter = 300, tol = 1e-3, fit_intercept = True, 
+                  copy_X = True, verbose = False):
         self.n_iter          = n_iter
         self.tol             = tol
-        self.perfect_fit_tol = perfect_fit_tol
         self.scores_         = list()
         self.fit_intercept   = fit_intercept
-        self.normalize       = normalize
         self.copy_X          = copy_X
         self.verbose         = verbose
-    
+        
+        
+    def _center_data(self,X,y):
+        ''' Centers data'''
+        X     = as_float_array(X,self.copy_X)
+        # normalisation should be done in preprocessing!
+        X_std = np.ones(X.shape[1], dtype = X.dtype)
+        if self.fit_intercept:
+            X_mean = np.average(X,axis = 0)
+            y_mean = np.average(y,axis = 0)
+            X     -= X_mean
+            y      = y - y_mean
+        else:
+            X_mean = np.zeros(X.shape[1],dtype = X.dtype)
+            y_mean = 0. if y.ndim == 1 else np.zeros(y.shape[1], dtype=X.dtype)
+        return X,y, X_mean, y_mean, X_std
+        
         
     def fit(self,X,y):
         '''
@@ -172,7 +176,7 @@ class RegressionARD(LinearModel,RegressorMixin):
         
         Parameters
         -----------
-        X: {array-like, sparse matrix} of size [n_samples, n_features]
+        X: {array-like, sparse matrix} of size (n_samples, n_features)
            Training data, matrix of explanatory variables
         
         y: array-like of size [n_samples, n_features] 
@@ -184,14 +188,8 @@ class RegressionARD(LinearModel,RegressorMixin):
             Returns self.
         '''
         X, y = check_X_y(X, y, dtype=np.float64, y_numeric=True)
+        X, y, X_mean, y_mean, X_std = self._center_data(X, y)
         n_samples, n_features = X.shape
-
-        
-        X, y, X_mean, y_mean, X_std = self._center_data(X, y, self.fit_intercept,
-                                                        self.normalize, self.copy_X)
-        self._x_mean_ = X_mean
-        self._y_mean  = y_mean
-        self._x_std   = X_std
 
         #  precompute X'*Y , X'*X for faster iterations & allocate memory for
         #  sparsity & quality vectors
@@ -201,6 +199,7 @@ class RegressionARD(LinearModel,RegressorMixin):
 
         #  initialise precision of noise & and coefficients
         var_y  = np.var(y)
+        
         # check that variance is non zero !!!
         if var_y == 0 :
             beta = 1e-2
@@ -210,9 +209,10 @@ class RegressionARD(LinearModel,RegressorMixin):
         A      = np.PINF * np.ones(n_features)
         active = np.zeros(n_features , dtype = np.bool)
         
-        # in case of perfect multicollinearity start from first feature
-        if np.sum(XXd==0) > 0:
-            A[0]       = 1e-3
+        # in case of almost perfect multicollinearity between some features
+        # start from feature 0
+        if np.sum( XXd - X_mean**2 < np.finfo(np.float32).eps ) > 0:
+            A[0]       = np.finfo(np.float16).eps
             active[0]  = True
         else:
             # start from a single basis vector with largest projection on targets
@@ -220,37 +220,41 @@ class RegressionARD(LinearModel,RegressorMixin):
             start = np.argmax(proj)
             active[start] = True
             A[start]      = XXd[start]/( proj[start] - var_y)
-
-
+ 
+        warning_flag = 0
         for i in range(self.n_iter):
-            
             XXa     = XX[active,:][:,active]
             XYa     = XY[active]
             Aa      =  A[active]
             
             # mean & covariance of posterior distribution
-            Mn,Ri  = self._posterior_dist(Aa,beta,XXa,XYa)
-            Sdiag  = np.sum(Ri**2,0)
+            Mn,Ri,cholesky  = self._posterior_dist(Aa,beta,XXa,XYa)
+            if cholesky:
+                Sdiag  = np.sum(Ri**2,0)
+            else:
+                Sdiag  = np.copy(np.diag(Ri)) 
+                warning_flag += 1
             
+            # raise warning in case cholesky failes
+            if warning_flag == 1:
+                warnings.warn(("Cholesky decomposition failed ! Algorithm uses pinvh, "
+                               "which is significantly slower, if you use RVR it "
+                               "is advised to change parameters of kernel"))
+                
             # compute quality & sparsity parameters            
-            s,q,S,Q = self._sparsity_quality(XX,XXd,XY,XYa,Aa,Ri,active,beta)
+            s,q,S,Q = self._sparsity_quality(XX,XXd,XY,XYa,Aa,Ri,active,beta,cholesky)
                 
             # update precision parameter for noise distribution
             rss     = np.sum( ( y - np.dot(X[:,active] , Mn) )**2 )
-            # if near perfect fit , them terminate
-            if rss / n_samples < self.perfect_fit_tol:
-                warnings.warn('Early termination due to near perfect fit')
-                break
             beta    = n_samples - np.sum(active) + np.sum(Aa * Sdiag )
-            beta   /= rss
+            beta   /= ( rss + np.finfo(np.float32).eps )
 
             # update precision parameters of coefficients
-            A,converged  = update_precisions(Q,S,q,s,A,active,self.tol,True)
-            
+            A,converged  = update_precisions(Q,S,q,s,A,active,self.tol,
+                                             n_samples,False)
             if self.verbose:
                 print(('Iteration: {0}, number of features '
                        'in the model: {1}').format(i,np.sum(active)))
-            
             if converged or i == self.n_iter - 1:
                 if converged and self.verbose:
                     print('Algorithm converged !')
@@ -258,8 +262,8 @@ class RegressionARD(LinearModel,RegressorMixin):
                  
         # after last update of alpha & beta update parameters
         # of posterior distribution
-        XXa,XYa,Aa  = XX[active,:][:,active],XY[active],A[active]
-        Mn, Sn      = self._posterior_dist(Aa,beta,XXa,XYa,True)
+        XXa,XYa,Aa         = XX[active,:][:,active],XY[active],A[active]
+        Mn, Sn, cholesky   = self._posterior_dist(Aa,beta,XXa,XYa,True)
         self.coef_         = np.zeros(n_features)
         self.coef_[active] = Mn
         self.sigma_        = Sn
@@ -274,50 +278,64 @@ class RegressionARD(LinearModel,RegressorMixin):
         '''
         Computes predictive distribution for test set.
         Predictive distribution for each data point is one dimensional
-        Gaussian and therefore is characterised by mean and standard
-        deviation.
+        Gaussian and therefore is characterised by mean and variance.
         
         Parameters
         -----------
-        X: {array-like, sparse} [n_samples_test, n_features]
+        X: {array-like, sparse} (n_samples_test, n_features)
            Test data, matrix of explanatory variables
            
         Returns
         -------
-        y_hat: numpy array of size [n_samples_test]
-           Estimated values of targets on test set (Mean of predictive distribution)
+        : list of length two [y_hat, var_hat]
+        
+             y_hat: numpy array of size (n_samples_test,)
+                    Estimated values of targets on test set (i.e. mean of predictive
+                    distribution)
            
-        std_hat: numpy array of size [n_samples_test]
-           Error bounds (Standard deviation of predictive distribution)
+             var_hat: numpy array of size (n_samples_test,)
+                    Variance of predictive distribution
         '''
-        x         = (X - self._x_mean_) / self._x_std
-        y_hat     = np.dot(x,self.coef_) + self._y_mean 
+        y_hat     = self._decision_function(X)
         var_hat   = self.alpha_
-        var_hat  += np.sum( np.dot(x[:,self.active_],self.sigma_) * x[:,self.active_], axis = 1)
-        std_hat   = np.sqrt(var_hat)
-        return y_hat, std_hat
+        var_hat  += np.sum( np.dot(X[:,self.active_],self.sigma_) * X[:,self.active_], axis = 1)
+        return y_hat, var_hat
 
 
-    def _posterior_dist(self,A,beta,XX,XY,full_covar = False):
+    def _posterior_dist(self,A,beta,XX,XY,full_covar=False):
         '''
         Calculates mean and covariance matrix of posterior distribution
         of coefficients.
         '''
-        # precision matrix 
+        # compute precision matrix for active features
         Sinv = beta * XX
         np.fill_diagonal(Sinv, np.diag(Sinv) + A)
-        R    = np.linalg.cholesky(Sinv)
-        Z    = solve_triangular(R,beta*XY, check_finite = False, lower = True)
-        Mn   = solve_triangular(R.T,Z,check_finite = False, lower = False)
-        Ri   = solve_triangular(R,np.eye(A.shape[0]), check_finite = False, lower = True)
-        if full_covar:
-            Sn   = np.dot(Ri.T,Ri)
-            return Mn,Sn
-        else:
-            return Mn,Ri
+        cholesky = True
+        # try cholesky, if it fails go back to pinvh
+        try:
+            # find posterior mean : R*R.T*mean = beta*X.T*Y
+            # solve(R*z = beta*X.T*Y) => find z => solve(R.T*mean = z) => find mean
+            R    = np.linalg.cholesky(Sinv)
+            Z    = solve_triangular(R,beta*XY, check_finite=False, lower = True)
+            Mn   = solve_triangular(R.T,Z, check_finite=False, lower = False)
+            
+            # invert lower triangular matrix from cholesky decomposition
+            Ri   = solve_triangular(R,np.eye(A.shape[0]), check_finite=False, lower=True)
+            if full_covar:
+                Sn   = np.dot(Ri.T,Ri)
+                return Mn,Sn,cholesky
+            else:
+                return Mn,Ri,cholesky
+        except LinAlgError:
+            cholesky = False
+            Sn   = pinvh(Sinv)
+            Mn   = beta*np.dot(Sinv,XY)
+            return Mn, Sn, cholesky
+            
     
     
-    def _sparsity_quality(self,XX,XXd,XY,XYa,Aa,Ri,active,beta):
+    
+    def _sparsity_quality(self,XX,XXd,XY,XYa,Aa,Ri,active,beta,cholesky):
         '''
         Calculates sparsity and quality parameters for each feature
         
@@ -326,15 +344,27 @@ class RegressionARD(LinearModel,RegressorMixin):
         Here we used Woodbury Identity for inverting covariance matrix
         of target distribution 
         C    = 1/beta + 1/alpha * X' * X
-        C^-1 = beta - beta^2 * X' * Sn * X
+        C^-1 = beta - beta^2 * X * Sn * X'
         '''
         bxy        = beta*XY
         bxx        = beta*XXd
-        xr         = np.dot(XX[:,active],Ri.T)
-        S          = bxx - beta**2 * np.sum( xr**2, axis=1)
-        Q          = bxy - beta**2 * np.dot( xr, np.dot(Ri,XYa))
+        if cholesky:
+            # here Ri is inverse of lower triangular matrix obtained from cholesky decomp
+            xxr    = np.dot(XX[:,active],Ri.T)
+            rxy    = np.dot(Ri,XYa)
+            S      = bxx - beta**2 * np.sum( xxr**2, axis=1)
+            Q      = bxy - beta**2 * np.dot( xxr, rxy)
+        else:
+            # here Ri is covariance matrix
+            XXa    = XX[:,active]
+            XS     = np.dot(XXa,Ri)
+            S      = bxx - beta**2 * np.sum(XS*XXa,1)
+            Q      = bxy - beta**2 * np.dot(XS,XYa)
+        # Use following:
+        # (EQ 1) q = A*Q/(A - S) ; s = A*S/(A-S), so if A = np.PINF q = Q, s = S
         qi         = np.copy(Q)
         si         = np.copy(S) 
+        #  If A is not np.PINF, then it should be 'active' feature => use (EQ 1)
         Qa,Sa      = Q[active], S[active]
         qi[active] = Aa * Qa / (Aa - Sa )
         si[active] = Aa * Sa / (Aa - Sa )
@@ -344,7 +374,7 @@ class RegressionARD(LinearModel,RegressorMixin):
 #----------------------- Classification ARD -----------------------------------
      
      
-def _logistic_cost_grad(X,Y,w,diagA, penalise_intercept):
+def _logistic_cost_grad(X,Y,w,diagA):
     '''
     Calculates cost and gradient for logistic regression
     '''
@@ -352,26 +382,17 @@ def _logistic_cost_grad(X,Y,w,diagA, penalise_intercept):
     Xw    = np.dot(X,w)
     s     = expit(Xw)
     wdA   = w*diagA
-    if not penalise_intercept:
-        wdA[0] = 0
-    cost = np.sum( -Xw*Y - log_logistic(-Xw)) + np.sum(w*wdA)/2 
+    wdA[0] = 1e-3 # broad prior for bias term => almost no regularization
+    cost = np.sum( Xw* (1-Y) - log_logistic(Xw)) + np.sum(w*wdA)/2 
     grad  = np.dot(X.T, s - Y) + wdA
     return [cost/n,grad/n]
     
 
-# TODO: cost, grad , hessian function for Newton CG
-def _logistic_cost_grad_hess(X,Y,w,diagA):
-    '''
-    Calculates cost, gradient and hessian for logistic regression
-    '''
-    raise NotImplementedError('to be done')
-
-        
-        
         
 class ClassificationARD(BaseEstimator,LinearClassifierMixin):
     '''
-    Logistic Regression with Automatic Relevance determination
+    Logistic Regression with Automatic Relevance determination (Fast Version uses 
+    Sparse Bayesian Learning)
     
     Parameters
     ----------
@@ -382,27 +403,20 @@ class ClassificationARD(BaseEstimator,LinearClassifierMixin):
         If absolute change in precision parameter for weights is below threshold
         algorithm terminates.
         
-    solver: str, optional (DEFAULT = 'lbfgs_b')
-        Optimization method that is used for finding parameters of posterior
-        distribution ['lbfgs_b','newton_cg']
-        
+    normalize: bool, optional (DEFAULT = True)
+        If True normalizes features
+              
     n_iter_solver: int, optional (DEFAULT = 20)
         Maximum number of iterations before termination of solver
         
     tol_solver: float, optional (DEFAULT = 1e-5)
         Convergence threshold for solver (it is used in estimating posterior
-        distribution), 
-
+        distribution)
+        
     fit_intercept : bool, optional ( DEFAULT = True )
         If True will use intercept in the model. If set
         to false, no intercept will be used in calculations
-        
-    penalise_intercept: bool, optional ( DEFAULT = False)
-        If True uses prior distribution on bias term (penalises intercept)
-        
-    normalize : boolean, optional (DEFAULT = False)
-        If True, the regressors X will be normalized before regression
-        
+   
     verbose : boolean, optional (DEFAULT = True)
         Verbose mode when fitting the model
         
@@ -417,23 +431,27 @@ class ClassificationARD(BaseEstimator,LinearClassifierMixin):
        
     active_ : array, dtype = np.bool, shape = (n_features)
        True for non-zero coefficients, False otherwise
-
+       
     sigma_ : array, shape = (n_features, n_features)
         estimated covariance matrix of the weights, computed only
         for non-zero coefficients
-
+        
+        
+    References
+    ----------
+    [1] Fast marginal likelihood maximisation for sparse Bayesian models (Tipping & Faul 2003)
+        (http://www.miketipping.com/papers/met-fastsbl.pdf)
+    [2] Analysis of sparse Bayesian learning (Tipping & Faul 2001)
+        (http://www.miketipping.com/abstracts.htm#Faul:NIPS01)
     '''
-    def __init__(self, n_iter = 100, tol = 1e-4, solver = 'lbfgs_b', 
-                 n_iter_solver = 15, tol_solver = 1e-4, fit_intercept = True,
-                 penalise_intercept = False, normalize = False, verbose = False):
+    def __init__(self, n_iter=100, tol=1e-4, n_iter_solver=15, normalize=True,
+                 tol_solver=1e-4, fit_intercept=True, verbose=False):
         self.n_iter             = n_iter
         self.tol                = tol
-        self.solver             = solver
         self.n_iter_solver      = n_iter_solver
+        self.normalize          = normalize
         self.tol_solver         = tol_solver
         self.fit_intercept      = fit_intercept
-        self.penalise_intercept = penalise_intercept
-        self.normalize          = normalize
         self.verbose            = verbose
     
     
@@ -455,18 +473,17 @@ class ClassificationARD(BaseEstimator,LinearClassifierMixin):
             Returns self.
         '''
         X, y = check_X_y(X, y, accept_sparse = None, dtype=np.float64)
-        n_samples, n_features = X.shape
-
-        # preprocess features
-        self._X_mean = np.zeros(n_features)
-        self._X_std  = np.ones(n_features)
+                    
+        # normalize, if required
         if self.normalize:
-            self._X_mean, self._X_std = np.mean(X,0), np.std(X,0)
-        X = (X - self._X_mean) / self._X_std
+            self._x_mean = np.mean(X,0)
+            self._x_std  = np.std(X,0)
+            X            = (X - self._x_mean) / self._x_std
+
+        # add bias term if required
         if self.fit_intercept:
-            X = np.concatenate((np.ones([n_samples,1]),X),1)
-            n_features += 1
-        
+            X = np.concatenate((np.ones([X.shape[0],1]),X),1)
+
         # preprocess targets
         check_classification_targets(y)
         self.classes_ = np.unique(y)
@@ -477,64 +494,80 @@ class ClassificationARD(BaseEstimator,LinearClassifierMixin):
                              " class: %r" % self.classes_[0])
         
         # if multiclass use OVR (i.e. fit classifier for each class)
-        self.coef_,self.active_ ,self.lambda_= list(),list(),list()
-        self.intercept_, self.sigma_ = list(),list()            
-        for pos_class in self.classes_:
+        if n_classes < 2:
+            raise ValueError("Need samples of at least 2 classes")
+        if n_classes > 2:
+            self.coef_, self.sigma_        = [0]*n_classes,[0]*n_classes
+            self.intercept_ , self.active_ = [0]*n_classes, [0]*n_classes
+            self.lambda_                   = [0]*n_classes
+        else:
+            self.coef_, self.sigma_, self.intercept_,self.active_ = [0],[0],[0],[0]
+            self.lambda_                                          = [0]
+         
+        for i in xrange(len(self.classes_)):
             if n_classes == 2:
                 pos_class = self.classes_[1]
+            else:
+                pos_class = self.classes_[i]
             mask = (y == pos_class)
             y_bin = np.zeros(y.shape, dtype=np.float64)
             y_bin[mask] = 1
-            coef_, intercept_, active_ , sigma_ , A  = self._fit(X,y_bin,
-                                                       n_samples,n_features)
-            self.coef_.append(coef_)
-            self.active_.append(active_)
-            self.intercept_.append(intercept_)
-            self.sigma_.append(sigma_)
-            self.lambda_.append(A)
+            coef,bias,active,sigma,lambda_  = self._fit(X,y_bin)
+            self.coef_[i], self.intercept_[i], self.sigma_[i]  = coef, bias, sigma
+            self.active_[i], self.lambda_[i] = active, lambda_
             # in case of binary classification fit only one classifier           
             if n_classes == 2:
-                break
-            
+                break  
+        self.coef_      = np.asarray(self.coef_)
+        self.intercept_ = np.asarray(self.intercept_)
         return self
         
     
-    def _fit(self,X,y,n_samples,n_features):
+    def _fit(self,X,y):
         '''
         Fits binary classification
         '''
+        n_samples,n_features = X.shape
         A         = np.PINF * np.ones(n_features)
         active    = np.zeros(n_features , dtype = np.bool)
-        # this is done for RVC (so that to have at least one rv in worst case)
-        if n_features > 1:
-            active[1] = True
-            A[1]      = 1e-3
-        else:
-            active[1] = True
-            A[1]      = 1e-3
         
-        penalise  = self.fit_intercept and self.penalise_intercept
+        # if we fit intercept, make it active from the beginning
+        if self.fit_intercept:
+            active[0] = True
+            A[0]      = np.finfo(np.float16).eps
+        
+        warning_flag = 0
         for i in range(self.n_iter):
             Xa      =  X[:,active]
             Aa      =  A[active]
-            penalise_intercept  = active[0] and penalise
             
-            # mean & covariance of posterior distribution
-            Mn,Sn,B,t_hat = self._posterior_dist(Xa,y, Aa, penalise_intercept)
+            # mean & precision of posterior distribution
+            Mn,Sn,B,t_hat, cholesky = self._posterior_dist(Xa,y, Aa)
+            if not cholesky:
+                warning_flag += 1
             
+            # raise warning in case cholesky failes (but only once)
+            if warning_flag == 1:
+                warnings.warn(("Cholesky decomposition failed ! Algorithm uses pinvh, "
+                               "which is significantly slower, if you use RVC it "
+                               "is advised to change parameters of kernel"))
+
             # compute quality & sparsity parameters
-            s,q,S,Q = self._sparsity_quality(X,Xa,t_hat,B,A,Aa,active,Sn)
+            s,q,S,Q = self._sparsity_quality(X,Xa,t_hat,B,A,Aa,active,Sn,cholesky)
 
             # update precision parameters of coefficients
-            A,converged  = update_precisions(Q,S,q,s,A,active,self.tol,self.fit_intercept)
+            A,converged  = update_precisions(Q,S,q,s,A,active,self.tol,n_samples,self.fit_intercept)
 
             # terminate if converged
             if converged or i == self.n_iter - 1:
                 break
         
-        penalise_intercept = penalise and active[0]
         Xa,Aa   = X[:,active], A[active]
-        Mn,Sn,B,t_hat = self._posterior_dist(Xa,y,Aa,penalise_intercept)
+        Mn,Sn,B,t_hat,cholesky = self._posterior_dist(Xa,y,Aa)
+        # in case Sn is inverse of lower triangular matrix of Cholesky decomposition
+        # compute covariance using formula Sn  = np.dot(Rinverse.T , Rinverse)
+        if cholesky:
+           Sn = np.dot(Sn.T,Sn) 
         intercept_ = 0
         if self.fit_intercept:
            n_features -= 1
@@ -544,101 +577,122 @@ class ClassificationARD(BaseEstimator,LinearClassifierMixin):
            active          = active[1:]
         coef_           = np.zeros([1,n_features])
         coef_[0,active] = Mn   
-        return coef_, intercept_, active, Sn, A
-        
-        
-    def decision_function(self,X):
-        '''
-        Decision function
-        '''
-        check_is_fitted(self, 'coef_') 
-        X = check_array(X, accept_sparse=None, dtype = np.float64)
-        n_features = self.coef_[0].shape[1]
-        if X.shape[1] != n_features:
-            raise ValueError("X has %d features per sample; expecting %d"
-                             % (X.shape[1], n_features))
-        x = (X - self._X_mean) / self._X_std
-        decision = np.array([ (np.dot(x,w.T) + c)[:,0] for w,c 
-                               in zip(self.coef_,self.intercept_) ]).T
-        if decision.shape[1] == 1:
-            return decision[:,0]
-        return decision
-        
+        return coef_.squeeze(), intercept_, active, Sn, A
+   
         
     def predict(self,X):
         '''
-        Calculates estimated target values on test set
+        Estimates target values on test set
         
         Parameters
         ----------
-        X: array-like of size [n_samples_test, n_features]
-           Matrix of explanatory variables (test set)
+        X: array-like of size (n_samples_test, n_features)
+           Matrix of explanatory variables
            
         Returns
         -------
-        y_pred: numpy arra of size [n_samples_test]
+        y_pred: numpy arra of size (n_samples_test,)
            Predicted values of targets
         '''
         probs   = self.predict_proba(X)
         indices = np.argmax(probs, axis = 1)
         y_pred  = self.classes_[indices]
         return y_pred
-
-                 
-
-    def predict_proba(self,X):
-        '''
-        Predicts probabilities of targets for test set
-        Uses probit function to approximate convolution 
-        of sigmoid and Gaussian.
+        
+        
+    def _decision_function_active(self,X,coef_,active_,intercept_):
+        ''' Constructs decision function using only relevant features '''
+        if self.normalize:
+            X = (X - self._x_mean[active_]) / self._x_std[active_]
+        decision = safe_sparse_dot(X,coef_[active_]) + intercept_
+        return decision
+        
+        
+    def decision_function(self,X):
+        ''' 
+        Computes distance to separating hyperplane between classes. The larger 
+        is the absolute value of the decision function further data point is 
+        from the decision boundary.
         
         Parameters
         ----------
-        X: array-like of size [n_samples_test,n_features]
-           Matrix of explanatory variables (test set)
+        X: array-like of size (n_samples_test,n_features)
+           Matrix of explanatory variables
+          
+        Returns
+        -------
+        decision: numpy array of size (n_samples_test,)
+           Distance to decision boundary
+        '''
+        check_is_fitted(self, 'coef_') 
+        X = check_array(X, accept_sparse=None, dtype = np.float64)
+        n_features = self.coef_.shape[1]
+        if X.shape[1] != n_features:
+            raise ValueError("X has %d features per sample; expecting %d"
+                             % (X.shape[1], n_features))
+        decision = [self._decision_function_active(X[:,active],coef,active,bias) for 
+                    coef,active,bias in zip(self.coef_,self.active_,self.intercept_)]
+        decision = np.asarray(decision).squeeze().T
+        return decision
+        
+
+    def predict_proba(self,X):
+        '''
+        Predicts probabilities of targets for test set using probit 
+        function to approximate convolution of sigmoid and Gaussian.
+        
+        Parameters
+        ----------
+        X: array-like of size (n_samples_test,n_features)
+           Matrix of explanatory variables
            
         Returns
         -------
-        probs: numpy array of size [n_samples_test]
+        probs: numpy array of size (n_samples_test,)
            Estimated probabilities of target classes
         '''
         y_hat = self.decision_function(X)
-        X     = check_array(X, accept_sparse = None)
-        x     = (X - self._X_mean) / self._X_std
+        X = check_array(X, accept_sparse=None, dtype = np.float64)
+        if self.normalize:
+            X = (X - self._x_mean) / self._x_std
         if self.fit_intercept:
-            x    = np.concatenate((np.ones([x.shape[0],1]), x),1)
+            X    = np.concatenate((np.ones([X.shape[0],1]), X),1)
         if y_hat.ndim == 1:
-            pr   = self._predict_proba(x[:,self.lambda_[0]!=np.PINF],
+            pr   = self._convo_approx(X[:,self.lambda_[0]!=np.PINF],
                                            y_hat,self.sigma_[0])
             prob = np.vstack([1 - pr, pr]).T
         else:
-            pr   = [self._predict_proba(x[:,idx != np.PINF],y_hat[:,i],
+            pr   = [self._convo_approx(X[:,idx != np.PINF],y_hat[:,i],
                         self.sigma_[i]) for i,idx in enumerate(self.lambda_) ]
             pr   = np.asarray(pr).T
             prob = pr / np.reshape(np.sum(pr, axis = 1), (pr.shape[0],1))
         return prob
 
         
-    def _predict_proba(self,X,y_hat,sigma):
-        '''
-        Calculates predictive distribution
-        '''
+    def _convo_approx(self,X,y_hat,sigma):
+        ''' Computes approximation to convolution of sigmoid and gaussian'''
         var = np.sum(np.dot(X,sigma)*X,1)
         ks  = 1. / ( 1. + np.pi * var/ 8)**0.5
         pr  = expit(y_hat * ks)
         return pr
         
 
-    def _sparsity_quality(self,X,Xa,y,B,A,Aa,active,Sn):
+    def _sparsity_quality(self,X,Xa,y,B,A,Aa,active,Sn,cholesky):
         '''
         Calculates sparsity & quality parameters for each feature
         '''
         XB    = X.T*B
-        YB    = y*B
-        XSX   = np.dot(np.dot(Xa,Sn),Xa.T)
-        bxy   = np.dot(XB,y)        
-        Q     = bxy - np.dot( np.dot(XB,XSX), YB)
-        S     = np.sum( XB*X.T,1 ) - np.sum( np.dot( XB,XSX )*XB,1 )
+        bxx   = np.dot(B,X**2)
+        Q     = np.dot(X.T,y)
+        if cholesky:
+            # Here Sn is inverse of lower triangular matrix, obtained from
+            # cholesky decomposition
+            XBX = np.dot(XB,Xa)
+            XBX = np.dot(XBX,Sn,out=XBX)
+            S   = bxx - np.sum(XBX**2,1)
+        else:
+            XSX = np.dot(np.dot(Xa,Sn),Xa.T)
+            S   = bxx - np.sum( np.dot( XB,XSX )*XB,1 )
         qi    = np.copy(Q)
         si    = np.copy(S) 
         Qa,Sa      = Q[active], S[active]
@@ -647,27 +701,30 @@ class ClassificationARD(BaseEstimator,LinearClassifierMixin):
         return [si,qi,S,Q]
         
     
-    def _posterior_dist(self,X,y,A,intercept_prior):
+    def _posterior_dist(self,X,y,A):
         '''
         Uses Laplace approximation for calculating posterior distribution
         '''
-        if self.solver == 'lbfgs_b':
-            f  = lambda w: _logistic_cost_grad(X,y,w,A,intercept_prior)
-            w_init  = np.random.random(X.shape[1])
-            Mn      = fmin_l_bfgs_b(f, x0 = w_init, pgtol = self.tol_solver,
-                                    maxiter = self.n_iter_solver)[0]
-            Xm      = np.dot(X,Mn)
-            s       = expit(Xm)
-            B       = logistic._pdf(Xm) # avoids underflow
-            S       = np.dot(X.T*B,X)
-            np.fill_diagonal(S, np.diag(S) + A)
-            t_hat   = Xm + (y - s) / B
-            Sn      = pinvh(S)
-        elif self.solver == 'newton_cg':
-            # TODO: Implement Newton-CG
-            raise NotImplementedError(('Newton Conjugate Gradient optimizer '
-                                       'is not currently supported'))
-        return [Mn,Sn,B,t_hat]
+        f         = lambda w: _logistic_cost_grad(X,y,w,A)
+        w_init    = np.random.random(X.shape[1])
+        Mn        = fmin_l_bfgs_b(f, x0 = w_init, pgtol = self.tol_solver,
+                                maxiter = self.n_iter_solver)[0]
+        Xm        = np.dot(X,Mn)
+        s         = expit(Xm)
+        B         = logistic._pdf(Xm) # avoids underflow
+        S         = np.dot(X.T*B,X)
+        np.fill_diagonal(S, np.diag(S) + A)
+        t_hat     = y - s
+        cholesky  = True
+        # try using Cholesky , if it fails then fall back on pinvh
+        try:
+            R        = np.linalg.cholesky(S)
+            Sn       = solve_triangular(R,np.eye(A.shape[0]),
+                                        check_finite=False,lower=True)
+        except LinAlgError:
+            Sn       = pinvh(S)
+            cholesky = False
+        return [Mn,Sn,B,t_hat,cholesky]
         
 
 
@@ -690,42 +747,23 @@ def get_kernel( X, Y, gamma, degree, coef0, kernel, kernel_params ):
     return pairwise_kernels(X, Y, metric=kernel,
                             filter_params=True, **params)
                             
-           
-                 
-def decision_function(estimator , active_coef_ , X , intercept_,
-                      relevant_vectors_, gamma, degree, coef0,
-                      kernel,kernel_params):
-    '''
-    Computes decision function for regression and classification.
-    '''
-    K = get_kernel( X, relevant_vectors_, gamma, degree, coef0, 
-                    kernel, kernel_params)
-    return np.dot(K,active_coef_) + intercept_
-   
 
 
 class RVR(RegressionARD):
     '''
-    Relevance Vector Regression is ARD regression with kernelised features
+    Relevance Vector Regression (Fast Version uses Sparse Bayesian Learning)
     
     Parameters
     ----------
     n_iter: int, optional (DEFAULT = 300)
         Maximum number of iterations
-
+        
     fit_intercept : boolean, optional (DEFAULT = True)
-        whether to calculate the intercept for this model. If set
-        to false, no intercept will be used in calculations
-        (e.g. data is expected to be already centered)
+        whether to calculate the intercept for this model
         
     tol: float, optional (DEFAULT = 1e-3)
-        If absolute change in precision parameter for weights is below threshold
+        If absolute change in precision parameter for weights is below tol
         algorithm terminates.
-    
-    perfect_fit_tol: float, optional (DEFAULT = 1e-4)
-        Algortihm terminates in case MSE on training set is below perfect_fit_tol.
-        Helps to prevent overflow of precision parameter for noise in case of
-        nearly perfect fit.
         
     copy_X : boolean, optional (DEFAULT = True)
         If True, X will be copied; else, it may be overwritten.
@@ -770,16 +808,19 @@ class RVR(RegressionARD):
         
     relevant_vectors_ : array 
         Relevant Vectors
+
     
+    References
+    ----------
+    [1] Fast marginal likelihood maximisation for sparse Bayesian models (Tipping & Faul 2003)
+        (http://www.miketipping.com/papers/met-fastsbl.pdf)
+    [2] Analysis of sparse Bayesian learning (Tipping & Faul 2001)
+        (http://www.miketipping.com/abstracts.htm#Faul:NIPS01)
     '''
-    def __init__(self, n_iter=300, tol = 1e-3, perfect_fit_tol = 1e-4, 
-                 fit_intercept = True, copy_X = True,verbose = False,
-                 kernel = 'poly', degree = 3, gamma  = 1,
+    def __init__(self, n_iter=300, tol = 1e-3, fit_intercept = True, copy_X = True,
+                 verbose = False, kernel = 'poly', degree = 3, gamma  = None,
                  coef0  = 1, kernel_params = None):
-        # !!! do not normalise kernel matrix
-        normalize = False
-        super(RVR,self).__init__(n_iter, tol, perfect_fit_tol, 
-                                 fit_intercept, normalize, copy_X, verbose)
+        super(RVR,self).__init__(n_iter,tol,fit_intercept,copy_X,verbose)
         self.kernel = kernel
         self.degree = degree
         self.gamma  = gamma
@@ -793,10 +834,10 @@ class RVR(RegressionARD):
         
         Parameters
         -----------
-        X: {array-like,sparse matrix} of size [n_samples, n_features]
+        X: {array-like,sparse matrix} of size (n_samples, n_features)
            Training data, matrix of explanatory variables
         
-        y: array-like of size [n_samples, n_features] 
+        y: array-like of size (n_samples, ) 
            Target values
            
         Returns
@@ -804,14 +845,17 @@ class RVR(RegressionARD):
         self: object
            self
         '''
-        X,y = check_X_y(X,y, accept_sparse = ['csr','coo','bsr'], dtype = np.float64)
+        X,y = check_X_y(X,y,accept_sparse=['csr','coo','bsr'],dtype = np.float64)
         # kernelise features
         K = get_kernel( X, X, self.gamma, self.degree, self.coef0, 
                        self.kernel, self.kernel_params)
+        
         # use fit method of RegressionARD
         _ = super(RVR,self).fit(K,y)
+
         # convert to csr (need to use __getitem__)
-        convert_tocsr = [scipy.sparse.coo.coo_matrix, scipy.sparse.dia.dia_matrix,
+        convert_tocsr = [scipy.sparse.coo.coo_matrix, 
+                         scipy.sparse.dia.dia_matrix,
                          scipy.sparse.bsr.bsr_matrix]
         if type(X) in convert_tocsr:
             X = X.tocsr()
@@ -823,106 +867,75 @@ class RVR(RegressionARD):
         return self
         
         
-    def predict(self,X):
-        '''
-        Predicts targets on test set
+    def _decision_function(self,X):
+        ''' Decision function '''
+        _, predict_vals = self._kernel_decision_function(X)
+        return predict_vals
         
-        Parameters
-        ----------
-        X: {array-like,sparse_matrix} of size [n_samples_test, n_features]
-           Matrix of explanatory variables (test set)
-           
-        Returns
-        --------
-         : numpy array of size [n_samples_test]
-           Estimated target values on test set 
-        '''
+    
+    def _kernel_decision_function(self,X):
+        ''' Computes kernel and decision function based on kernel'''
+        check_is_fitted(self,'coef_')
         X = check_array(X, accept_sparse=['csr', 'csc', 'coo'])
-        return self._decision_function(X)
+        K = get_kernel( X, self.relevant_vectors_, self.gamma, self.degree, 
+                        self.coef0, self.kernel, self.kernel_params)
+        return K , np.dot(K,self.coef_[self.active_]) + self.intercept_
         
         
     def predict_dist(self,X):
         '''
-        Computes predictive distribution for test set.
-        Predictive distribution for each data point is one dimensional
-        Gaussian and therefore is characterised by mean and standard
-        deviation.
+        Computes predictive distribution for test set. Predictive distribution
+        for each data point is one dimensional Gaussian and therefore is 
+        characterised by mean and variance.
         
         Parameters
         ----------
-        X: {array-like,sparse matrix} of size [n_samples_test, n_features]
-           Matrix of explanatory variables (test set)
+        X: {array-like,sparse matrix} of size (n_samples_test, n_features)
+           Matrix of explanatory variables 
            
         Returns
         -------
-        y_hat: array of size [n_samples_test]
-           Estimated values of targets on test set (Mean of predictive distribution)
+        : list of length two [y_hat, var_hat]
+        
+             y_hat: numpy array of size (n_samples_test,)
+                    Estimated values of targets on test set (i.e. mean of predictive
+                    distribution)
            
-        std_hat: array of size [n_samples_test]
-           Error bounds (Standard deviation of predictive distribution)
+             var_hat: numpy array of size (n_samples_test,)
+                    Variance of predictive distribution
         '''
-        check_is_fitted(self, "coef_")
-        # mean of predictive distribution
-        K = get_kernel( X, self.relevant_vectors_, self.gamma, self.degree, 
-                       self.coef0, self.kernel, self.kernel_params)
-        y_hat     = decision_function(self,self.coef_[self.active_], X, 
-                                      self.intercept_,self.relevant_vectors_, 
-                                      self.gamma, self.degree, self.coef0,
-                                      self.kernel,self.kernel_params)
-        K         = (K - self._x_mean_[self.active_])
+        # kernel matrix and mean of predictive distribution
+        K, y_hat  = self._kernel_decision_function(X)
         var_hat   = self.alpha_
         var_hat  += np.sum( np.dot(K,self.sigma_) * K, axis = 1)
-        std_hat   = np.sqrt(var_hat)
-        return y_hat,std_hat
-              
-                                 
-    def _decision_function(self,X):
-        '''
-        Decision function, calculates mean of predicitve distribution
-        '''
-        check_is_fitted(self, "coef_")
-        return decision_function(self , self.coef_[self.active_] ,
-                                 X , self.intercept_, self.relevant_vectors_, 
-                                 self.gamma, self.degree, self.coef0, self.kernel,
-                                 self.kernel_params)
-    
+        return y_hat,var_hat
+
 
 
 class RVC(ClassificationARD):
     '''
-    Relevance Vector Classifier
+    Relevance Vector Classifier (Fast Version, uses Sparse Bayesian Learning )
         
     
     Parameters
     ----------
-    n_iter: int, optional (DEFAULT = 300)
+    n_iter: int, optional (DEFAULT = 100)
         Maximum number of iterations before termination
         
-    tol: float, optional (DEFAULT = 1e-3)
-        If absolute change in precision parameter for weights is below threshold
-        algorithm terminates.
-        
-    solver: str, optional (DEFAULT = 'lbfgs_b')
-        Optimization method that is used for finding parameters of posterior
-        distribution ['lbfgs_b','newton_cg']
-        
-    n_iter_solver: int, optional (DEFAULT = 20)
+    tol: float, optional (DEFAULT = 1e-4)
+        If absolute change in precision parameter for weights is below tol, then
+        the algorithm terminates.
+
+    n_iter_solver: int, optional (DEFAULT = 15)
         Maximum number of iterations before termination of solver
         
-    tol_solver: float, optional (DEFAULT = 1e-5)
+    tol_solver: float, optional (DEFAULT = 1e-4)
         Convergence threshold for solver (it is used in estimating posterior
-        distribution), 
-
+        distribution)
+        
     fit_intercept : bool, optional ( DEFAULT = True )
-        If True will use intercept in the model. If set
-        to false, no intercept will be used in calculations
-        
-    penalise_intercept: bool, optional ( DEFAULT = False)
-        If True uses prior distribution on bias term (penalises intercept)
-        
-    normalize : boolean, optional (DEFAULT = False)
-        If True, the regressors X will be normalized before regression
-        
+        If True will use intercept in the model
+
     verbose : boolean, optional (DEFAULT = True)
         Verbose mode when fitting the model
         
@@ -946,35 +959,37 @@ class RVC(ClassificationARD):
     Attributes
     ----------
     coef_ : array, shape = (n_features)
-        Coefficients of the regression model (mean of posterior distribution)
+        Coefficients of the model (mean of posterior distribution)
         
     lambda_ : float
-       estimated precisions of weights
+       Estimated precisions of weights
        
     active_ : array, dtype = np.bool, shape = (n_features)
        True for non-zero coefficients, False otherwise
-
+       
     sigma_ : array, shape = (n_features, n_features)
-        estimated covariance matrix of the weights, computed only
-        for non-zero coefficients
-
+       Estimated covariance matrix of the weights, computed only for non-zero 
+       coefficients
+       
+       
+    References
+    ----------
+    [1] Fast marginal likelihood maximisation for sparse Bayesian models (Tipping & Faul 2003)
+        (http://www.miketipping.com/papers/met-fastsbl.pdf)
+    [2] Analysis of sparse Bayesian learning (Tipping & Faul 2001)
+        (http://www.miketipping.com/abstracts.htm#Faul:NIPS01)
     '''
     
-    def __init__(self, n_iter = 300, tol = 1e-4, solver = 'lbfgs_b', 
-                 n_iter_solver = 30, tol_solver = 1e-5, fit_intercept = True, 
-                 verbose = False, kernel = 'rbf', degree = 2,
+    def __init__(self, n_iter = 100, tol = 1e-4, n_iter_solver = 15, tol_solver = 1e-4,
+                 fit_intercept = True, verbose = False, kernel = 'rbf', degree = 2,
                  gamma  = None, coef0  = 1, kernel_params = None):
-        # use constructor of Classification ARD
-        super(RVC,self).__init__(n_iter = 300, tol = 1e-4, solver = 'lbfgs_b', 
-                                 n_iter_solver = 30, tol_solver = 1e-5, 
-                                 fit_intercept = True, normalize = False,
-                                 verbose = False)
-        self.kernel = kernel
-        self.degree = degree
-        self.gamma  = gamma
-        self.coef0  = coef0
+        super(RVC,self).__init__(n_iter,tol,n_iter_solver,True,tol_solver,
+                                 fit_intercept,verbose)
+        self.kernel        = kernel
+        self.degree        = degree
+        self.gamma         = gamma
+        self.coef0         = coef0
         self.kernel_params = kernel_params
-        self.full_kernel   = False
         
         
     def fit(self,X,y):
@@ -998,7 +1013,7 @@ class RVC(ClassificationARD):
         # kernelise features
         K = get_kernel( X, X, self.gamma, self.degree, self.coef0, 
                        self.kernel, self.kernel_params)
-        # use fit method of RegressionARD
+        # use fit method of ClassificationARD
         _ = super(RVC,self).fit(K,y)
         self.relevant_  = [np.where(active==True)[0] for active in self.active_]
         if X.ndim == 1:
@@ -1006,27 +1021,47 @@ class RVC(ClassificationARD):
         else:
             self.relevant_vectors_ = [ X[relevant_,:] for relevant_ in self.relevant_ ]
         return self
-        
+
         
     def decision_function(self,X):
+        ''' 
+        Computes distance to separating hyperplane between classes. The larger 
+        is the absolute value of the decision function further data point is 
+        from the decision boundary.
+        
+        Parameters
+        ----------
+        X: array-like of size (n_samples_test,n_features)
+           Matrix of explanatory variables
+          
+        Returns
+        -------
+        decision: numpy array of size (n_samples_test,)
+           Distance to decision boundary
         '''
-        Decision function
-        '''
-        check_is_fitted(self, "coef_")
-        X = check_array(X, accept_sparse = None, dtype = np.float64) 
-        f = lambda coef,x,rv,act,c: decision_function(self,coef[:,act==True].T,x,
-                                  c ,rv, self.gamma, self.degree,
-                                  self.coef0, self.kernel, self.kernel_params)
-        decision = np.asarray([ f(coef,X,rv,act,c)[:,0] for coef,rv,act,c in zip(self.coef_,
-                                 self.relevant_vectors_,self.active_,self.intercept_) ]).T
-        if decision.shape[1] == 1:
-            return decision[:,0]
+        check_is_fitted(self, 'coef_') 
+        X = check_array(X, accept_sparse=None, dtype = np.float64)
+        n_features = self.relevant_vectors_[0].shape[1]
+        if X.shape[1] != n_features:
+            raise ValueError("X has %d features per sample; expecting %d"
+                             % (X.shape[1], n_features))
+        kernel = lambda rvs : get_kernel(X,rvs,self.gamma, self.degree, 
+                                         self.coef0, self.kernel, self.kernel_params)
+        decision = []
+        for rv,cf,act,b in zip(self.relevant_vectors_,self.coef_,self.active_,
+                               self.intercept_):
+            # if there are no relevant vectors => use intercept only
+            if rv.shape[0] == 0:
+                decision.append( np.ones(X.shape[0])*b )
+            else:
+                decision.append(self._decision_function_active(kernel(rv),cf,act,b))
+        decision = np.asarray(decision).squeeze().T
         return decision
         
 
     def predict_proba(self,X):
         '''
-        Predicts probabilities of targets for test set
+        Predicts probabilities of targets.
         
         Theoretical Note
         ================
@@ -1038,37 +1073,16 @@ class RVC(ClassificationARD):
         
         Parameters
         ----------
-        X: array-like of size [n_samples_test,n_features]
-           Matrix of explanatory variables (test set)
+        X: array-like of size (n_samples_test,n_features)
+           Matrix of explanatory variables 
            
         Returns
         -------
-        probs: numpy array of size [n_samples_test]
+        probs: numpy array of size (n_samples_test,)
            Estimated probabilities of target classes
-        
         '''
         prob = expit(self.decision_function(X))
         if prob.ndim == 1:
             prob = np.vstack([1 - prob, prob]).T
         prob = prob / np.reshape(np.sum(prob, axis = 1), (prob.shape[0],1))
         return prob
-        
-        
-    def predict(self,X):
-        '''
-        Predict function
-        
-        Parameters
-        ----------
-        X: array-like of size [n_samples_test,n_features]
-           Matrix of explanatory variables (test set)
-           
-        Returns
-        -------
-        y_pred: numpy array of size [n_samples_test]
-           Estimated values of targets
-        '''
-        probs   = self.predict_proba(X)
-        indices = np.argmax(probs, axis = 1)
-        y_pred  = self.classes_[indices]
-        return y_pred
