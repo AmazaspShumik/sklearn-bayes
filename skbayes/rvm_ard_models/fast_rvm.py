@@ -70,11 +70,10 @@ def update_precisions(Q,S,q,s,A,active,tol,n_samples,clf_bias):
         if active[feature_index] == False:
             active[feature_index] = True
     else:
-        if clf_bias:
-            active_min = 2
-        else:
-            active_min = 2
-        if active[feature_index] == True and np.sum(active) >= active_min:
+        # at least two active features
+        if active[feature_index] == True and np.sum(active) >= 2:
+            # do not remove bias term in classification 
+            # (in regression it is factored in through centering)
             if not (feature_index == 0 and clf_bias):
                active[feature_index] = False
                A[feature_index]      = np.PINF
