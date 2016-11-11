@@ -435,4 +435,3 @@ class VBLogisticRegression(BayesianLogisticRegression):
             return mean, sigma
         else:
             return mean , Ri
-
