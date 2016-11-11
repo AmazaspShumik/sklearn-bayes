@@ -3,22 +3,19 @@ import unittest
 import numpy as np
 
 from sklearn.utils.estimator_checks import check_estimator
-from sklearn_bayes.rvm.fast_rvm import RegressionARD,ClassificationARD,RVR,RVC
-from sklearn_bayes.logistic.bayesian_logistic import BayesianLogisticRegression
-from sklearn_bayes.logistic.variational_logistic import VariationalLogisticRegression
-from sklearn_bayes.linear.bayesian_regression import BayesianRegression
-from sklearn_bayes.linear.variational_regression import VariationalLinearRegression
-from sklearn_bayes.vrvm.vrvm import VariationalRegressionARD,VRVR
-# ignore all warnings
+from skbayes.linear_models import (EBLinearRegression,VBLinearRegression,
+                                   EBLogisticRegression, VBLogisticRegression)
+from skbayes.rvm_ard_models import ( VBRegressionARD, VBClassificationARD,
+                                     ClassificationARD, RegressionARD, RVR, RVC)
+                                     
 
-
-ESTIMATORS  = [  RegressionARD, RVR, BayesianRegression, VariationalRegressionARD,
-                 VRVR, VariationalLinearRegression, RVC, ClassificationARD,
-                 BayesianLogisticRegression, VariationalLogisticRegression
+ESTIMATORS  = [  EBLinearRegression,VBLinearRegression,RVR,RVC,
+                 EBLogisticRegression,VBLogisticRegression,ClassificationARD,
+                 RegressionARD, VBRegressionARD, VBClassificationARD
               ]
                 
-REGRESSORS  = [  RegressionARD, BayesianRegression, VariationalRegressionARD,
-                 VRVR, VariationalLinearRegression, RVR
+REGRESSORS  = [  VBRegressionARD, EBLinearRegression, VBLinearRegression,
+                 RVR, RegressionARD
               ]
 
 
