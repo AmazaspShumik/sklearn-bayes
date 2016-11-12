@@ -1,6 +1,7 @@
 ##                        Python package for Bayesian Machine Learning with scikit-learn API
 
 ![alt text](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/figure_1.png)
+![alt text](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/figure_4.png)
 ![alt text](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/figure_3.png)
 ![alt text](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/figure_2.png)
 
