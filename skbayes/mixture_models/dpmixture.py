@@ -4,18 +4,139 @@ from scipy.misc import logsumexp
 from sklearn.base import BaseEstimator
 from sklearn.utils.extmath import safe_sparse_dot
 from sklearn.utils.validation import check_is_fitted
-from utils import (BernoulliMixture, GaussianMixture, PoissonMixture, 
-                  _e_log_beta, _gamma_entropy)
-from sklearn.cluster import KMeans
-from scipy.linalg import pinvh
+from scipy.sparse import isspmatrix
+from sklearn.utils import check_array
 
+
+def _e_log_beta(c0,d0,c,d):
+    ''' Calculates expectation of log pdf of beta distributed parameter'''
+    log_C    = gammaln(c0 + d0) - gammaln(c0) - gammaln(d0)
+    psi_cd   = psi(c+d)
+    log_mu   = (c0 - 1) * ( psi(c) - psi_cd )
+    log_i_mu = (d0 - 1) * ( psi(d) - psi_cd )
+    return np.sum(log_C + log_mu + log_i_mu)
+    
+    
+def _gamma_entropy(c0,d0,c,d):
+    ''' Calculates negtive entropy of gamma distribution'''
+    return c0*np.log(d0) - gammaln(c0) + (c0 - 1)*( psi(c) - np.log(d)) - d0*c/d
+    
+    
+def _check_shape_sign(x,shape,shape_message, sign_message):
+    ''' Checks shape and sign of input, raises error'''
+    if x.shape != shape:
+        raise ValueError(shape_message)
+    if np.sum( x < 0 ) > 0:
+        raise ValueError(sign_message)
+        
+def _get_classes(X):
+    '''Finds number of unique elements in matrix'''
+    if isspmatrix(X):
+        v = X.data
+        if len(v) < X.shape[0]*X.shape[1]:
+            v = np.hstack((v,np.zeros(1)))
+        V     = np.unique(v)
+    else:
+        V     = np.unique(X)
+    return V      
+  
+  
+        
+class BernoulliMixture(object):
+          
+    def _init_params(self, X):
+        ''' 
+        Initialise parameters of Bernoulli Mixture Model
+        '''
+        # check user defined parameters for prior, if not provided generate your own
+        shape         = (X.shape[1], self.n_components)
+        shape_message = ('Parameters for prior of success probabilities should have shape '
+                         '{0}').format(shape)
+        sign_message  = 'Parameters of beta distribution can not be negative'
+        
+        # parameter for success probs
+        if 'a' in self.init_params:
+            c= self.init_params['a']
+            _check_shape_sign(c,shape,shape_message,sign_message)            
+        else:
+            c = np.random.random([X.shape[1],self.n_components]) * self.a
+            
+        # parameters for fail probs
+        if 'b' in self.init_params:
+            d = self.init_params['b']
+            _check_shape_sign(d,shape,shape_message,sign_message)
+        else:
+            d = np.random.random([X.shape[1],self.n_components]) * self.b
+        c_init, d_init = np.copy(c), np.copy(d)
+        return {'c':c,'d':d,'c_init':c_init,'d_init':d_init}
+    
+        
+    def _check_X(self,X):
+        ''' 
+        Checks validity of inputs for Bernoulli Mixture Model
+        '''
+        X = check_array(X, accept_sparse = ['csr'])
+        classes_ = _get_classes(X)
+        n = len(classes_)
+        
+        # check that there are only two categories in data
+        if n != 2:
+           raise ValueError(('There are {0} categorical values in data, '
+                             'should be only 2'.format(n)))
+        
+        # check that input data consists of only 0s and 1s
+        if not 0 in classes_ or not 1 in classes_:
+            raise ValueError(('Input data for Mixture of Bernoullis should consist'
+                              'of zeros and ones, observed classes are {0}').format(classes_))
+        try:
+            check_is_fitted(self, 'means_')
+        except:
+            self.classes_ = classes_
+        return X
+        
+        
+        
+class PoissonMixture(object):
+    
+    
+    def _init_params(self,X):
+        shape         = (X.shape[1], self.n_components)
+        shape_message = ('Parameters for prior of poisson should have shape'
+                         '{0}').format(shape)
+        sign_message  = 'Parameters of gamma distribution can not be negative'
+        
+        # parameter for success probs
+        if 'c' in self.init_params:
+            c = self.init_params['c']
+            _check_shape_sign(c,shape,shape_message,sign_message)            
+        else:
+            c = np.random.random([X.shape[1],self.n_components]) * self.c
+            
+        # parameters for fail probs
+        if 'd' in self.init_params:
+            d = self.init_params['d']
+            _check_shape_sign(d,shape,shape_message,sign_message)
+        else:
+            d  = np.random.random([X.shape[1],self.n_components]) * self.d
+        c_init, d_init = np.copy(c), np.copy(d)
+        return {'c':c,'d':d,'c_init':c_init,'d_init':d_init}
+        
+        
+    def _check_X(self,X):
+        X = check_array(X)
+        if np.sum(X < 0) > 0:
+            raise ValueError('Negative data points are not allowed in Poisson Mixture')
+        if np.sum( X - np.floor(X) ) > 0:
+            raise ValueError('Non integer data points are not allowed in Poisson Mixture')
+        return X
+
+        
 
 
 class DPExponentialMixture(BaseEstimator):
     '''
     Base class for Dirichlet Process Mixture (conjugate exponential family) 
     '''
-    
     def __init__(self,n_components,alpha,n_iter,tol,n_init):
         self.n_components = n_components
         self.alpha   = alpha
@@ -201,9 +322,21 @@ class DPBMM(DPExponentialMixture, BernoulliMixture):
         Convergence threshold (tolerance)
         
     n_init: int, optional (DEFAULT = 3)
-         Number of reinitialisations
+         Number of reinitialisations (helps to avoid local minimum)
          
-    init_params: 
+    a: float, optional (DEFAULT = 1.)
+       Parameter of beta distribution in stick breaking process
+    
+    b: float, optional (DEFAULT = 1.)
+       Parameter of beta distribution in stick breaking process
+        
+    Attributes
+    ----------        
+    means_ : numpy array of size (n_features, n_components)
+        Mean success probabilities for each cluster
+        
+    scores_: list of unknown size (depends on number of iterations)
+        Log of lower bound
     '''
     
     def __init__(self, n_components, alpha = 0.1, n_iter = 100, tol = 1e-3, n_init = 3,
@@ -272,7 +405,6 @@ class DPBMM(DPExponentialMixture, BernoulliMixture):
         self.means_ = params_['c'] / ( params_['c'] + params_['d'] )
         return self
         
-        
               
 class DPPMM(DPExponentialMixture, PoissonMixture):
     '''
@@ -293,9 +425,21 @@ class DPPMM(DPExponentialMixture, PoissonMixture):
         Convergence threshold (tolerance)
         
     n_init: int, optional (DEFAULT = 3)
-         Number of reinitialisations
+         Number of reinitialisations (helps to avoid local minimum)
          
-    init_params: 
+    a: float, optional (DEFAULT = 1.)
+       Parameter of beta distribution in stick breaking process
+    
+    b: float, optional (DEFAULT = 1.)
+       Parameter of beta distribution in stick breaking process
+        
+    Attributes
+    ----------        
+    means_ : numpy array of size (n_features, n_components)
+        Mean success probabilities for each cluster
+        
+    scores_: list of unknown size (depends on number of iterations)
+        Log of lower bound
     '''
     
     def __init__(self, n_components, alpha = 0.1, n_iter = 100, tol = 1e-3, n_init = 3,
@@ -317,7 +461,6 @@ class DPPMM(DPExponentialMixture, PoissonMixture):
         d = params['d']
         log_probs  = np.dot(X, psi(c) - np.log(d)) + np.sum(gammaln(X+1),1,keepdims = True)
         log_probs -= np.sum(c/d,0)
-        print log_probs.shape
         return log_probs
         
         
@@ -363,91 +506,3 @@ class DPPMM(DPExponentialMixture, PoissonMixture):
         self._model_params_ = params_
         self.means_ = params_['c'] / params_['d']
         return self        
-        
-        
-        
-        
-class DPGMM(DPExponentialMixture):
-    '''
-    Dirichlet Process Gaussian Mixture Model
-    '''
-    
-    def __init__(self, n_components, alpha = 0.1, n_iter = 100, tol = 1e-3, n_init = 3,
-                 init_params = None, a = 1, b = 1):
-        super(DPBMM,self).__init__(n_components,alpha,n_iter,tol,n_init)
-        if init_params is None:
-            init_params = {}
-        self.init_params = init_params
-        
-        
-    def _log_prob_x(self,X,params):
-        pass
-    
-    
-    def _update_params(self, X, Nk, resps, params):
-        '''
-        Update parameters of prior distribution for Bernoulli Succes Probabilities
-        '''
-        XR = np.dot(X.T,resps)
-        params['c']  = params['c_init'] + XR
-        params['d']  = params['d_init'] + Nk
-        return params    
-
-    def _lower_bound(self, X, delta_ll, params, lower_bound_sbp):
-        ''' 
-        Computes lower bound
-        '''
-        c0,d0,c,d = params['c_init'], params['d_init'], params['c'], params['d']
-        #e_logPLambda = _e_log_beta(c0,d0,c,d)
-        #e_logQLambda = _e_log_beta(c,d,c,d)
-        ll = delta_ll + lower_bound_sbp + e_logPM - e_logQM
-        return ll      
-        
-        
-    def fit(self,X):
-        '''
-        Fit Dirichlet Process Gaussian Mixture Model
-        
-        Parameters
-        ----------
-        X : array_like, shape (n_samples, n_features)
-            Count Data
-            
-        Returns
-        -------
-        object: self
-            self
-        '''
-        X = self._check_X(X)
-        a_, b_, params_, self.scores_ = self._fit(X)
-        # parameters of stick breaking process
-        self._sbp_params_ = (a_,b_)
-        self._model_params_ = params_
-        return self        
-        
-                        
-  
-      
-if __name__ == "__main__":
-    dpbmm = DPBMM(n_components = 20, n_iter = 100, alpha = 1)#, init_params = {'a':np.random.random([3,2]),
-                                   #                'b':np.random.random([3,2])})
-    X = np.zeros([200,3])
-    
-    ## bernoulli data
-    X[0:100,0] = 1
-    X[100:200,1] = 1
-    dpbmm.fit(X)
-    y_prob = dpbmm.predict_proba(X)
-    y_hat = dpbmm.predict(X)
-    
-    ## poisson data
-#    X[0:100,:] = np.random.poisson(np.array([1,4,10]),[100,3])
-#    X[100:200,:] = np.random.poisson(np.array([10,4,1]),[100,3])      
-#    dppmm = DPPMM(n_components = 20, alpha = 1, n_iter = 100)
-#    dppmm.fit(X)
-#    y_prob = dppmm.predict_proba(X)
-#    y_hat = dppmm.predict(X)
-    
-
-    #means = params['c'] / ( params['c'] + params['d'] )  
-    
