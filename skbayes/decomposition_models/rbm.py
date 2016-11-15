@@ -15,7 +15,6 @@ from scipy.sparse import csr_matrix, issparse
 # 3) skbayes uses momentum (not simple sgd)
 # 4) skbayes uses adjustable learning rate (decreases with each iteration)
 
-# TODO: pseudo-loglikelihood (for pcd proxy to loglikelihood)
 # TODO: cross-entropy between the input and reconstruction
 
 
