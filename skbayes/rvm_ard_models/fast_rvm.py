@@ -504,7 +504,7 @@ class ClassificationARD(BaseEstimator,LinearClassifierMixin):
             self.coef_, self.sigma_, self.intercept_,self.active_ = [0],[0],[0],[0]
             self.lambda_                                          = [0]
          
-        for i in xrange(len(self.classes_)):
+        for i in range(len(self.classes_)):
             if n_classes == 2:
                 pos_class = self.classes_[1]
             else:
