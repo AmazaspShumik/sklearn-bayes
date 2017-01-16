@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.base import RegressorMixin, BaseEstimator
+from sklearn.externals import six
 from sklearn.linear_model.base import LinearModel, LinearClassifierMixin
 from sklearn.utils import check_X_y,check_array,as_float_array
 from sklearn.utils.multiclass import check_classification_targets
