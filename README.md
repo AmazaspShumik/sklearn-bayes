@@ -1,4 +1,5 @@
 ##                        Python package for Bayesian Machine Learning with scikit-learn API
+[![Build Status](https://travis-ci.org/travis-ci/travis-web.svg?branch=master)](https://travis-ci.org/travis-ci/travis-web)
 
 ![alt text](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/figure_1.png)
 ![alt text](https://github.com/AmazaspShumik/sklearn-bayes/blob/master/figure_4.png)
