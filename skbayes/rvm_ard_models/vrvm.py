@@ -1,5 +1,5 @@
-
 import numpy as np
+from sklearn.externals import six
 from scipy.special import expit
 from scipy.linalg import solve_triangular
 from sklearn.linear_model.base import LinearModel, LinearClassifierMixin
