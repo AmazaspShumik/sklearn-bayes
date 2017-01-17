@@ -19,6 +19,6 @@ install:
   - python setup.py install
 
 # command to run tests
-script: python setup.py develop && nosetests -w tests/ #nosetests -c nose.cfg	
+script: python setup.py develop && nosetests -c nose.cfg	# nosetests -w tests/ #
 after_success:
   - coveralls
