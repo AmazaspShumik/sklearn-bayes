@@ -297,7 +297,7 @@ class RegressionARD(LinearModel,RegressorMixin):
                     Variance of predictive distribution
         '''
         y_hat     = self._decision_function(X)
-        var_hat   = self.alpha_
+        var_hat   = 1./self.alpha_
         var_hat  += np.sum( np.dot(X[:,self.active_],self.sigma_) * X[:,self.active_], axis = 1)
         return y_hat, var_hat
 
@@ -906,7 +906,7 @@ class RVR(RegressionARD):
         '''
         # kernel matrix and mean of predictive distribution
         K, y_hat  = self._kernel_decision_function(X)
-        var_hat   = self.alpha_
+        var_hat   = 1./self.alpha_
         var_hat  += np.sum( np.dot(K,self.sigma_) * K, axis = 1)
         return y_hat,var_hat
 
