@@ -297,7 +297,7 @@ class EBLogisticRegression(BayesianLogisticRegression):
 def lam(eps):
     ''' Calculates lambda eps (used for Jaakola & Jordan local bound) '''
     eps = -abs(eps)
-    return 0.25*exprel(eps)/(np.exp(eps)+1)
+    return 0.25 * exprel(eps) / (np.exp(eps) + 1)
     
 
 
