@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
 from sklearn.utils.optimize import newton_cg
-from scipy.special import expit
+from scipy.special import expit, exprel
 from scipy.linalg import eigvalsh
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.linear_model.base import LinearClassifierMixin, BaseEstimator
@@ -296,7 +296,8 @@ class EBLogisticRegression(BayesianLogisticRegression):
 
 def lam(eps):
     ''' Calculates lambda eps (used for Jaakola & Jordan local bound) '''
-    return 0.5 / eps * ( expit(eps) - 0.5 )
+    eps = -abs(eps)
+    return 0.25*exprel(eps)/(np.exp(eps)+1)
     
 
 
