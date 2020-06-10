@@ -40,7 +40,8 @@ if __name__=='__main__':
           'numpy>=1.9.2',
           'scipy>=0.15.1',
           'scikit-learn>=0.17',
-          'cython>=0.24'],
+          'cython>=0.24',
+          'six>=1.13.0,<2.0.0'],
        test_suite='tests',
        tests_require=[
           'coverage>=3.7.1',

@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.base import RegressorMixin
-from sklearn.linear_model.base import LinearModel
+from sklearn.linear_model._base import LinearModel
 from sklearn.utils import check_X_y, check_array, as_float_array
 from sklearn.utils.validation import check_is_fitted
 from scipy.linalg import svd

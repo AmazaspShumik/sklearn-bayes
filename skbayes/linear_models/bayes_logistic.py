@@ -4,7 +4,7 @@ from sklearn.utils.optimize import newton_cg
 from scipy.special import expit, exprel
 from scipy.linalg import eigvalsh
 from sklearn.utils.multiclass import check_classification_targets
-from sklearn.linear_model.base import LinearClassifierMixin, BaseEstimator
+from sklearn.linear_model._base import LinearClassifierMixin, BaseEstimator
 from sklearn.utils import check_X_y
 from scipy.linalg import solve_triangular
 from sklearn.linear_model.logistic import ( _logistic_loss_and_grad, _logistic_loss, 
