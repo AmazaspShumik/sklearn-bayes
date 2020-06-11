@@ -5,11 +5,12 @@ from Cython.Build import cythonize
 import numpy as np
 
 ext_modules = cythonize('skbayes/decomposition_models/gibbs_lda_cython.pyx') + \
-                  cythonize('skbayes/hidden_markov_models/hmm.pyx')
+              cythonize('skbayes/hidden_markov_models/hmm.pyx')
 
-# Note: cythonize(include_path) doesn't work, see https://github.com/cython/cython/issues/1480
 for ext in ext_modules:
+    # Note: cythonize(include_path) doesn't work, see https://github.com/cython/cython/issues/1480
     ext.include_dirs.append(np.get_include())
+    ext.extra_compile_args = ['-O3']
 
 setup(
     name = 'skbayes',
