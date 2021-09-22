@@ -1,8 +1,8 @@
 import numpy as np
-import six
+from sklearn.externals import six
 from scipy.special import expit
 from scipy.linalg import solve_triangular
-from sklearn.linear_model._base import LinearModel, LinearClassifierMixin
+from sklearn.linear_model.base import LinearModel, LinearClassifierMixin
 from sklearn.base import RegressorMixin, BaseEstimator
 from sklearn.utils import check_X_y,check_array
 from sklearn.metrics.pairwise import pairwise_kernels

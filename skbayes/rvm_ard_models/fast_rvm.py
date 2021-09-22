@@ -1,11 +1,10 @@
 import numpy as np
 from sklearn.base import RegressorMixin, BaseEstimator
-import six
-from sklearn.linear_model._base import LinearModel, LinearClassifierMixin
+from sklearn.externals import six
+from sklearn.linear_model.base import LinearModel, LinearClassifierMixin
 from sklearn.utils import check_X_y,check_array,as_float_array
 from sklearn.utils.multiclass import check_classification_targets
-from scipy.linalg import pinvh
-from sklearn.utils.extmath import log_logistic,safe_sparse_dot
+from sklearn.utils.extmath import pinvh,log_logistic,safe_sparse_dot 
 from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.utils.validation import check_is_fitted
 from scipy.special import expit
